@@ -1,0 +1,53 @@
+# resource directories
+data_dir: "data/"
+
+# logging, see https://docs.python.org/3/library/logging.config.html#logging-config-fileformat
+logging:
+  formatters:
+    simple:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: simple
+      stream: ext://sys.stdout
+  loggers:
+    simpleExample:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+  root:
+    level: DEBUG
+    handlers: [console]
+
+## CORS setting for the web API
+CORS:
+  allowed_origins:
+    - "*"
+  allowed_methods:
+    - "OPTIONS"
+    - "GET"
+    - "PUT"
+    - "POST"
+    - "DELETE"
+    - "HEAD"
+  allowed_headers:
+    - "X-Requested-With"
+    - "Content-Type"
+    - "Accept"
+    - "Origin"
+
+## web app/API settings
+api:
+  port: 8050 
+  host: "0.0.0.0"
+  # to specify a custom default header in the response
+  #header: 
+  log_level: "debug"
+  reload: false
+  # the following is used in the generated API documentation
+  version: "0.1"
+  name: "KISP web app and API"
+  description: "Keep It Simple and Painful"
+  api_route: ""

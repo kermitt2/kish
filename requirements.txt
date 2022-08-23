@@ -1,0 +1,9 @@
+fastapi==0.68.2
+uvicorn
+python-multipart
+regex==2021.11.10
+pyfiglet
+pyyaml
+aiofiles
+jinja2==3.0.3
+pytest==6.2.5
