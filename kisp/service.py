@@ -15,6 +15,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
+# for managing users and authentication
+from kisp.db import User, create_db_and_tables
+from kisp.schemas import UserCreate, UserRead, UserUpdate
+from kisp.users import auth_backend, current_active_user, fastapi_users
+
 '''
     The web API uses the FastAPI framework. 
 '''
@@ -29,8 +34,6 @@ tags_metadata = [
         "description": "CRUD for annotation data"
     }
 ]
-
-scorer = None
 
 '''
     Note: managing config is a bit complicated because FastAPI supports a configuration via
@@ -49,6 +52,30 @@ def get_app(server_config) -> FastAPI:
     #server.include_router(router, prefix=server_config['api_route'])
     server.include_router(router)
 
+    server.include_router(
+        fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
+    )
+    server.include_router(
+        fastapi_users.get_register_router(UserRead, UserCreate),
+        prefix="/auth",
+        tags=["auth"],
+    )
+    server.include_router(
+        fastapi_users.get_reset_password_router(),
+        prefix="/auth",
+        tags=["auth"],
+    )
+    server.include_router(
+        fastapi_users.get_verify_router(UserRead),
+        prefix="/auth",
+        tags=["auth"],
+    )
+    server.include_router(
+        fastapi_users.get_users_router(UserRead, UserUpdate),
+        prefix="/users",
+        tags=["users"],
+    )
+
     origins = ["*"]
 
     server.add_middleware(
@@ -66,6 +93,7 @@ def get_app(server_config) -> FastAPI:
     async def startup_message() -> None:
         ascii_banner = pyfiglet.figlet_format("KISP")
         print(ascii_banner)
+        await create_db_and_tables()
 
     @server.on_event("shutdown")
     async def shutdown() -> None:
