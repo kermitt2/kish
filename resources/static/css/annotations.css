@@ -4,17 +4,17 @@
  *  Author: Patrice Lopez        
  */
 
-html, body {
+/*html, body {
   background-color: #D8D8D8;
   color:#70695C; 
   word-break:normal;
   font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 body {
-  padding-top: 20px; /* 40px to make the container go all the way to the bottom of the topbar */
+  padding-top: 20px; 
   font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#70695C; 
-}
+}*/
 
 .content {
   background-color: #fff;
