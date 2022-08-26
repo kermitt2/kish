@@ -1,15 +1,14 @@
 import io
 import os
 import yaml
-import re
 
-from unicode_utils import normalize_text
+global_config = None
 
 def _load_config(config_file='./config.yaml'):
     """
-    Load the json configuration 
+    Load the json configuration, and keep a global instance available 
     """
-
+    global global_config
     config = None
     if config_file and os.path.exists(config_file) and os.path.isfile(config_file):
         with open(config_file, 'r') as the_file:
@@ -26,5 +25,6 @@ def _load_config(config_file='./config.yaml'):
     else:
         msg = "Error: configuration file is not valid: " + str(config_file)
         raise Exception(msg)
+    global_config = configuration
 
     return configuration

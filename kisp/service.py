@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 # for managing users and authentication
 from kisp.db import User, create_db_and_tables
 from kisp.schemas import UserCreate, UserRead, UserUpdate
-from kisp.users import auth_backend, current_active_user, fastapi_users
+from kisp.utils import _load_config
 
 '''
     The web API uses the FastAPI framework. 
@@ -87,7 +87,7 @@ def get_app(server_config) -> FastAPI:
     )
 
     # in case we want to mount directly accessible files
-    #server.mount("/frontend", StaticFiles(directory="kisp/static"), name="static")
+    server.mount("/app", StaticFiles(directory="resources/static"), name="static")
 
     @server.on_event("startup")
     async def startup_message() -> None:
@@ -107,12 +107,15 @@ def get_app(server_config) -> FastAPI:
     return server
 
 def load_server_config(config_path):
+    """
     yaml_settings = dict()
 
     yaml_config_file = os.path.abspath(config_path)
     with open(yaml_config_file) as f:
         yaml_settings.update(yaml.load(f, Loader=yaml.FullLoader))
+    """
 
+    yaml_settings = _load_config(config_file=config_path)
     return yaml_settings['api']
 
 if __name__ == '__main__':
@@ -131,6 +134,7 @@ if __name__ == '__main__':
 
     # use uvicorn to serve the app, we again have to set the configuration parameters outside the app because uvicorn is an independent layer
     server_config = load_server_config(config_path)
+    from kisp.users import auth_backend, current_active_user, fastapi_users
 
     app = get_app(server_config)
 
