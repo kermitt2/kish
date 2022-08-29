@@ -16,7 +16,7 @@ from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 # for managing users and authentication
-from kisp.db import User, create_db_and_tables
+from kisp.db_users import User, create_db_and_tables
 from kisp.schemas import UserCreate, UserRead, UserUpdate
 from kisp.utils import _load_config
 
