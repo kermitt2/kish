@@ -16,6 +16,9 @@
     <!-- SLEEK CSS -->
     <link id="sleek-css" rel="stylesheet" href="assets/css/sleek-dark.css" />
 
+    <script src="assets/plugins/jquery/jquery.min.js"></script>
+    <script src="js/base.js"></script>
+    <script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/plugins/nprogress/nprogress.js"></script>
   </head>
 
@@ -45,21 +48,21 @@
             <div class="card-body p-5">
               <h4 class="text-dark mb-5">Sign In</h4>
               
-              <form action="/index.html">
+              <form id="sign-in-form">
                 <div class="row">
-                  <div class="form-group col-md-12 mb-4">
-                    <input type="email" class="form-control input-lg" id="email" aria-describedby="emailHelp" placeholder="Email">
+                  <div id="div-username" class="form-group col-md-12 mb-4">
+                    <input type="email" class="form-control input-lg" id="username" name="username" aria-describedby="emailHelp" placeholder="Email">
                   </div>
 
-                  <div class="form-group col-md-12 ">
-                    <input type="password" class="form-control input-lg" id="password" placeholder="Password">
+                  <div id="div-password" class="form-group col-md-12 ">
+                    <input type="password" class="form-control input-lg" id="password" name="password" placeholder="Password">
                   </div>
 
                   <div class="col-md-12">
                     <div class="d-flex my-2 justify-content-between">
                       <div class="d-inline-block mr-3">
                         <label class="control control-checkbox">Remember me
-                          <input type="checkbox" />
+                          <input type="checkbox" checked/>
                           <div class="control-indicator"></div>
                         </label>
                       </div>
@@ -67,7 +70,9 @@
                       <p><a class="text-blue" href="#">Forgot Your Password?</a></p>
                     </div>
 
-                    <button type="submit" class="btn btn-lg btn-primary btn-block mb-4">Sign In</button>
+                    <div id="div-submit">
+                      <button type="submit" id="sign-in-button" class="btn btn-lg btn-primary btn-block mb-4">Sign In</button>
+                    </div>
 
                     <p>Don't have an account yet ?
                       <a class="text-blue" href="sign-up.html">Sign Up</a>
@@ -80,18 +85,6 @@
         </div>
       </div>
     </div>
-
-
-    <!-- <script type="module">
-      import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
-
-      const el = document.createElement('pwa-update');
-      document.body.appendChild(el);
-    </script> -->
-
-    <!-- Javascript -->
-    <script src="assets/plugins/jquery/jquery.min.js"></script>
-    <script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/sleek.js"></script>
+    
 </body>
 </html>
