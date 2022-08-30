@@ -30,8 +30,12 @@ tags_metadata = [
         "description": "general information on the web service"
     },
     {
+        "name": "tasks",
+        "description": "CRUD for labeling tasks"
+    },
+    {
         "name": "data",
-        "description": "CRUD for annotation data"
+        "description": "CRUD for annotation and classification data"
     }
 ]
 
