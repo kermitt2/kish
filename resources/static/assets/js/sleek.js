@@ -264,7 +264,7 @@ $(document).ready(function () {
     }
 
   /*======== TOASTER ========*/
-  function callToaster(positionClass) {
+  /*function callToaster(positionClass) {
     if (document.getElementById("toaster")) {
       toastr.options = {
         closeButton: true,
@@ -285,13 +285,15 @@ $(document).ready(function () {
       };
       toastr.success("Welcome to KISP", "Yo!");
     }
-  }
+  }*/
 
-  if (document.dir != "rtl" ){
+  /*if (document.dir != "rtl" ){
     callToaster("toast-top-right");
   }else {
     callToaster("toast-top-left");
-  }
+  }*/
+
+  //callToaster("toast-top-center");
 
   /*======== PROGRESS BAR ========*/
   NProgress.done();

@@ -51,6 +51,10 @@ api:
   name: "KISP web app and API"
   description: "Keep It Simple and Painful"
   api_route: ""
+  
+  # default admin super-user when not existing (keep password secret)
+  admin: "admin"
+  admin_password: ""
   # pass phrase for signing reset and verification password token (choose something strong)
   passphrase: ""
   # lifetime in seconds of reset and verification token
