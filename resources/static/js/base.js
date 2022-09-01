@@ -102,6 +102,7 @@ var base = (function($) {
                 data["first_name"] = forname;
             if (lastname != null && lastname.length > 0)
                 data["last_name"] = lastname;
+            data["role"] = "annotator"
 
             var xhr = new XMLHttpRequest();
             xhr.open("POST", url, true);

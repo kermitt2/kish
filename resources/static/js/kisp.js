@@ -36,11 +36,25 @@ var kisp = (function($) {
             return true;
         });
 
+        $("#users-home").click(function() {
+            clearMainContent();
+            displayUsers();
+            return true;
+        });
+
+        $("#datasets-home").click(function() {
+            clearMainContent();
+            displayDatasets();
+            return true;
+        });
+
     });
 
     function clearMainContent() {
         $("#user-settings").hide();
         $("#task-view").hide();
+        $("#user-view").hide();
+        $("#dataset-view").hide();
     }
 
     function defineBaseURL(ext) {
@@ -75,16 +89,8 @@ var kisp = (function($) {
             // status
             if (xhr.status == 200) {
                 userInfo = JSON.parse(xhr.responseText);
+                updateUserSettings();
                 console.log(userInfo);
-                $('#display-name-header').html(userInfo["email"]);
-                document.querySelector("body").style.visibility = "visible";
-                var nameSpace = "";
-                if (userInfo["first_name"]) 
-                    nameSpace += userInfo["first_name"] + " ";
-                if (userInfo["last_name"]) 
-                    nameSpace += userInfo["last_name"] + " ";
-                nameSpace += "<small class=\"pt-1\">" + userInfo["email"] + "</small>";
-                $('#display-name').html(nameSpace);
             } else {
                 // not authorized, redirect to login page (note it should not happen 
                 // as the page would be served under a protected route)
@@ -93,6 +99,19 @@ var kisp = (function($) {
         };
 
         xhr.send(null);
+    }
+
+    function updateUserSettings() {
+        $('#display-name-header').html(userInfo["email"]);
+        document.querySelector("body").style.visibility = "visible";
+        var nameSpace = "";
+        if (userInfo["first_name"]) 
+            nameSpace += userInfo["first_name"] + " ";
+        if (userInfo["last_name"]) 
+            nameSpace += userInfo["last_name"] + " ";
+        nameSpace += "<small class=\"pt-1\">" + userInfo["email"] + "</small>";
+        $('#display-name').html(nameSpace);
+        $('#display-role').html("<small class=\"pt-1\">" + userInfo["role"] + "</small>");
     }
 
     function logout() {
@@ -188,6 +207,7 @@ var kisp = (function($) {
                 } else {
                     // otherwise update is done, update local user settings and notify the change
                     userInfo = JSON.parse(xhr.responseText);
+                    updateUserSettings();
                     callToaster("toast-top-center", "success", "Your profile is updated", "Yes!");
                 }
             };
@@ -273,32 +293,136 @@ var kisp = (function($) {
 
     function displayTasks() {
         $("#task-view").show();
+        var url = defineBaseURL("tasks");
 
         // retrieve the existing task information
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", url, true);
+        xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
         xhr.onloadend = function () {
             // status
-            if (xhr.status != 200 && xhr.status != 201) {
+            if (xhr.status != 200) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
-                $('#div-submit').append("<div class=\"invalid-feedback\" style=\"color:red; display:inline;\">Error user registration: <br/>"+
-                    response["detail"]+"</div>");
-                callToaster("toast-top-center", "error", response["detail"], "Didn't work!");
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing tasks didn't work!");
+                $("#task-view-table").html("<tr><td>No tasks available</td></tr>");
             } else {
-                // otherwise update is done, update local user settings and notify the change
-                userInfo = JSON.parse(xhr.responseText);
-                callToaster("toast-top-center", "success", "Your profile is updated", "Yes!");
+                // otherwise go through the tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"].length == 0) {
+                    $("#task-view-table").html("<tr><td>No tasks available</td></tr>");
+                } else {
+                    var tableContent = ""
+                    for(var pos in response["records"]) {
+                        tableContent += "<tr><td id=\"task-"+pos+"\"></td></tr>\n";
+                    }
+                    $("#task-view-table").html(tableContent);
+                    for(var pos in response["records"]) {
+                        displayTask(pos, response["records"][pos]);
+                    }
+                }
+            }
+        };
+
+        xhr.send(null);
+    }
+
+    function displayTask(pos, taskIdentifier) {
+        var url = defineBaseURL("tasks/"+taskIdentifier);
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing tasks didn't work!");
+            } else {
+                // otherwise display the task information
+                var response = JSON.parse(xhr.responseText);
+                var taskContent = response["record"]["name"];
+                $("#task-"+pos).html(taskContent);
+                console.log(taskContent);
             }
         };
 
         // send the collected data as JSON
-        xhr.send(JSON.stringify(data));
+        xhr.send(null);
     }
 
+    function displayUsers() {
+        $("#user-view").show();
+        var url = defineBaseURL("users");
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing users didn't work!");
+                $("#user-view-table").html("<tr><td>No Users available</td></tr>");
+            } else {
+                // otherwise go through the tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"].length == 0) {
+                    $("#user-view-table").html("<tr><td>No Users available</td></tr>");
+                } else {
+                    var tableContent = ""
+                    for(var pos in response["records"]) {
+                        tableContent += "<tr><td id=\"user-"+pos+"\"></td></tr>\n";
+                    }
+                    $("#user-view-table").html(tableContent);
+                    for(var pos in response["records"]) {
+                        displayUser(pos, response["records"][pos]["id"]);
+                    }
+                }
+            }
+        };
+
+        xhr.send(null);
+    }
+
+    function displayUser(pos, userIdentifier) {
+        var url = defineBaseURL("users/"+userIdentifier);
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing users didn't work!");
+            } else {
+                // otherwise display the task information
+                var response = JSON.parse(xhr.responseText);
+                console.log(response)
+                var userContent = response["email"];
+                $("#user-"+pos).html(userContent);
+                console.log(userContent);
+            }
+        };
+
+        // send the collected data as JSON
+        xhr.send(null);
+    }
 
 
 })(jQuery);

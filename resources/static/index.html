@@ -216,9 +216,29 @@
 
               <div class="navbar-right ">
                 <ul class="nav navbar-nav">
+                  <li id="datasets-home" class="top-bar-menu">
+                    <button class="home">
+                      <span> <i class="mdi mdi-home"></i> Datasets</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="navbar-right ">
+                <ul class="nav navbar-nav">
                   <li id="tasks-home" class="top-bar-menu">
                     <button class="home">
-                      <span> <i class="mdi mdi-home"></i> TASKS</span>
+                      <span> <i class="mdi mdi-home"></i> Tasks</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="navbar-right ">
+                <ul class="nav navbar-nav">
+                  <li id="users-home" class="top-bar-menu">
+                    <button class="home">
+                      <span> <i class="mdi mdi-home"></i> Users</span>
                     </button>
                   </li>
                 </ul>
@@ -278,9 +298,8 @@
                       <!-- User image -->
                       <li class="dropdown-header">
                         <!--img src="assets/img/user/user.png" class="img-circle" alt="User Image" /-->
-                        <div id="display-name" class="d-inline-block">
-                          Forname Lastname <small class="pt-1">email@email.com</small>
-                        </div>
+                        <div id="display-name" class="d-inline-block"></div>
+                        <div id="display-role"></div>
                       </li>
 
                       <!--li>
@@ -317,13 +336,29 @@
             <div id="main-content" class="content d-flex justify-content-center">
 
               <!-- ====================================
-              ——— USER settings
+              ——— List of datasets
               ===================================== -->
-
-              <div id="task-view" class="col-lg-11 col-xl-12"  style="display:none;">
-                No tasks available
+              <div id="dataset-view" class="col-lg-11 col-xl-12"  style="display:none;">
+                <table id="dataset-view-table" class="table table-borderless"></table>
               </div>
 
+              <!-- ====================================
+              ——— List of tasks
+              ===================================== -->
+              <div id="task-view" class="col-lg-11 col-xl-12"  style="display:none;">
+                <table id="task-view-table" class="table table-borderless"></table>
+              </div>
+
+              <!-- ====================================
+              ——— List of users
+              ===================================== -->
+              <div id="user-view" class="col-lg-11 col-xl-12"  style="display:none;">
+                <table id="user-view-table" class="table table-borderless"></table>
+              </div>
+
+              <!-- ====================================
+              ——— USER settings
+              ===================================== -->
               <div id="user-settings" class="bg-dark border rounded col-lg-6 col-xl-7" style="display:none;">
                 <div class="row no-gutters justify-content-center">
                   <!--div class="col-lg-4 col-xl-3">
