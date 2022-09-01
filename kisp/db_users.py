@@ -7,6 +7,8 @@ from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Table, Column, Integer, String
 
+import contextlib
+
 DATABASE_URL = "sqlite+aiosqlite:///./resources/data/users.db"
 Base: DeclarativeMeta = declarative_base()
 
@@ -29,4 +31,5 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
 
-
+def row2dict(row):
+    return row._asdict()

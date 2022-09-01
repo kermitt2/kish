@@ -31,9 +31,23 @@ def get_version():
     api_settings = scorer.config['api']
     return api_settings['version']
 
+@router.get("/users", tags=["users"],
+    description="Return the list of available users.")
+async def get_users():
+    start_time = time.time()
+    result = {}
+    result['count'] = 1
+    #records = []
+    from utils_db import get_users
+    records = await get_users()
+    
+    result['records'] = records
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
 @router.get("/tasks", tags=["tasks"],
     description="Return the list of available tasks.")
-def get_tasks():
+async def get_tasks():
     start_time = time.time()
     result = {}
     result['count'] = 1
@@ -52,3 +66,5 @@ async def get_task(identifier: str):
     result['record'] = task.to_dict()
     result['runtime'] = round(time.time() - start_time, 3)
     return result
+
+

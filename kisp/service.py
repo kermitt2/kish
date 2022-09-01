@@ -98,6 +98,9 @@ def get_app(server_config) -> FastAPI:
         ascii_banner = pyfiglet.figlet_format("KISP")
         print(ascii_banner)
         await create_db_and_tables()
+        from kisp.utils_db import create_user
+        import asyncio
+        await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
 
     @server.on_event("shutdown")
     async def shutdown() -> None:
@@ -138,7 +141,7 @@ if __name__ == '__main__':
 
     # use uvicorn to serve the app, we again have to set the configuration parameters outside the app because uvicorn is an independent layer
     server_config = load_server_config(config_path)
-    from kisp.users import auth_backend, current_active_user, fastapi_users
+    from kisp.users_manager import auth_backend, current_active_user, fastapi_users
 
     app = get_app(server_config)
 
