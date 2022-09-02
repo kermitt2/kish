@@ -10,13 +10,13 @@ from functools import lru_cache
 import yaml
 import argparse
 from pathlib import Path
-from router import router
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 # for managing users and authentication
-from kisp.db_users import User, create_db_and_tables
+from kisp.db import User, create_db_and_tables
 from kisp.schemas import UserCreate, UserRead, UserUpdate
 from kisp.utils import _load_config
 
@@ -54,6 +54,8 @@ def get_app(server_config) -> FastAPI:
         version=server_config['version'],
         openapi_tags=tags_metadata)
     #server.include_router(router, prefix=server_config['api_route'])
+    
+    from router import router
     server.include_router(router)
 
     server.include_router(

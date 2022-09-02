@@ -11,7 +11,7 @@ from fastapi_users.authentication import (
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users import InvalidPasswordException
 from kisp.schemas import UserCreate
-from kisp.db_users import User, get_user_db
+from kisp.db import User, get_user_db
 from kisp.utils import global_config
 
 SECRET = global_config["api"]["passphrase"]
