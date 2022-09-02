@@ -91,6 +91,11 @@ var kisp = (function($) {
                 userInfo = JSON.parse(xhr.responseText);
                 updateUserSettings();
                 console.log(userInfo);
+
+                if (userInfo["role"] == "admin") {
+                    $("#users-home").show();
+                }
+
             } else {
                 // not authorized, redirect to login page (note it should not happen 
                 // as the page would be served under a protected route)
@@ -380,18 +385,21 @@ var kisp = (function($) {
                 if (response["records"].length == 0) {
                     $("#user-view-table").html("<tr><td>No Users available</td></tr>");
                 } else {
-                    var tableContent = ""
+                    var tableContent = 
+                        "<thead><tr><td style=\"width:5%;\"></td>" + 
+                        "<td style=\"width:30%;\">email</td><td style=\"width:10%;\">first name</td><td style=\"width:10%;\">" + 
+                        "last name</td><td style=\"width:10%;\">role</td><td style=\"width:10%;\">action</td></tr></thead><tbody>";
                     for(var pos in response["records"]) {
-                        tableContent += "<tr><td id=\"user-"+pos+"\"></td></tr>\n";
+                        tableContent += "<tr id=\"user-"+pos+"\"></tr>\n";
                     }
+                    tableContent += "</tbody>";
                     $("#user-view-table").html(tableContent);
                     for(var pos in response["records"]) {
-                        displayUser(pos, response["records"][pos]["id"]);
+                        displayUser(pos, response["records"][pos]);
                     }
                 }
             }
         };
-
         xhr.send(null);
     }
 
@@ -414,8 +422,24 @@ var kisp = (function($) {
                 // otherwise display the task information
                 var response = JSON.parse(xhr.responseText);
                 console.log(response)
-                var userContent = response["email"];
+                var userContent = "<td><i class=\"mdi mdi-account-box\"></td><td>"+response["email"]+"</td>";
+                if (response["first_name"])
+                    userContent += "<td>"+response["first_name"]+"</td>";
+                else
+                    userContent += "<td></td>";
+                if (response["first_name"])
+                    userContent += "<td>"+response["last_name"]+"</td>";
+                else
+                    userContent += "<td></td>";
+                userContent += "<td>"+response["role"]+"</td>";
+                userContent += "<td><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
+                    "<a href=\"#\"><span id=\"delete-user-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
                 $("#user-"+pos).html(userContent);
+                $("#delete-user-"+pos).click(function() {
+                    deleteUser(userIdentifier);
+                    //clearMainContent();
+                    return true;
+                });
                 console.log(userContent);
             }
         };
@@ -424,5 +448,32 @@ var kisp = (function($) {
         xhr.send(null);
     }
 
+    function deleteUser(userIdentifier) {
+        event.preventDefault();
+        var url = defineBaseURL("users/"+userIdentifier);
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("DELETE", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200 && xhr.status != 204) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, deleting user didn't work!");
+            } else {
+                callToaster("toast-top-center", "success", "", "User has been deleted!");
+            }
+            displayUsers()
+        };
+
+        // send the collected data as JSON
+        xhr.send(null);
+
+
+    }
 
 })(jQuery);
