@@ -54,7 +54,7 @@ def get_app(server_config) -> FastAPI:
         version=server_config['version'],
         openapi_tags=tags_metadata)
     #server.include_router(router, prefix=server_config['api_route'])
-    
+
     from router import router
     server.include_router(router)
 
@@ -100,9 +100,10 @@ def get_app(server_config) -> FastAPI:
         ascii_banner = pyfiglet.figlet_format("KISP")
         print(ascii_banner)
         await create_db_and_tables()
-        from kisp.utils_db import create_user
+        from kisp.utils_db import create_user, test_init
         import asyncio
         await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
+        await test_init()
 
     @server.on_event("shutdown")
     async def shutdown() -> None:

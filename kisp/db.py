@@ -5,7 +5,7 @@ from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, Float, DateTime
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, Float, DateTime, Boolean
 
 import contextlib
 
@@ -53,6 +53,7 @@ class Excerpt(Base):
 
     id = Column(Integer, primary_key=True)
     text = Column(String)
+    full_context = Column(String)
     document_id = Column(Integer, ForeignKey("document.id"), nullable=False)
     offset_start = Column(Integer)
     offset_end = Column(Integer)
@@ -82,6 +83,7 @@ class Annotation(Base):
     offset_start = Column(Integer)
     offset_end = Column(Integer)
     source = Column(String)
+    value = Column(Boolean)
     score = Column(Float)
     chunk = Column(String)
     date = Column(DateTime)
@@ -89,7 +91,7 @@ class Annotation(Base):
 class Dataset(Base):
     __tablename__ = "dataset"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     name = Column(String)
     description = Column(String)
     image_url = Column(String)
