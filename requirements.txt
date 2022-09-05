@@ -5,9 +5,9 @@ regex==2021.11.10
 pyfiglet
 pyyaml
 aiofiles
-#jinja2==3.0.3
 pytest==6.2.5
 aiosqlite==0.17.0 
 fastapi-users[sqlalchemy,oauth]==10.1
 httpx
 httpx-oauth
+ijson
