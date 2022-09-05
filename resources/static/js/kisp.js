@@ -296,6 +296,102 @@ var kisp = (function($) {
         return validation;
     }
 
+    function displayDatasets() {
+        $("#dataset-view").show();
+        var url = defineBaseURL("datasets");
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing datasets didn't work!");
+                $("#dataset-view-table").html("<tr><td>No dataset available</td></tr>");
+            } else {
+                // otherwise go through the tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"].length == 0) {
+                    $("#dataset-view-table").html("<tr><td>No dataset available</td></tr>");
+                } else {
+                    var tableContent = 
+                        "<thead><tr><td style=\"width:10%;\"></td>" + 
+                        "<td style=\"width:10%;\">Dataset</td><td style=\"width:30%;\">Description</td>"+
+                        "<td style=\"width:10%;\"># documents</td><td style=\"width:10%;\"># excerpts</td><td style=\"width:10%;\"># tasks</td>"+
+                        "<td style=\"width:20%;\">Action</td></tr></thead><tbody>";
+                    for(var pos in response["records"]) {
+                        tableContent += "<tr id=\"dataset-"+pos+"\"></tr>\n";
+                    }
+                    tableContent += "</tbody>";
+                    $("#dataset-view-table").html(tableContent);
+                    for(var pos in response["records"]) {
+                        displayDataset(pos, response["records"][pos]);
+                    }
+                }
+            }
+        };
+
+        xhr.send(null);
+    }
+
+    function displayDataset(pos, datasetIdentifier) {
+        var url = defineBaseURL("datasets/"+datasetIdentifier);
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing datasets didn't work!");
+            } else {
+                // otherwise display the dataset information
+                var response = JSON.parse(xhr.responseText);
+                response = response["record"]
+                console.log(response)
+                var datasetContent = "<td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td><td>"+response["name"]+"</td>";
+                if (response["description"])
+                    datasetContent += "<td>"+response["description"]+"</td>";
+                else
+                    datasetContent += "<td></td>";
+                if (response["nb_documents"])
+                    datasetContent += "<td>"+response["nb_documents"]+"</td>";
+                else
+                    datasetContent += "<td>0</td>";
+                if (response["nb_excerpts"])
+                    datasetContent += "<td>"+response["nb_excerpts"]+"</td>";
+                else
+                    datasetContent += "<td>0</td>";
+                if (response["nb_tasks"])
+                    datasetContent += "<td>"+response["nb_tasks"]+"</td>";
+                else
+                    datasetContent += "<td>0</td>";
+                datasetContent += "<td><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
+                    "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
+                $("#dataset-"+pos).html(datasetContent);
+                $("#delete-dataset-"+pos).click(function() {
+                    deleteDataset(datasetIdentifier);
+                    //clearMainContent();
+                    return true;
+                });
+                console.log(datasetContent);
+            }
+        };
+
+        // send the collected data as JSON
+        xhr.send(null);
+    }
+
     function displayTasks() {
         $("#task-view").show();
         var url = defineBaseURL("tasks");
@@ -406,7 +502,7 @@ var kisp = (function($) {
     function displayUser(pos, userIdentifier) {
         var url = defineBaseURL("users/"+userIdentifier);
 
-        // retrieve the existing task information
+        // retrieve the existing user information
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -419,7 +515,7 @@ var kisp = (function($) {
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, accessing users didn't work!");
             } else {
-                // otherwise display the task information
+                // otherwise display the user information
                 var response = JSON.parse(xhr.responseText);
                 console.log(response)
                 var userContent = "<td><i class=\"mdi mdi-account-box\"></td><td>"+response["email"]+"</td>";
