@@ -19,29 +19,37 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
 class Label(Base):
     '''
-    A task can have N labels
+    A dataset can have N labels
     '''
     __tablename__ = "label"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     name = Column(String)
     color = Column(String)
     description = Column(String)
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False)
+    dataset_id = Column(Integer, ForeignKey("dataset.id"))
 
 class Task(Base):
+    '''
+    If a task is a redundant task, it is indicated by the redundant field
+    pointing to the primary task. A user cannot be assigned to more than one 
+    task corresponding to the same primary task. 
+    '''
     __tablename__ = "task"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     name = Column(String)
     description = Column(String)
-    image_url = Column(String)
     type = Column(String)
+    redundant = Column(Integer, ForeignKey("task.id"))
 
 class Document(Base):
     __tablename__ = "document"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
+    doi = Column(String)
+    pmc = Column(String)
+    pmid = Column(String)
     pdf_uri = Column(String)
     tei_uri = Column(String)
 
@@ -51,20 +59,21 @@ class Excerpt(Base):
     '''
     __tablename__ = "excerpt"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     text = Column(String)
     full_context = Column(String)
     document_id = Column(Integer, ForeignKey("document.id"), nullable=False)
+    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
     offset_start = Column(Integer)
     offset_end = Column(Integer)
     
-class Coordinates(Base):
+class Coordinate(Base):
     '''
     A bounding box. An excerpt can have N bounding boxes
     '''
-    __tablename__ = "coordinates"
+    __tablename__ = "coordinate"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     page = Column(Integer)
     x = Column(Float)
     y = Column(Float)
@@ -75,11 +84,12 @@ class Coordinates(Base):
 class Annotation(Base):
     __tablename__ = "annotation"
 
-    id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False)
+    id = Column(String, primary_key=True)
+    task_id = Column(Integer, ForeignKey("task.id"))
     excerpt_id = Column(Integer, ForeignKey("excerpt.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id"))
     label_id = Column(Integer, ForeignKey("label.id"), nullable=False)
+    original_id = Column(String)
     offset_start = Column(Integer)
     offset_end = Column(Integer)
     source = Column(String)
@@ -95,6 +105,8 @@ class Dataset(Base):
     name = Column(String)
     description = Column(String)
     image_url = Column(String)
+    nb_documents = Column(Integer)
+    nb_excerpts = Column(Integer)
 
 class InCollection(Base):
     '''
@@ -106,6 +118,26 @@ class InCollection(Base):
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False, primary_key=True)
     document_id = Column(Integer, ForeignKey("document.id"), nullable=False, primary_key=True)
     
+class InTask(Base):
+    '''
+    N-N relation between a task and an excerpt 
+    '''
+    __tablename__ = "intask"
+
+    task_id = Column(Integer, ForeignKey("task.id"), nullable=False, primary_key=True)
+    excerpt_id = Column(Integer, ForeignKey("excerpt.id"), nullable=False, primary_key=True)
+
+class Assign(Base):
+    '''
+    N-N relation for user assigned to task
+    '''
+    __tablename__ = "assign"
+
+    task_id = Column(Integer, ForeignKey("task.id"), nullable=False, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False, primary_key=True)
+    in_progress = Column(Boolean)
+    completed_excerpts = Column(Integer)
+
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

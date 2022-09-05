@@ -37,10 +37,8 @@ async def get_users(user: User = Depends(current_superuser)):
     start_time = time.time()
     result = {}
     result['count'] = 1
-    #records = []
     from utils_db import get_items
     records = await get_items("user")
-    
     result['records'] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
@@ -63,7 +61,37 @@ async def get_task(identifier: str):
     start_time = time.time()
     result = {}
     from utils_db import get_item
-    result['record'] = get_item("task", identifier)
+    item = await get_item("task", identifier)
+    if item == None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    else:
+        result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.get("/datasets", tags=["datasets"],
+    description="Return the list of available datasets.")
+async def get_datasets():
+    start_time = time.time()
+    result = {}
+    result['count'] = 1
+    from utils_db import get_items
+    records = await get_items("dataset")
+    result['records'] = records
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/datasets/{identifier}", tags=["datasets"], 
+    description="Return a dataset by its id")
+async def get_dataset(identifier: str):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_item
+    item = await get_item("dataset", identifier)
+    print(item)
+    if item == None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    else:
+        result['record'] = item
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result

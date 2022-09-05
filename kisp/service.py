@@ -31,11 +31,11 @@ tags_metadata = [
     },
     {
         "name": "tasks",
-        "description": "CRUD for labeling tasks"
+        "description": "Labeling/classification tasks"
     },
     {
-        "name": "data",
-        "description": "CRUD for annotation and classification data"
+        "name": "datasets",
+        "description": "Dataset information"
     }
 ]
 
