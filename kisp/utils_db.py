@@ -31,7 +31,7 @@ async def create_user(email: str, password: str, is_superuser: bool = False, rol
                             email=email, password=password, is_superuser=is_superuser, role=role
                         )
                     )
-                    print(f"User created {user}")
+                    #print(f"User created {user}")
     except UserAlreadyExists:
         print(f"User {email} already exists")
 
@@ -149,11 +149,12 @@ async def insert_item(table, record_as_dict, add_id=True):
     except SQLAlchemyError as e:
         error=str(e.orig)
         print("Fail to insert "+ table + " record: " + error)
+        return {"error": error}
 
     if "id" in record_as_dict:
         return record_as_dict["id"]
     else:
-        return 
+        return
 
 async def update_record(table, record_id, record_dict):
     statement = "UPDATE " + table + " SET " 
@@ -174,6 +175,76 @@ async def update_record(table, record_id, record_dict):
     except SQLAlchemyError as e:
         error=str(e.orig)
         print("Fail to update "+ table + " record: " + error)
+
+async def get_assigned_user(task_id):
+    statement = text("SELECT assign.user_id, user.email FROM assign, user WHERE task_id = '"+task_id+"'")
+    item = None
+    try:
+        async with engine.connect() as conn:
+            results = await conn.execute(statement)
+            item_row = results.first()
+            if item_row != None:
+                item = row2dict(item_row)
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in assign table: " + error)
+    return item
+
+async def get_task_attributes(task_id):
+    '''
+    Attributes here for a given task are its number of documents, number of excerpts and number of 
+    pre-annotations and user annotations    
+    '''
+    attributes = {}
+
+    # number of excerpts
+    statement = text("SELECT count(*) FROM intask WHERE task_id = '"+task_id+"'")
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(statement)
+            attributes["nb_excerpts"] = result.scalar()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in intask table: " + error)
+
+    # number of documents
+    statement = text("SELECT count(DISTINCT excerpt.document_id)" + 
+        " FROM intask, excerpt" + 
+        " WHERE intask.task_id = '"+task_id+"' AND intask.excerpt_id = excerpt.id")
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(statement)
+            attributes["nb_documents"] = result.scalar()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in intask table: " + error)
+
+    # number of annotations    
+    statement = text("SELECT count(DISTINCT annotation.id)" + 
+        " FROM intask, annotation" + 
+        " WHERE intask.task_id = '"+task_id+"' AND intask.excerpt_id = annotation.excerpt_id")
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(statement)
+            attributes["nb_annotations"] = result.scalar()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in intask table: " + error)
+
+    # number of pre-annotations    
+    statement = text("SELECT count(DISTINCT annotation.id)" + 
+        " FROM annotation" + 
+        " WHERE annotation.task_id = '"+task_id+"'")
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(statement)
+            attributes["nb_pre_annotations"] = result.scalar()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in intask table: " + error)
+
+    return attributes
+
 
 async def test_init():
     '''

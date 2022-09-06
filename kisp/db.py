@@ -27,7 +27,7 @@ class Label(Base):
     name = Column(String)
     color = Column(String)
     description = Column(String)
-    dataset_id = Column(Integer, ForeignKey("dataset.id"))
+    dataset_id = Column(String, ForeignKey("dataset.id"))
 
 class Task(Base):
     '''
@@ -38,10 +38,10 @@ class Task(Base):
     __tablename__ = "task"
 
     id = Column(String, primary_key=True)
-    dataset_id = Column(Integer, ForeignKey("dataset.id"))
+    dataset_id = Column(String, ForeignKey("dataset.id"))
     name = Column(String)
     type = Column(String)
-    redundant = Column(Integer, ForeignKey("task.id"))
+    redundant = Column(String, ForeignKey("task.id"))
 
 class Document(Base):
     __tablename__ = "document"
@@ -62,8 +62,8 @@ class Excerpt(Base):
     id = Column(String, primary_key=True)
     text = Column(String)
     full_context = Column(String)
-    document_id = Column(Integer, ForeignKey("document.id"), nullable=False)
-    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    document_id = Column(String, ForeignKey("document.id"), nullable=False)
+    dataset_id = Column(String, ForeignKey("dataset.id"), nullable=False)
     offset_start = Column(Integer)
     offset_end = Column(Integer)
     
@@ -79,16 +79,16 @@ class Coordinate(Base):
     y = Column(Float)
     h = Column(Float)
     w = Column(Float)
-    excerpt_id = Column(Integer, ForeignKey("excerpt.id"), nullable=False)
+    excerpt_id = Column(String, ForeignKey("excerpt.id"), nullable=False)
 
 class Annotation(Base):
     __tablename__ = "annotation"
 
     id = Column(String, primary_key=True)
-    task_id = Column(Integer, ForeignKey("task.id"))
-    excerpt_id = Column(Integer, ForeignKey("excerpt.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"))
-    label_id = Column(Integer, ForeignKey("label.id"), nullable=False)
+    task_id = Column(String, ForeignKey("task.id"))
+    excerpt_id = Column(String, ForeignKey("excerpt.id"), nullable=False)
+    user_id = Column(String, ForeignKey("user.id"))
+    label_id = Column(String, ForeignKey("label.id"), nullable=False)
     original_id = Column(String)
     offset_start = Column(Integer)
     offset_end = Column(Integer)
@@ -116,8 +116,8 @@ class InCollection(Base):
     '''
     __tablename__ = "incollection"
 
-    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False, primary_key=True)
-    document_id = Column(Integer, ForeignKey("document.id"), nullable=False, primary_key=True)
+    dataset_id = Column(String, ForeignKey("dataset.id"), nullable=False, primary_key=True)
+    document_id = Column(String, ForeignKey("document.id"), nullable=False, primary_key=True)
     
 class InTask(Base):
     '''
@@ -125,8 +125,8 @@ class InTask(Base):
     '''
     __tablename__ = "intask"
 
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False, primary_key=True)
-    excerpt_id = Column(Integer, ForeignKey("excerpt.id"), nullable=False, primary_key=True)
+    task_id = Column(String, ForeignKey("task.id"), nullable=False, primary_key=True)
+    excerpt_id = Column(String, ForeignKey("excerpt.id"), nullable=False, primary_key=True)
 
 class Assign(Base):
     '''
@@ -134,8 +134,8 @@ class Assign(Base):
     '''
     __tablename__ = "assign"
 
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False, primary_key=True)
+    task_id = Column(String, ForeignKey("task.id"), nullable=False, primary_key=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, primary_key=True)
     in_progress = Column(Boolean)
     completed_excerpts = Column(Integer)
 

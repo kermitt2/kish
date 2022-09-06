@@ -72,16 +72,24 @@ async def get_task(identifier: str):
         item["dataset_name"] = dataset_item["name"]
 
         # possible assigned user 
-        local_user = get_assigned_user(identifier)
-        if local_user == None:
+        from utils_db import get_assigned_user
+        local_user = await get_assigned_user(identifier)
+        if local_user == None or "user_id" not in local_user:
             item["status"] = "unassigned"
+            item["assigned"] = None
         else:
-            item["assigned_user"] = local_user["email"]
-            item["status"] = assigned
+            item["assigned"] = local_user["email"]
+            item["status"] = "assigned"
 
         # number of documents, excerpts and annotations
+        from utils_db import get_task_attributes
         task_attributes = await get_task_attributes(identifier)
-        item["nb_documents"] = task_attributes["nb_documents"]
+        if "nb_documents" in task_attributes:
+            item["nb_documents"] = task_attributes["nb_documents"]
+        if "nb_excerpts" in task_attributes:
+            item["nb_excerpts"] = task_attributes["nb_excerpts"]
+        if "nb_annotations" in task_attributes:
+            item["nb_annotations"] = task_attributes["nb_annotations"]
 
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
@@ -106,7 +114,6 @@ async def get_dataset(identifier: str):
     result = {}
     from utils_db import get_item
     item = await get_item("dataset", identifier)
-    print(item)
     if item == None:
         raise HTTPException(status_code=404, detail="Dataset not found")
     else:
@@ -124,9 +131,11 @@ async def post_self_assign_task(identifier: str, user: User = Depends(current_us
     if item == None:
         raise HTTPException(status_code=404, detail="Task not found")
     else:
-        assign_dict = { "task_id": identifier, "user_id": user.id }
+        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": False, "completed_excerpts": 0 }
         from utils_db import insert_item
-        await insert_item("assign", assign_dict, add_id=False)
+        assign_result = await insert_item("assign", assign_dict, add_id=False)
+        if assign_result != None and "error" in assign_result:
+            raise HTTPException(status_code=500, detail="Assignment failed: "+assign_result["error"])
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 

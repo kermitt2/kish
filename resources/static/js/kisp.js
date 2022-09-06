@@ -495,19 +495,28 @@ var kisp = (function($) {
                     taskContent += "<td>0</td>";
                 
                 if (response["status"])
-                    taskContent += "<td id=\"status-"+pos+"\"></td>";
+                    taskContent += "<td>"+response["status"]+"</td>";
                 else
                     taskContent += "<td>unknown</td>";
                 
-                if (response["assign"])
+                if (response["assigned"])
+                    taskContent += "<td>"+response["assigned"]+"</td>";
+                else
                     taskContent += "<td></td>";
-                else
-                    taskContent += "<td>unknown</td>";
                 
-                taskContent += "<td><span id=\"self-assign-task-"+pos+
-                    "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
-                    "<a href=\"#\"><span id=\"self-assign-task-"+pos+
-                    "\" style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span></a></td>";
+                var color_assign = "green";
+                var color_annotate = "grey";
+
+                if (response["assigned"]) {
+                    color_assign = "grey";
+                    if (response["assigned"] === userInfo["email"])
+                        color_annotate = "green";
+                }
+
+                taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                    "\" style=\"color:"+color_assign+";\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
+                    "<a href=\"#\"><span id=\"annotate-task-"+pos+
+                    "\" style=\"color:"+color_annotate+";\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                 
                 $("#task-"+pos).html(taskContent);
                 $("#self-assign-task-"+pos).click(function() {
@@ -515,15 +524,39 @@ var kisp = (function($) {
                     //clearMainContent();
                     return true;
                 });
+                $("#annotate-task-"+pos).click(function() {
+                    annotateTask(taskIdentifier);
+                    //clearMainContent();
+                    return true;
+                });
             }
         };
 
-        // send the collected data as JSON
         xhr.send(null);
     }
 
     function selfAssignTask(taskIdentifier) {
+        var url = defineBaseURL("tasks/"+taskIdentifier+"/assign");
 
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, task self-assignment didn't work!");
+            } else {
+                callToaster("toast-top-center", "success", "Success!", "Self-assignment to task");
+                displayTasks();
+            }
+        }
+
+        xhr.send(null);
     }
 
 
