@@ -18759,7 +18759,7 @@ input[type=radio] {
 /*===== TABLES =====*/
 thead th,
 tbody tr td:first-child {
-  color: #1b223c;
+  /*color: #1b223c;*/
   font-weight: 500;
 }
 

@@ -416,11 +416,17 @@ var kisp = (function($) {
                     $("#task-view-table").html("<tr><td>No tasks available</td></tr>");
                 } else {
                     var tableContent = 
-                        "<thead><tr><td style=\"width:10%;\"></td>" + 
-                        "<td style=\"width:10%;\">Task</td><td style=\"width:10%;\">For Dataset</td>"+
-                        "<td style=\"width:10%;\"># documents</td><td style=\"width:10%;\"># excerpts</td>"+
+                        "<thead><tr>" + 
+                        "<td style=\"width:15%;\">Task</td>"+
+                        "<td style=\"width:10%;\">Type</td>"+
+                        "<td style=\"width:10%;\">Dataset</td>"+
+                        "<td style=\"width:10%;\"># documents</td>"+
+                        "<td style=\"width:10%;\"># excerpts</td>"+
+                        "<td style=\"width:10%;\"># annotations</td>"+
                         "<td style=\"width:10%;\">Status</td>"+
-                        "<td style=\"width:20%;\">Action</td></tr></thead><tbody>";
+                        "<td style=\"width:10%;\">Assigned to</td>"+
+                        "<td style=\"width:15%;\">Action</td>"+
+                        "</tr></thead><tbody>";
                     for(var pos in response["records"]) {
                         tableContent += "<tr id=\"task-"+pos+"\"></tr>\n";
                     }
@@ -456,39 +462,70 @@ var kisp = (function($) {
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
                 console.log(response)
-                var taskContent = "<td></td>";
+                var taskContent = "";
+                
                 if (response["name"])
                     taskContent += "<td>"+response["name"]+"</td>";
                 else
                     taskContent += "<td></td>";
-                if (response["dataset-id"])
-                    taskContent += "<td>"+response["dataset-id"]+"</td>";
+                
+                if (response["type"])
+                    taskContent += "<td>"+response["type"]+"</td>";
                 else
                     taskContent += "<td></td>";
+                
+                if (response["dataset_name"])
+                    taskContent += "<td>"+response["dataset_name"]+"</td>";
+                else
+                    taskContent += "<td></td>";
+                
                 if (response["nb_documents"])
                     taskContent += "<td>"+response["nb_documents"]+"</td>";
                 else
                     taskContent += "<td>0</td>";
+                
                 if (response["nb_excerpts"])
                     taskContent += "<td>"+response["nb_excerpts"]+"</td>";
                 else
                     taskContent += "<td>0</td>";
-                taskContent += "<td><span id=\"self-assign-task-"+pos+"\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
+                
+                if (response["nb_annotations"])
+                    taskContent += "<td>"+response["nb_annotations"]+"</td>";
+                else
+                    taskContent += "<td>0</td>";
+                
+                if (response["status"])
+                    taskContent += "<td id=\"status-"+pos+"\"></td>";
+                else
+                    taskContent += "<td>unknown</td>";
+                
+                if (response["assign"])
+                    taskContent += "<td></td>";
+                else
+                    taskContent += "<td>unknown</td>";
+                
+                taskContent += "<td><span id=\"self-assign-task-"+pos+
+                    "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
                     "<a href=\"#\"><span id=\"self-assign-task-"+pos+
                     "\" style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span></a></td>";
+                
                 $("#task-"+pos).html(taskContent);
                 $("#self-assign-task-"+pos).click(function() {
                     selfAssignTask(taskIdentifier);
                     //clearMainContent();
                     return true;
                 });
-                console.log(taskContent);
             }
         };
 
         // send the collected data as JSON
         xhr.send(null);
     }
+
+    function selfAssignTask(taskIdentifier) {
+
+    }
+
 
     function displayUsers() {
         $("#user-view").show();

@@ -30,6 +30,7 @@ def get_version():
 from kisp.users_manager import fastapi_users
 from kisp.db import User
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
+current_user = fastapi_users.current_user(active=True)
 
 @router.get("/users", tags=["users"],
     description="Return the list of available users.")
@@ -65,6 +66,23 @@ async def get_task(identifier: str):
     if item == None:
         raise HTTPException(status_code=404, detail="Dataset not found")
     else:
+        # enrich the task item with some additional information
+        # dataset name
+        dataset_item = await get_item("dataset", item["dataset_id"])
+        item["dataset_name"] = dataset_item["name"]
+
+        # possible assigned user 
+        local_user = get_assigned_user(identifier)
+        if local_user == None:
+            item["status"] = "unassigned"
+        else:
+            item["assigned_user"] = local_user["email"]
+            item["status"] = assigned
+
+        # number of documents, excerpts and annotations
+        task_attributes = await get_task_attributes(identifier)
+        item["nb_documents"] = task_attributes["nb_documents"]
+
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result
@@ -93,5 +111,40 @@ async def get_dataset(identifier: str):
         raise HTTPException(status_code=404, detail="Dataset not found")
     else:
         result['record'] = item
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.post("/tasks/{identifier}/assign", tags=["tasks"], 
+    description="Assign a task to the current user")
+async def post_self_assign_task(identifier: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_item
+    item = await get_item("task", identifier)
+    if item == None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    else:
+        assign_dict = { "task_id": identifier, "user_id": user.id }
+        from utils_db import insert_item
+        await insert_item("assign", assign_dict, add_id=False)
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.post("/tasks/{identifier}/assign/{user_id}", tags=["tasks"], 
+    description="Assign a task to a given user")
+async def post_assign_task(identifier: str, user_id: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_item
+    item = await get_item("task", identifier)
+    if item == None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    user = await get_user("user", user_id)
+    if user == None:
+        raise HTTPException(status_code=404, detail="User not found")
+    assign_dict = {"task_id": identifier, "user_id": user_id }
+    from utils_db import insert_item
+    await insert_item("assign", assign_dict, add_id=False)
+
     result['runtime'] = round(time.time() - start_time, 3)
     return result

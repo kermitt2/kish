@@ -186,6 +186,11 @@ async def test_init():
                      "description": "Software mention contexts",
                      "image_url": "images/software.png" }
 
+    # check if dataset is already present
+    dataset = await get_item("dataset", "811b64f1-323f-4a78-bdb8-ebaab44b023a")
+    if dataset is not None:
+        return
+
     await insert_item("dataset", dataset_data)
 
     #item = await get_item("dataset", "811b64f1-323f-4a78-bdb8-ebaab44b023a")
