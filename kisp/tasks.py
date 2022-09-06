@@ -31,10 +31,21 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
         primary_task_id = -1
         for j in range(0, redundancy):
             # create task
-            task_dict = { "type": task_type }
+            task_dict = { "type": task_type, 
+                          "dataset_id": dataset_id, 
+                          "name": dataset["name"]+"-task"+str(i)+"-"+str(j) }
             if j != 0 and primary_task_id != -1:
                 task_dict["redundant"] = primary_task_id
             task_id = await insert_item("task", task_dict)
+            # update dataset
+            dataset_dict = {}
+            if "nb_tasks" in dataset and dataset["nb_tasks"] is not None:
+                dataset_dict["nb_tasks"] = dataset["nb_tasks"] + 1
+                dataset["nb_tasks"] += 1
+            else:
+                dataset_dict["nb_tasks"] = 1
+                dataset["nb_tasks"] = 1
+            await update_record("dataset", dataset_id, dataset_dict)
             if j == 0:
                 primary_task_id = task_id
 

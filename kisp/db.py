@@ -38,8 +38,8 @@ class Task(Base):
     __tablename__ = "task"
 
     id = Column(String, primary_key=True)
+    dataset_id = Column(Integer, ForeignKey("dataset.id"))
     name = Column(String)
-    description = Column(String)
     type = Column(String)
     redundant = Column(Integer, ForeignKey("task.id"))
 
@@ -107,6 +107,7 @@ class Dataset(Base):
     image_url = Column(String)
     nb_documents = Column(Integer)
     nb_excerpts = Column(Integer)
+    nb_tasks = Column(Integer)
 
 class InCollection(Base):
     '''

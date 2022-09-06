@@ -39,9 +39,7 @@ The KISP Web application and API service is implemented with [FastAPI](https://f
 python3 kisp/service.py --config my_config.yml
 ```
 
-```
-...
-```
+The application is then available for sign-in at http://localhost:8050/app/sign-in.html
 
 ### Use the service
 

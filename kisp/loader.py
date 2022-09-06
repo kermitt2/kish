@@ -111,7 +111,7 @@ async def import_dataset_json(dataset_id, path):
     f.close()
 
     # update dataset information
-    dataset_dict = { "nb_documents": nb_documents, "nb_excerpts": nb_excepts}
+    dataset_dict = { "nb_documents": nb_documents, "nb_excerpts": nb_excepts }
     await update_record("dataset", dataset_id, dataset_dict)
 
     print("nb documents: ", str(nb_documents))

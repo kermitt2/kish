@@ -314,7 +314,7 @@ var kisp = (function($) {
                 callToaster("toast-top-center", "error", response["detail"], "Damn, accessing datasets didn't work!");
                 $("#dataset-view-table").html("<tr><td>No dataset available</td></tr>");
             } else {
-                // otherwise go through the tasks
+                // otherwise go through the datasets
                 var response = JSON.parse(xhr.responseText);
                 if (response["records"].length == 0) {
                     $("#dataset-view-table").html("<tr><td>No dataset available</td></tr>");
@@ -384,7 +384,7 @@ var kisp = (function($) {
                     //clearMainContent();
                     return true;
                 });
-                console.log(datasetContent);
+                //console.log(datasetContent);
             }
         };
 
@@ -415,10 +415,16 @@ var kisp = (function($) {
                 if (response["records"].length == 0) {
                     $("#task-view-table").html("<tr><td>No tasks available</td></tr>");
                 } else {
-                    var tableContent = ""
+                    var tableContent = 
+                        "<thead><tr><td style=\"width:10%;\"></td>" + 
+                        "<td style=\"width:10%;\">Task</td><td style=\"width:10%;\">For Dataset</td>"+
+                        "<td style=\"width:10%;\"># documents</td><td style=\"width:10%;\"># excerpts</td>"+
+                        "<td style=\"width:10%;\">Status</td>"+
+                        "<td style=\"width:20%;\">Action</td></tr></thead><tbody>";
                     for(var pos in response["records"]) {
-                        tableContent += "<tr><td id=\"task-"+pos+"\"></td></tr>\n";
+                        tableContent += "<tr id=\"task-"+pos+"\"></tr>\n";
                     }
+                    tableContent += "</tbody>";
                     $("#task-view-table").html(tableContent);
                     for(var pos in response["records"]) {
                         displayTask(pos, response["records"][pos]);
@@ -444,12 +450,38 @@ var kisp = (function($) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
-                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing tasks didn't work!");
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing task didn't work!");
             } else {
                 // otherwise display the task information
                 var response = JSON.parse(xhr.responseText);
-                var taskContent = response["record"]["name"];
+                response = response["record"]
+                console.log(response)
+                var taskContent = "<td></td>";
+                if (response["name"])
+                    taskContent += "<td>"+response["name"]+"</td>";
+                else
+                    taskContent += "<td></td>";
+                if (response["dataset-id"])
+                    taskContent += "<td>"+response["dataset-id"]+"</td>";
+                else
+                    taskContent += "<td></td>";
+                if (response["nb_documents"])
+                    taskContent += "<td>"+response["nb_documents"]+"</td>";
+                else
+                    taskContent += "<td>0</td>";
+                if (response["nb_excerpts"])
+                    taskContent += "<td>"+response["nb_excerpts"]+"</td>";
+                else
+                    taskContent += "<td>0</td>";
+                taskContent += "<td><span id=\"self-assign-task-"+pos+"\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
+                    "<a href=\"#\"><span id=\"self-assign-task-"+pos+
+                    "\" style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span></a></td>";
                 $("#task-"+pos).html(taskContent);
+                $("#self-assign-task-"+pos).click(function() {
+                    selfAssignTask(taskIdentifier);
+                    //clearMainContent();
+                    return true;
+                });
                 console.log(taskContent);
             }
         };
