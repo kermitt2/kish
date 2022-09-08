@@ -97,7 +97,6 @@ async def get_task(identifier: str):
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
-
 @router.get("/tasks/{identifier}/excerpt", tags=["tasks"], 
     description="Return an excerpt from task")
 async def get_task_excerpt(identifier: str, jump: str = None, rank: int = None):
@@ -174,16 +173,16 @@ async def get_dataset(identifier: str):
     return result
 
 @router.get("/datasets/{identifier}/labels", tags=["datasets"], 
-    description="Return the labels used in the dataset")
-async def get_dataset_labels(identifier: str):
+    description="Return the labels used in the dataset for a task type")
+async def get_dataset_labels(identifier: str, type: str):
     start_time = time.time()
     result = {}
-    from utils_db import get_first_item
-    item = await get_first_item("dataset", {"id": identifier})
-    if item == None:
-        raise HTTPException(status_code=404, detail="Dataset not found")
+    from utils_db import get_items
+    items = await get_items("label", {"dataset_id": identifier, "type": type}, full=True)
+    if items == None or len(items)==0:
+        raise HTTPException(status_code=404, detail="Labels not found")
     else:
-        result['record'] = item
+        result['records'] = items
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
@@ -242,7 +241,6 @@ async def post_self_unassign_task(identifier: str, user: User = Depends(current_
             raise HTTPException(status_code=500, detail="Unassignment failed: "+assign_result["error"])
     result['runtime'] = round(time.time() - start_time, 3)
     return result
-
 
 @router.delete("/tasks/{identifier}/assign/{user_id}", tags=["tasks"], 
     description="Unassign a task from a given user")

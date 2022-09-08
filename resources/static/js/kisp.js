@@ -533,7 +533,7 @@ var kisp = (function($) {
                             return true;
                         });
                         $("#annotate-task-"+pos).click(function() {
-                            annotationTask(taskIdentifier);
+                            annotationTask(taskIdentifier, response["dataset_id"], response["type"]);
                             //clearMainContent();
                             return true;
                         });
@@ -605,7 +605,9 @@ var kisp = (function($) {
         xhr.send(null);
     }
 
-    function annotationTask(taskIdentifier) {
+    var classColorBootstrapMapping = { "blue": "primary", "grey": "default", "green" : "success", "orange": "warning", "red": "danger", "cyan": "info"};
+     
+    function annotationTask(taskIdentifier, datasetIdentifier, taskType) {
         event.preventDefault();
         clearMainContent();
         $("#annotation-view").show();
@@ -660,7 +662,7 @@ var kisp = (function($) {
 
         // get current task item
         var url2 = defineBaseURL("tasks/"+taskIdentifier+"/excerpt");
-        let data = {"jump": "next"}
+        let data2 = {"jump": "next"}
 
         // retrieve the existing task information
         var xhr2 = new XMLHttpRequest();
@@ -669,43 +671,52 @@ var kisp = (function($) {
 
         xhr2.onloadend = function () {
             // status
-            var response = JSON.parse(xhr2.responseText);
+            var response2 = JSON.parse(xhr2.responseText);
             if (xhr2.status != 200) {
                 // display server level error
-                console.log(response["detail"]);
-                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing task records didn't work!");
+                console.log(response2["detail"]);
+                callToaster("toast-top-center", "error", response2["detail"], "Damn, accessing task records didn't work!");
                 $("#annotation-doc-view").html("<p>The task record is not available</p>");
             } else {
-                response = response["record"]
-                $("#annotation-doc-view").html("<p>"+he.encode(response["full_context"])+"</p>");
+                response2 = response2["record"]
+                $("#annotation-doc-view").html("<p>"+he.encode(response2["full_context"])+"</p>");
             }
         }
-        xhr2.send(data);
+        xhr2.send(data2);
 
         // get labels for the dataset
-        var url3 = defineBaseURL("dataset/"+datasetIdentifier+"/labels");
+        var url3 = defineBaseURL("datasets/"+datasetIdentifier+"/labels?type="+taskType);
+        let data3 = { "type": taskType }
+
         var xhr3 = new XMLHttpRequest();
         xhr3.open("GET", url3, true);
         xhr3.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
         xhr3.onloadend = function () {
             // status
-            var response = JSON.parse(xhr3.responseText);
+            var response3 = JSON.parse(xhr3.responseText);
             if (xhr3.status != 200) {
                 // display server level error
-                console.log(response["detail"]);
-                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing labels of the dataset failed!");
+                console.log(response3["detail"]);
+                callToaster("toast-top-center", "error", response3["detail"], "Damn, accessing labels of the dataset failed!");
                 $("#annotation-val-area").html("<p>Labels are not available</p>");
             } else {
-                var labelHtmlContent = ""
-                for label in response["records"]:
-                    labelHtmlContent += "<button>"+label["name"]+"</button>";
+                var labelHtmlContent = "";
+                for (var labelPos in response3["records"]) {
+                    var label = response3["records"][labelPos];
+                    labelHtmlContent += 
+                        "<label class=\"control control-checkbox checkbox-primary\">"+label["name"]+
+                            "<input type=\"checkbox\" checked=\"checked\">"+
+                            "<div class=\"control-indicator\"></div>"+
+                        "</label>";
+                }
                 $("#annotation-val-area").html(labelHtmlContent);
+
+
             }
         }
         xhr3.send(null);
     }
-
 
     function displayUsers() {
         $("#user-view").show();

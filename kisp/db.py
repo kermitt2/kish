@@ -28,6 +28,7 @@ class Label(Base):
     color = Column(String)
     description = Column(String)
     dataset_id = Column(String, ForeignKey("dataset.id"))
+    type = Column(String)
 
 class Task(Base):
     '''
@@ -97,6 +98,7 @@ class Annotation(Base):
     score = Column(Float)
     chunk = Column(String)
     date = Column(DateTime)
+    type = Column(String)
 
 class Dataset(Base):
     __tablename__ = "dataset"

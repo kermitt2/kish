@@ -1,7 +1,7 @@
 import ijson
 import gzip
 import kisp.db
-from utils_db import insert_item, get_item, get_first_item_by_field_value, update_record
+from utils_db import insert_item, get_items, get_first_item, update_record
 
 # note: ijson is used to stream json loading
 
@@ -73,6 +73,8 @@ async def import_dataset_json(dataset_id, path):
                     annotation_dict["offset_end"] = annotation["end"]
                     annotation_dict["chunk"] = annotation["rawForm"]
                     annotation_dict["source"] = "automatic"
+                    annotation_dict["type"] = "labeling"
+
                     if "id" in annotation:
                         annot_id = annotation["id"]
                         if annot_id.startswith("#"):
@@ -80,10 +82,10 @@ async def import_dataset_json(dataset_id, path):
                         annotation_dict["original_id"] = annot_id
 
                     # do we already have this label defined?
-                    check_label = await get_first_item_by_field_value("label", "name", annotation["type"])
+                    check_label = await get_first_item("label", {"name": annotation["type"], "type": "labeling"})
                     if check_label == None:
                         # insert this new label
-                        check_label = { "name": annotation["type"], "dataset_id": dataset_id }
+                        check_label = { "name": annotation["type"], "dataset_id": dataset_id, "type": "labeling" }
                         check_label_id = await insert_item("label", check_label)
                         check_label["id"] = check_label_id
                     annotation_dict["label_id"] = check_label["id"]
@@ -99,16 +101,17 @@ async def import_dataset_json(dataset_id, path):
                     classification_dict["excerpt_id"] = excerpt_id
                     
                     # do we already have this class defined?
-                    check_label = await get_first_item_by_field_value("label", "name", classification)
+                    check_label = await get_first_item("label", {"name": classification, "type": "classification"})
                     if check_label == None:
                         # insert this new label
-                        check_label = { "name": classification, "dataset_id": dataset_id }
+                        check_label = { "name": classification, "dataset_id": dataset_id, "type": "classification" }
                         check_label_id = await insert_item("label", check_label)
                         check_label["id"] = check_label_id
                     classification_dict["label_id"] = check_label["id"]
                     classification_dict["source"] = "automatic"
                     classification_dict["value"] = excerpt["class_attributes"]["classification"][classification]["value"]
                     classification_dict["score"] = float(excerpt["class_attributes"]["classification"][classification]["score"])
+                    annotation_dict["type"] = "classification"
 
                     await insert_item("annotation", classification_dict)
                     nb_classification += 1

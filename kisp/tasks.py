@@ -73,7 +73,7 @@ async def assign_user(task_id, user_id):
     result = await insert_item("assign", assign_dict, add_id=False)
     if result != None and "error" in result:
         return result
-    else
+    else:
         return
 
 async def unassign_user(task_id, user_id):
@@ -84,6 +84,6 @@ async def unassign_user(task_id, user_id):
     result = await delete_items("assign", assign_dict)
     if result != None and "error" in result:
         return result
-    else
+    else:
         return
 
