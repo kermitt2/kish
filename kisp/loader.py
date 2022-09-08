@@ -56,6 +56,11 @@ async def import_dataset_json(dataset_id, path):
             excerpt_dict["text"] = excerpt["text"]
             if "full_context" in excerpt:
                 excerpt_dict["full_context"] = excerpt["full_context"]
+                position_text = excerpt["full_context"].index(excerpt["text"])
+                if position_text != -1:
+                    excerpt_dict["offset_start"] = position_text
+                    excerpt_dict["offset_end"] = position_text + len(excerpt["text"])
+
             excerpt_id = await insert_item("excerpt", excerpt_dict)
             nb_excepts += 1
 

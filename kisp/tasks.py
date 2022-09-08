@@ -1,4 +1,4 @@
-from utils_db import insert_item, get_item, get_first_item_by_field_value, update_record, get_items_by_field_value
+from utils_db import insert_item, get_first_item, update_record, get_items
 
 async def generate_tasks(dataset_id, task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"]):
     """
@@ -13,7 +13,7 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
     nb_tasks = 0
 
     # get dataset information
-    dataset = await get_item("dataset", dataset_id)
+    dataset = await get_first_item("dataset", { "id": dataset_id } )
 
     if not "nb_documents" in dataset or not "nb_excerpts" in dataset:
         return 0
@@ -52,7 +52,7 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
             # add excerpts to task
             offset_from = i * nb_excerpts_per_task
             offset_to = (i+1) * nb_excerpts_per_task
-            local_excerpts = await get_items_by_field_value("excerpt", "dataset_id", dataset_id, offset_from=offset_from, offset_to=offset_to)
+            local_excerpts = await get_items("excerpt", { "dataset_id": dataset_id }, offset_from=offset_from, offset_to=offset_to, full=True)
 
             if len(local_excerpts) == 0:
                 continue
@@ -70,4 +70,20 @@ async def assign_user(task_id, user_id):
     Assign a user to a task
     """
     assign_dict = { "task_id": task_id, "user_id": user_id, "in_progress": False, "completed_excerpts": 0 }
-    await insert_item("assign", assign_dict, add_id=False)
+    result = await insert_item("assign", assign_dict, add_id=False)
+    if result != None and "error" in result:
+        return result
+    else
+        return
+
+async def unassign_user(task_id, user_id):
+    """
+    Assign a user to a task
+    """
+    assign_dict = { "task_id": task_id, "user_id": user_id }
+    result = await delete_items("assign", assign_dict)
+    if result != None and "error" in result:
+        return result
+    else
+        return
+

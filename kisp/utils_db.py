@@ -35,11 +35,12 @@ async def create_user(email: str, password: str, is_superuser: bool = False, rol
     except UserAlreadyExists:
         print(f"User {email} already exists")
 
+"""
 async def get_items(table, offset_from=-1, offset_to=-1):
     items = []
     try:
         async with engine.connect() as conn:
-            statement = """SELECT * FROM """+table
+            statement = "SELECT * FROM "+table
             if offset_to != -1 and (offset_from == -1 or offset_from == 0):
                 statement += " LIMIT " + str(offset_to)
             elif offset_to != -1 and offset_to > offset_from:
@@ -58,7 +59,8 @@ async def get_items(table, offset_from=-1, offset_to=-1):
         error=str(e.__dict__['orig'])
         print("Fail to access records in " + table + ": " + error)
     return items
-
+"""
+"""
 async def get_item(table, identifier):
     item = None
     try:
@@ -72,7 +74,78 @@ async def get_item(table, identifier):
         error=str(e.__dict__['orig'])
         print("Fail to access record in " + table + ": " + error)
     return item
+"""
 
+async def get_first_item(table, item_dict):
+    item = None
+    try:
+        async with engine.connect() as conn:
+            statement = "SELECT * FROM "+table
+            if item_dict != None and len(item_dict)>0:
+                statement += " WHERE "
+                start = True
+                print(item_dict)
+                for key in item_dict:
+                    if start:
+                        start = False
+                    else:
+                        statement_piece += " AND "
+                    statement +=  key + " = '" + item_dict[key] + "'"
+                    print(item_dict[key])
+            print(statement)
+            statement = text(statement)
+
+            results = await conn.execute(statement)
+            item_row = results.first()
+            if item_row != None:
+                item = row2dict(item_row)
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in " + table + ": " + error)
+    return item
+
+async def get_items(table, item_dict, offset_from=-1, offset_to=-1, full=False):
+    items = []
+    try:
+        async with engine.connect() as conn:
+            statement = "SELECT * FROM "+table
+            if item_dict != None and len(item_dict)>0:
+                statement += " WHERE "
+                start = True
+                for key in item_dict:
+                    if start:
+                        start = False
+                    else:
+                        statement_piece += " AND "
+                    statement +=  key + " = '" + item_dict[key] + "'"
+            if offset_to != -1 and (offset_from == -1 or offset_from == 0):
+                statement += " LIMIT " + str(offset_to)
+            elif offset_to != -1 and offset_to > offset_from:
+                limit = offset_to - offset_from
+                statement += " LIMIT " + str(limit)
+            if offset_from != -1 and offset_from != 0:
+                statement += " OFFSET " + str(offset_from)
+            print(statement)
+            statement = text(statement)
+            results = await conn.execute(statement)
+            item_rows = results.all()
+            if len(item_rows) == 0:
+                return items
+            for item_row in item_rows:
+                if full:
+                    items.append(row2dict(item_row))
+                else:
+                    item_row_dict = row2dict(item_row)
+                    if "id" in item_row_dict:
+                        items.append(item_row["id"])
+                    else:
+                        items.append(item_row_dict)
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access records in " + table + ": " + error)
+    return items
+
+"""
 async def get_items_by_field_value(table, field, value, offset_from=-1, offset_to=-1):
     items = []
     try:
@@ -96,7 +169,9 @@ async def get_items_by_field_value(table, field, value, offset_from=-1, offset_t
         error=str(e.__dict__['orig'])
         print("Fail to access records in " + table + ": " + error)
     return items
+"""
 
+"""
 async def get_first_item_by_field_value(table, field, value):
     item = None
     try:
@@ -110,6 +185,7 @@ async def get_first_item_by_field_value(table, field, value):
         error=str(e.__dict__['orig'])
         print("Fail to access record in " + table + ": " + error)
     return item
+"""
 
 async def insert_item(table, record_as_dict, add_id=True):
     statement = "INSERT INTO " + table
@@ -164,7 +240,7 @@ async def update_record(table, record_id, record_dict):
             start = False
         else:
             statement += ", "
-        statement += key + " = " + str(record_dict[key])
+        statement += key + " = '" + str(record_dict[key]) + "'"
     statement += " WHERE id = '" + record_id + "'";
     statement = text(statement)
 
@@ -245,6 +321,26 @@ async def get_task_attributes(task_id):
 
     return attributes
 
+async def delete_items(table, record_dict):
+    statement = "DELETE FROM " + table + " WHERE " 
+    start = True
+    for key in record_dict:
+        if start:
+            start = False
+        else:
+            statement += " AND "
+        statement += key + " = '" + str(record_dict[key]) + "'"
+    print(statement)
+    statement = text(statement)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(statement)
+            await conn.commit()
+            return
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to delete record(s) in "+ table + ": " + error)
+        return {"error": error}
 
 async def test_init():
     '''
@@ -258,13 +354,13 @@ async def test_init():
                      "image_url": "images/software.png" }
 
     # check if dataset is already present
-    dataset = await get_item("dataset", "811b64f1-323f-4a78-bdb8-ebaab44b023a")
+    dataset = await get_first_item("dataset", {"id": "811b64f1-323f-4a78-bdb8-ebaab44b023a"})
     if dataset is not None:
         return
 
     await insert_item("dataset", dataset_data)
 
-    #item = await get_item("dataset", "811b64f1-323f-4a78-bdb8-ebaab44b023a")
+    #item = await get_first_item("dataset", {"id": 811b64f1-323f-4a78-bdb8-ebaab44b023a"} )
     #print(item)
 
     # insert data for the dataset
