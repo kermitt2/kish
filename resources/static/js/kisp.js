@@ -358,7 +358,7 @@ var kisp = (function($) {
                 // otherwise display the dataset information
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
-                console.log(response)
+                //console.log(response)
                 var datasetContent = "<td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td><td>"+response["name"]+"</td>";
                 if (response["description"])
                     datasetContent += "<td>"+response["description"]+"</td>";
@@ -461,7 +461,7 @@ var kisp = (function($) {
                 // otherwise display the task information
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
-                console.log(response)
+                //console.log(response)
                 var taskContent = "";
                 
                 if (response["name"])
@@ -503,32 +503,52 @@ var kisp = (function($) {
                     taskContent += "<td>"+response["assigned"]+"</td>";
                 else
                     taskContent += "<td></td>";
-                
-                var color_assign = "green";
-                var color_annotate = "grey";
 
                 if (response["assigned"]) {
                     color_assign = "grey";
-                    if (response["assigned"] === userInfo["email"])
-                        color_annotate = "green";
-                }
-
-                taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
-                    "\" style=\"color:"+color_assign+";\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
+                    if (response["assigned"] === userInfo["email"]) {
+                        taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                            "\" style=\"color:orange;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
+                            "<a href=\"#\"><span id=\"annotate-task-"+pos+
+                            "\" style=\"color:green;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                    } else {
+                        taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                            "\" style=\"color:grey;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
+                            "<a href=\"#\"><span id=\"annotate-task-"+pos+
+                            "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                    }
+                } else {
+                    taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                    "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
                     "<a href=\"#\"><span id=\"annotate-task-"+pos+
-                    "\" style=\"color:"+color_annotate+";\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                    "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                }
                 
                 $("#task-"+pos).html(taskContent);
-                $("#self-assign-task-"+pos).click(function() {
-                    selfAssignTask(taskIdentifier);
-                    //clearMainContent();
-                    return true;
-                });
-                $("#annotate-task-"+pos).click(function() {
-                    annotateTask(taskIdentifier);
-                    //clearMainContent();
-                    return true;
-                });
+
+                if (response["assigned"]) {
+                    if (response["assigned"] === userInfo["email"]) {
+                        $("#self-assign-task-"+pos).click(function() {
+                            selfUnassignTask(taskIdentifier);
+                            return true;
+                        });
+                        $("#annotate-task-"+pos).click(function() {
+                            annotationTask(taskIdentifier);
+                            //clearMainContent();
+                            return true;
+                        });
+                    } else {
+                        $("#self-deassign-task-"+pos).click(function() {
+                            unAssignTask(taskIdentifier);
+                            return true;
+                        });
+                    }
+                } else {
+                    $("#self-assign-task-"+pos).click(function() {
+                        selfAssignTask(taskIdentifier);
+                        return true;
+                    });
+                }
             }
         };
 
@@ -536,6 +556,7 @@ var kisp = (function($) {
     }
 
     function selfAssignTask(taskIdentifier) {
+        event.preventDefault();
         var url = defineBaseURL("tasks/"+taskIdentifier+"/assign");
 
         // retrieve the existing task information
@@ -557,6 +578,132 @@ var kisp = (function($) {
         }
 
         xhr.send(null);
+    }
+
+    function selfUnassignTask(taskIdentifier) {
+        event.preventDefault();
+        var url = defineBaseURL("tasks/"+taskIdentifier+"/assign");
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("DELETE", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, task self-unassignment didn't work!");
+            } else {
+                callToaster("toast-top-center", "success", "Success!", "Self-unassignment from the task");
+                displayTasks();
+            }
+        }
+
+        xhr.send(null);
+    }
+
+    function annotationTask(taskIdentifier) {
+        event.preventDefault();
+        clearMainContent();
+        $("#annotation-view").show();
+
+        // get task info
+        var url = defineBaseURL("tasks/"+taskIdentifier);
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing task didn't work!");
+                $("#annotation-task-info").html("The task is not available");
+            } else {
+                // otherwise go through the tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["record"].length == 0) {
+                    $("#annotation-task-info").html("The task is not available");
+                } else {
+                    response = response["record"];
+                    var taskContent = "<table style=\"width:100%;\"><tr>";
+                
+                    taskContent += "<td style=\"width:40%;font-size:150%;\"><span style=\"color:grey\">Progress:</span> 0 / " + 
+                        response["nb_excerpts"] + "</td>"
+
+                    if (response["name"])
+                        taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Task:</span> "+response["name"]+"</td>";
+
+                    if (response["type"])
+                        taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Type:</span> "+response["type"]+"</td>";
+
+                    if (response["dataset_name"])
+                        taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Dataset:</span> "+response["dataset_name"]+"</td>";
+
+                    if (response["nb_documents"])
+                        taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Task doc.:</span> "+response["nb_documents"]+"</td>";
+
+                    taskContent += "</tr></table>\n";
+                    
+                    $("#annotation-task-info").html(taskContent);
+                }
+            }
+        };
+        xhr.send(null);
+
+        // get current task item
+        var url2 = defineBaseURL("tasks/"+taskIdentifier+"/excerpt");
+        let data = {"jump": "next"}
+
+        // retrieve the existing task information
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open("GET", url2, true);
+        xhr2.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr2.onloadend = function () {
+            // status
+            var response = JSON.parse(xhr2.responseText);
+            if (xhr2.status != 200) {
+                // display server level error
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing task records didn't work!");
+                $("#annotation-doc-view").html("<p>The task record is not available</p>");
+            } else {
+                response = response["record"]
+                $("#annotation-doc-view").html("<p>"+he.encode(response["full_context"])+"</p>");
+            }
+        }
+        xhr2.send(data);
+
+        // get labels for the dataset
+        var url3 = defineBaseURL("dataset/"+datasetIdentifier+"/labels");
+        var xhr3 = new XMLHttpRequest();
+        xhr3.open("GET", url3, true);
+        xhr3.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr3.onloadend = function () {
+            // status
+            var response = JSON.parse(xhr3.responseText);
+            if (xhr3.status != 200) {
+                // display server level error
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing labels of the dataset failed!");
+                $("#annotation-val-area").html("<p>Labels are not available</p>");
+            } else {
+                var labelHtmlContent = ""
+                for label in response["records"]:
+                    labelHtmlContent += "<button>"+label["name"]+"</button>";
+                $("#annotation-val-area").html(labelHtmlContent);
+            }
+        }
+        xhr3.send(null);
     }
 
 
@@ -619,7 +766,7 @@ var kisp = (function($) {
             } else {
                 // otherwise display the user information
                 var response = JSON.parse(xhr.responseText);
-                console.log(response)
+                //console.log(response)
                 var userContent = "<td><i class=\"mdi mdi-account-box\"></td><td>"+response["email"]+"</td>";
                 if (response["first_name"])
                     userContent += "<td>"+response["first_name"]+"</td>";
@@ -638,7 +785,7 @@ var kisp = (function($) {
                     //clearMainContent();
                     return true;
                 });
-                console.log(userContent);
+                //console.log(userContent);
             }
         };
 

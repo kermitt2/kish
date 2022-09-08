@@ -27,7 +27,7 @@
     <link id="sleek-css" rel="stylesheet" href="assets/css/sleek-dark.css" />
   
     <script src="assets/plugins/jquery/jquery.min.js"></script>
-    
+    <script src="assets/js/he.js"></script>
 
     <!--
       HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries
@@ -354,6 +354,31 @@
               ===================================== -->
               <div id="user-view" class="col-lg-10 col-xl-11" style="display:none;">
                 <table id="user-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+              </div>
+
+              <!-- ====================================
+              ——— The annotation view
+              ===================================== -->
+              <div id="annotation-view" class="col-lg-10 col-xl-11" style="display:none;">
+                <div class="row">
+                  <div id="annotation-task-info" class="pb-5" style="width:100%;"></div>
+                </div>
+                <div class="row">
+                  <div id="annotation-panel" style="width:100%;">
+                    <div class="row">
+                      <div id="annotation-doc-view" class="col-xl-8 border"></div>
+                      <div id="annotation-val-view" class="col-xl-4 border">
+                        <div class="row">
+                          <div id="annotation-val-area" style="width:100%;"></div>
+                        </div>
+                        <div class="row">
+                          <div id="annotation-paging" style="width:100%;"></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                  </div>
+                </div>          
               </div>
 
               <!-- ====================================
