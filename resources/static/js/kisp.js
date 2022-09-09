@@ -606,12 +606,72 @@ var kisp = (function($) {
     }
 
     var classColorBootstrapMapping = { "blue": "primary", "grey": "default", "green" : "success", "orange": "warning", "red": "danger", "cyan": "info"};
-     
+
     function annotationTask(taskIdentifier, datasetIdentifier, taskType) {
         event.preventDefault();
         clearMainContent();
         $("#annotation-view").show();
 
+        setTaskInfo(taskIdentifier);
+
+        // get labels for the dataset and task type, then launch the excerpt view
+        var url = defineBaseURL("datasets/"+datasetIdentifier+"/labels?type="+taskType);
+        //let data = { "type": taskType }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            var response = JSON.parse(xhr.responseText);
+            if (xhr.status != 200) {
+                // display server level error
+                console.log(response3["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing labels of the dataset failed!");
+                $("#annotation-val-area").html("<p>Labels are not available</p>");
+            } else {
+                var labels = []
+                for (var labelPos in response["records"]) {
+                    labels.push(response["records"][labelPos])
+                }
+                setExcerptView(taskIdentifier, datasetIdentifier, taskType, labels)
+            }
+        }
+        xhr.send(null);
+    }
+
+    function setExcerptView(taskIdentifier, datasetIdentifier, taskType, labels) {
+
+        // get current task item
+        var url = defineBaseURL("tasks/"+taskIdentifier+"/excerpt");
+        let data = {"jump": "next"}
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            var response = JSON.parse(xhr.responseText);
+            if (xhr.status != 200) {
+                // display server level error
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing task records didn't work!");
+                $("#annotation-doc-view").html("<p>The task record is not available</p>");
+            } else {
+                response = response["record"]
+                $("#annotation-doc-view").html("<p>"+he.encode(response["full_context"])+"</p>");
+
+                // load a possible pre-annotation for the excerpt
+                displayLabelArea(taskIdentifier, datasetIdentifier, taskType, labels, response["id"]);
+            }
+        }
+        xhr.send(data);
+    }
+
+    function setTaskInfo(taskIdentifier) {
         // get task info
         var url = defineBaseURL("tasks/"+taskIdentifier);
 
@@ -659,63 +719,39 @@ var kisp = (function($) {
             }
         };
         xhr.send(null);
+    }
 
-        // get current task item
-        var url2 = defineBaseURL("tasks/"+taskIdentifier+"/excerpt");
-        let data2 = {"jump": "next"}
+    function displayLabelArea(taskIdentifier, datasetIdentifier, taskType, labels, excerptIdentifier) {
+        // get task info
+        var url = defineBaseURL("annotations/excerpt/"+excerptIdentifier);
+
+        console.log(url);
 
         // retrieve the existing task information
-        var xhr2 = new XMLHttpRequest();
-        xhr2.open("GET", url2, true);
-        xhr2.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
-        xhr2.onloadend = function () {
+        xhr.onloadend = function () {
+            var prelabeling = {}
             // status
-            var response2 = JSON.parse(xhr2.responseText);
-            if (xhr2.status != 200) {
-                // display server level error
-                console.log(response2["detail"]);
-                callToaster("toast-top-center", "error", response2["detail"], "Damn, accessing task records didn't work!");
-                $("#annotation-doc-view").html("<p>The task record is not available</p>");
-            } else {
-                response2 = response2["record"]
-                $("#annotation-doc-view").html("<p>"+he.encode(response2["full_context"])+"</p>");
-            }
-        }
-        xhr2.send(data2);
+            if (xhr.status == 200) {
+                // store pre-labeling weights in the map 
 
-        // get labels for the dataset
-        var url3 = defineBaseURL("datasets/"+datasetIdentifier+"/labels?type="+taskType);
-        let data3 = { "type": taskType }
-
-        var xhr3 = new XMLHttpRequest();
-        xhr3.open("GET", url3, true);
-        xhr3.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-
-        xhr3.onloadend = function () {
-            // status
-            var response3 = JSON.parse(xhr3.responseText);
-            if (xhr3.status != 200) {
-                // display server level error
-                console.log(response3["detail"]);
-                callToaster("toast-top-center", "error", response3["detail"], "Damn, accessing labels of the dataset failed!");
-                $("#annotation-val-area").html("<p>Labels are not available</p>");
-            } else {
-                var labelHtmlContent = "";
-                for (var labelPos in response3["records"]) {
-                    var label = response3["records"][labelPos];
-                    labelHtmlContent += 
-                        "<label class=\"control control-checkbox checkbox-primary\">"+label["name"]+
-                            "<input type=\"checkbox\" checked=\"checked\">"+
-                            "<div class=\"control-indicator\"></div>"+
-                        "</label>";
-                }
+            } 
+            var labelHtmlContent = "";
+            for(var labelPos in labels) {
+                let label = labels[labelPos];
+                labelHtmlContent += 
+                            "<div class=\"row\" style=\"margin-top: auto; margin-bottom: auto;\">"+
+                                "<label class=\"control control-checkbox checkbox-primary\" >"+label["name"]+
+                                "<input type=\"checkbox\" checked=\"checked\">"+
+                                "<div class=\"control-indicator\"></div>"+
+                            "</label></div>";
                 $("#annotation-val-area").html(labelHtmlContent);
-
-
             }
         }
-        xhr3.send(null);
+        xhr.send(null);
     }
 
     function displayUsers() {
