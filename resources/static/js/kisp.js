@@ -55,6 +55,7 @@ var kisp = (function($) {
         $("#task-view").hide();
         $("#user-view").hide();
         $("#dataset-view").hide();
+        $("#annotation-view").hide();
     }
 
     function defineBaseURL(ext) {
@@ -723,7 +724,7 @@ var kisp = (function($) {
 
     function displayLabelArea(taskIdentifier, datasetIdentifier, taskType, labels, excerptIdentifier) {
         // get task info
-        var url = defineBaseURL("annotations/excerpt/"+excerptIdentifier);
+        var url = defineBaseURL("annotations/excerpt/"+excerptIdentifier+"?type="+taskType);
 
         console.log(url);
 
@@ -737,19 +738,60 @@ var kisp = (function($) {
             // status
             if (xhr.status == 200) {
                 // store pre-labeling weights in the map 
-
+                var response = JSON.parse(xhr.responseText);
+                records = response["records"];
+                for(var recordPos in records) {
+                    let record = records[recordPos];
+                    if (!prelabeling[record["label_id"]])
+                        prelabeling[record["label_id"]] = record;
+                    else if (prelabeling[record["user_id"]] && prelabeling[record["user_id"]] == userInfo["id"])
+                        prelabeling[record["label_id"]] = record;
+                }
             } 
             var labelHtmlContent = "";
             for(var labelPos in labels) {
                 let label = labels[labelPos];
-                labelHtmlContent += 
-                            "<div class=\"row\" style=\"margin-top: auto; margin-bottom: auto;\">"+
+                
+                if (prelabeling[label["id"]]) {
+                    let prelabel = prelabeling[label["id"]];
+
+                    console.log(prelabel);
+
+                    labelHtmlContent += 
+                            "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
+                                "<label class=\"control control-checkbox checkbox-primary\" >"+label["name"];
+                    if (prelabel["score"]) {
+                        var numb = prelabel["score"].toFixed(2);
+                        labelHtmlContent += " <span style=\"color:grey;\">("+numb+")</span>";
+                    }
+
+                    if (prelabel["value"] == 1) {
+                        labelHtmlContent += "<input type=\"checkbox\" checked=\"checked\">";
+                    } else {
+                        labelHtmlContent += "<input type=\"checkbox\">";
+                    }
+                    labelHtmlContent += "<div class=\"control-indicator\"></div></label></div>";
+                } else {
+                    labelHtmlContent += 
+                            "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
                                 "<label class=\"control control-checkbox checkbox-primary\" >"+label["name"]+
-                                "<input type=\"checkbox\" checked=\"checked\">"+
+                                "<input type=\"checkbox\">"+
                                 "<div class=\"control-indicator\"></div>"+
                             "</label></div>";
-                $("#annotation-val-area").html(labelHtmlContent);
+                }
             }
+            $("#annotation-val-area").html(labelHtmlContent);
+
+            // validation/paging area
+            pagingHtmlContent = "<button type=\"button\" class=\"mb-1 btn btn-lg btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button type=\"button\" class=\"mb-1 btn btn-lg btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
+            pagingHtmlContent += " &nbsp; &nbsp; ";
+            pagingHtmlContent += " &nbsp; &nbsp; <button type=\"button\" class=\"mb-1 btn btn-lg\" style=\"background-color: #1e8449;color:white;\">Validate</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button type=\"button\" class=\"mb-1 btn btn-lg btn-warning\">Ignore</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; ";
+            pagingHtmlContent += " &nbsp; &nbsp; <button type=\"button\" class=\"mb-1 btn btn-lg btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button type=\"button\" class=\"mb-1 btn btn-lg btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
+            $("#annotation-paging").html(pagingHtmlContent);
         }
         xhr.send(null);
     }

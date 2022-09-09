@@ -3,7 +3,8 @@
  * Copyright 2011-2021 The Bootstrap Authors
  * Copyright 2011-2021 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
- */4c84ff
+ */
+
 :root {
   --blue: #007bff;
   --indigo: #6610f2;
@@ -550,8 +551,8 @@ pre code {
 .container-lg,
 .container-xl {
   width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
+  /*padding-right: 15px;
+  padding-left: 15px;*/
   margin-right: auto;
   margin-left: auto;
 }
@@ -15764,7 +15765,7 @@ div.copied {
 .app-brand {
   position: relative;
   display: block;
-  background-color: #1e8449;
+  background-color: #7DBCFF;
 }
 
 .app-brand a {
