@@ -90,7 +90,10 @@ async def get_first_item(table, item_dict):
                         start = False
                     else:
                         statement += " AND "
-                    statement +=  key + " = '" + item_dict[key] + "'"
+                    if item_dict[key] == None:
+                        statement +=  key + " is NULL"
+                    else:
+                        statement +=  key + " = '" + item_dict[key] + "'"
                     print(item_dict[key])
             print(statement)
             statement = text(statement)
@@ -117,7 +120,10 @@ async def get_items(table, item_dict, offset_from=-1, offset_to=-1, full=False):
                         start = False
                     else:
                         statement += " AND "
-                    statement +=  key + " = '" + item_dict[key] + "'"
+                    if item_dict[key] == None:
+                        statement +=  key + " is NULL"
+                    else:
+                        statement +=  key + " = '" + item_dict[key] + "'"
             if offset_to != -1 and (offset_from == -1 or offset_from == 0):
                 statement += " LIMIT " + str(offset_to)
             elif offset_to != -1 and offset_to > offset_from:

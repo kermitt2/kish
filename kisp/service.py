@@ -36,6 +36,10 @@ tags_metadata = [
     {
         "name": "datasets",
         "description": "Dataset information"
+    },
+    {
+        "name": "annotations",
+        "description": "Annotation information"
     }
 ]
 

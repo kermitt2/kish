@@ -261,3 +261,34 @@ async def post_assign_task(identifier: str, user_id: str, user: User = Depends(c
         raise HTTPException(status_code=500, detail="Unassignment failed: "+assign_result["error"])
     result['runtime'] = round(time.time() - start_time, 3)
     return result
+
+@router.get("/annotations/{identifier}", tags=["annotations"], 
+    description="Return an annotation by its id")
+async def get_annotation(identifier: str):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_first_item
+    item = await get_first_item("annotation", {"id": identifier})
+    if item == None:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    else:
+        result['record'] = item
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/annotations/excerpt/{identifier}", tags=["annotations"], 
+    description="Return the annotations for a given excerpt, restricted to pre-annotations and current user annotations")
+async def get_excerpt_annotation(identifier: str, type: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_items
+    items1 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": str(user.id)}, full=True)
+    items2 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": None}, full=True)
+
+    if items1 == None and items2 == None:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    else:
+        items = items1+items2
+        result['records'] = items
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result

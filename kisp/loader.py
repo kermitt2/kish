@@ -111,7 +111,7 @@ async def import_dataset_json(dataset_id, path):
                     classification_dict["source"] = "automatic"
                     classification_dict["value"] = excerpt["class_attributes"]["classification"][classification]["value"]
                     classification_dict["score"] = float(excerpt["class_attributes"]["classification"][classification]["score"])
-                    annotation_dict["type"] = "classification"
+                    classification_dict["type"] = "classification"
 
                     await insert_item("annotation", classification_dict)
                     nb_classification += 1
