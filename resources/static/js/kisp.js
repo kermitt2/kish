@@ -425,7 +425,7 @@ var kisp = (function($) {
                         "<td style=\"width:10%;\">Dataset</td>"+
                         "<td style=\"width:10%;\"># documents</td>"+
                         "<td style=\"width:10%;\"># excerpts</td>"+
-                        "<td style=\"width:10%;\"># annotations</td>"+
+                        "<td style=\"width:10%;\"># completed</td>"+
                         "<td style=\"width:10%;\">Status</td>"+
                         "<td style=\"width:10%;\">Assigned to</td>"+
                         "<td style=\"width:15%;\">Action</td>"+
@@ -492,8 +492,8 @@ var kisp = (function($) {
                 else
                     taskContent += "<td>0</td>";
                 
-                if (response["nb_annotations"])
-                    taskContent += "<td>"+response["nb_annotations"]+"</td>";
+                if (response["nb_completed_excerpts"])
+                    taskContent += "<td>"+response["nb_completed_excerpts"]+"</td>";
                 else
                     taskContent += "<td>0</td>";
                 
@@ -702,6 +702,9 @@ var kisp = (function($) {
                 window.location.href = "sign-in.html";
             } else {
                 response = response["record"];
+
+                var docInfoText = "<div class=\"pb-2\"><p>Task excerpt " + (rank+1) + " / " + taskInfo["nb_excerpts"] + " - " + "<span id=\"doc_url\"></span></p></div>"
+
                 var fullContext = response["full_context"];
                 var context = response["text"];
                 var ind = fullContext.indexOf(context);
@@ -711,13 +714,44 @@ var kisp = (function($) {
                         he.encode(context) + 
                         "<span style=\"color: grey;\">" + he.encode(fullContext.substring(ind+context.length)) + "</span>";
 
-                    $("#annotation-doc-view").html("<p>"+excerptText+"</p>");
+                    $("#annotation-doc-view").html(docInfoText + "<p>"+excerptText+"</p>");
                 } else {
-                    ("#annotation-doc-view").html("<p>"+he.encode(context)+"</p>");
+                    ("#annotation-doc-view").html(docInfoText + "<p>"+he.encode(context)+"</p>");
                 }
 
                 // load a possible pre-annotation for the excerpt
                 displayLabelArea(taskInfo, labels, rank, response["id"]);
+                setDocumentInfo(response["document_id"]);
+            }
+        }
+        xhr.send(null);
+    }
+
+    function setDocumentInfo(documentIdentifier) {
+        var url = defineBaseURL("documents/"+documentIdentifier);
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            var response = JSON.parse(xhr.responseText);
+            if (xhr.status != 200) {
+                // display server level error
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing document record didn't work!");
+                $("#doc_url").html("<p>The document record is not available</p>");
+            } else {
+                response = response["record"];
+                docText = ""
+                if (response["pdf_uri"]) {
+                    docText += "<a href=\""+response["pdf_uri"]+"\" target=\"_blank\">full text</a> ";
+                } 
+                if (response["doi"])
+                    docText += response["doi"];
+                $("#doc_url").html(docText);
             }
         }
         xhr.send(null);
@@ -826,9 +860,12 @@ var kisp = (function($) {
             pagingHtmlContent = "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
             pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
             pagingHtmlContent += " &nbsp; &nbsp; ";
-            if (userAnnotation || isIgnoredExcerpt) {
+            if (isIgnoredExcerpt) {
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+            } else if (userAnnotation) {
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: grey;color:white;\">Ignore</button>"; 
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
             } else {
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
@@ -866,10 +903,12 @@ var kisp = (function($) {
                 });
             //}
 
-            $("#button-ignore").click(function() {
-                ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier, userAnnotation);
-                return true;
-            });
+            if (!isIgnoredExcerpt) {
+                $("#button-ignore").click(function() {
+                    ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier, userAnnotation);
+                    return true;
+                });
+            }
             
             if (rank+1 == taskInfo["nb_excerpts"]) {
                 $("#button-next").css("visibility", "hidden");
@@ -947,16 +986,25 @@ var kisp = (function($) {
                                 $("#progress-done").html(currentCount);
                             }
                         }
-
-                        // update button
-                        $("#button-validate").css("background-color", "#fec400");
-                        $("#button-validate").html("Update");
-                        $("#button-validate").css("color", "black");
                     }
 
+                    // update button
+                    $("#button-validate").css("background-color", "#fec400");
+                    $("#button-validate").html("Update");
+                    $("#button-validate").css("color", "black");
+
+                    $("#button-ignore").css("background-color", "#8a909d");
+                    $("#button-ignore").html("Ignore");
+                    $("#button-ignore").css("color", "white");
+                    
                     $("#button-validate").off('click');
                     $("#button-validate").click(function() {
                         validateAnnotation(taskInfo, labels, rank, excerptIdentifier, true);
+                        return true;
+                    });
+                    $("#button-ignore").off('click');
+                    $("#button-ignore").click(function() {
+                        ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier);
                         return true;
                     });
                 }
@@ -1005,11 +1053,16 @@ var kisp = (function($) {
                     }
 
                     // update button
-                    $("#button-validate").css("background-color", "#fec400");
+                    $("#button-validate").css("background-color", "#8a909d");
                     $("#button-validate").html("Update");
-                    $("#button-validate").css("color", "black");
+                    $("#button-validate").css("color", "white");
+
+                    $("#button-ignore").css("background-color", "red");
+                    $("#button-ignore").html("Ignored");
+                    $("#button-ignore").css("color", "black");
 
                     $("#button-validate").off('click');
+                    $("#button-ignore").off('click');
                     $("#button-validate").click(function() {
                         validateAnnotation(taskInfo, labels, rank, excerptIdentifier, true);
                         return true;
