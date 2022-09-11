@@ -89,7 +89,7 @@ class Annotation(Base):
     task_id = Column(String, ForeignKey("task.id"))
     excerpt_id = Column(String, ForeignKey("excerpt.id"), nullable=False)
     user_id = Column(String, ForeignKey("user.id"))
-    label_id = Column(String, ForeignKey("label.id"), nullable=False)
+    label_id = Column(String, ForeignKey("label.id"))
     original_id = Column(String)
     offset_start = Column(Integer)
     offset_end = Column(Integer)
@@ -99,6 +99,7 @@ class Annotation(Base):
     chunk = Column(String)
     date = Column(DateTime)
     type = Column(String)
+    ignored = Column(Boolean)
 
 class Dataset(Base):
     __tablename__ = "dataset"

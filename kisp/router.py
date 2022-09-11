@@ -58,7 +58,7 @@ async def get_tasks():
 
 @router.get("/tasks/{identifier}", tags=["tasks"], 
     description="Return a task by its id")
-async def get_task(identifier: str):
+async def get_task(identifier: str, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
     from utils_db import get_first_item
@@ -83,49 +83,77 @@ async def get_task(identifier: str):
 
         # number of documents, excerpts and annotations
         from utils_db import get_task_attributes
-        task_attributes = await get_task_attributes(identifier)
+        task_attributes = await get_task_attributes(identifier, str(user.id))
         if "nb_documents" in task_attributes:
             item["nb_documents"] = task_attributes["nb_documents"]
         if "nb_excerpts" in task_attributes:
             item["nb_excerpts"] = task_attributes["nb_excerpts"]
         if "nb_pre_annotations" in task_attributes:
             item["nb_pre_annotations"] = task_attributes["nb_pre_annotations"]
-        if "nb_annotations" in task_attributes:
-            item["nb_annotations"] = task_attributes["nb_annotations"]
+        if "nb_completed_excerpts" in task_attributes:
+            item["nb_completed_excerpts"] = task_attributes["nb_completed_excerpts"]
 
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.get("/tasks/{identifier}/excerpts", tags=["tasks"], 
+    description="Return all excerpt identifiers from the given task")
+async def get_task_excerpts(identifier: str):
+    start_time = time.time()
+    result = {}
+    intask_dict = { "task_id": identifier }
+
+    from utils_db import get_items
+    items = await get_items("intask", intask_dict, full=True)
+    if items == None or len(items)==0:
+        raise HTTPException(status_code=404, detail="Excerpt not found")
+    else:
+        records = []
+        for item in items:
+            records.append(item["excerpt_id"])
+        all_records = {}
+        all_records["excerpts"] = records
+
+        i = 0
+        for item in items:
+            local_annotation_dict = { "task_id": identifier, "excerpt_id": item["excerpt_id"], }
+            local_annotations = await get_items("annotation", local_annotation_dict, full=True)
+            excerptDone = False
+            for local_annotation in local_annotations:
+                if "user_id" in local_annotation and local_annotation["user_id"] != None:
+                    excerptDone = True
+                    continue
+
+            if not excerptDone:
+                all_records["first_non_complete"] = i
+                break
+            i += 1
+
+        result["records"] = all_records
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result   
+
 @router.get("/tasks/{identifier}/excerpt", tags=["tasks"], 
-    description="Return an excerpt from task")
-async def get_task_excerpt(identifier: str, jump: str = None, rank: int = None):
+    description="Return an excerpt from the given task")
+async def get_task_excerpt(identifier: str, rank: int = None):
     '''
     To get an excerpt to be annotated or already annotated in task, parameter
     are its rank (in the task list of excerpts) or a jump method which can be:
     - "first": first in the task list (same as rank=0)
     - "last": last in the task list 
-    - "next": first non-annotated excerpt in the list
     '''
     start_time = time.time()
     result = {}
     intask_dict = { "task_id": identifier }
 
-    if jump== None:
+    if rank == -1 or rank == None:
         offset_from = 0
         offset_to = 1
-    elif jump == "first":
-        offset_from = 0
-        offset_to = 1
-    elif jump == "last":
-        offset_from = 0
-        offset_to = 1
-    elif jump == "next":
-        offset_from = 0
-        offset_to = 1
-    else:
-        offset_from = 0
-        offset_to = 1
+    else: 
+        offset_from = rank
+        offset_to = rank+1
 
     from utils_db import get_items
     items = await get_items("intask", intask_dict, offset_from, offset_to, full=True)
@@ -205,7 +233,7 @@ async def post_self_assign_task(identifier: str, user: User = Depends(current_us
     return result
 
 @router.post("/tasks/{identifier}/assign/{user_id}", tags=["tasks"], 
-    description="Assign a task to a given user")
+    description="Assign a task to an arbitrary given user")
 async def post_assign_task(identifier: str, user_id: str, user: User = Depends(current_superuser)):
     start_time = time.time()
     result = {}
@@ -290,5 +318,45 @@ async def get_excerpt_annotation(identifier: str, type: str, user: User = Depend
     else:
         items = items1+items2
         result['records'] = items
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.put("/annotations/annotation", tags=["annotations"], 
+    description="Add or update an annotation")
+async def add_annotation(request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    annotation_dict = await request.json()
+
+    # some validation here...
+    annotation_dict["user_id"] = str(user.id)
+    print(annotation_dict)
+
+    # check if an annotation exists for this user, excerpt and task
+    from utils_db import get_first_item
+
+    dict_annot = {"user_id": annotation_dict["user_id"], "task_id": annotation_dict["task_id"], "excerpt_id": annotation_dict["excerpt_id"]}
+    item = await get_first_item("annotation", dict_annot)
+    if item == None:
+        # we insert the new annotation
+        from utils_db import insert_item
+        annotation_result = await insert_item("annotation", annotation_dict, add_id=True)
+        if annotation_result != None and "error" in annotation_result:
+            raise HTTPException(status_code=500, detail="Annotation insert failed: "+annotation_result["error"])
+        # keep track of progress at the task record
+            
+    else:
+        # we update the existing annotation
+        from utils_db import update_record
+        annotation_result = await update_record("annotation", item["id"], annotation_dict)
+        if annotation_result != None and "error" in annotation_result:
+            raise HTTPException(status_code=500, detail="Annotation update failed: "+annotation_result["error"])
+
+    if annotation_result != None and "id" in annotation_result:
+        result["record"] = annotation_result["id"]
+    else:
+        result["record"] = None
+
     result['runtime'] = round(time.time() - start_time, 3)
     return result

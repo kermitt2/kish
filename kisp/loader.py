@@ -41,7 +41,8 @@ async def import_dataset_json(dataset_id, path):
             document_dict["pmc"] = record["pmc"]
         if "pmid" in record:
             document_dict["pmid"] = record["pmid"]
-        document_id = await insert_item("document", document_dict)
+        document_item = await insert_item("document", document_dict)
+        document_id = document_item["id"]
         nb_documents += 1
 
         if "texts" not in record:
@@ -61,7 +62,8 @@ async def import_dataset_json(dataset_id, path):
                     excerpt_dict["offset_start"] = position_text
                     excerpt_dict["offset_end"] = position_text + len(excerpt["text"])
 
-            excerpt_id = await insert_item("excerpt", excerpt_dict)
+            excerpt_item = await insert_item("excerpt", excerpt_dict)
+            excerpt_id = excerpt_item["id"]
             nb_excepts += 1
 
             # labeling
@@ -86,8 +88,8 @@ async def import_dataset_json(dataset_id, path):
                     if check_label == None:
                         # insert this new label
                         check_label = { "name": annotation["type"], "dataset_id": dataset_id, "type": "labeling" }
-                        check_label_id = await insert_item("label", check_label)
-                        check_label["id"] = check_label_id
+                        check_label_item = await insert_item("label", check_label)
+                        check_label["id"] = check_label_item["id"]
                     annotation_dict["label_id"] = check_label["id"]
 
                     await insert_item("annotation", annotation_dict)
@@ -105,8 +107,8 @@ async def import_dataset_json(dataset_id, path):
                     if check_label == None:
                         # insert this new label
                         check_label = { "name": classification, "dataset_id": dataset_id, "type": "classification" }
-                        check_label_id = await insert_item("label", check_label)
-                        check_label["id"] = check_label_id
+                        check_label_item = await insert_item("label", check_label)
+                        check_label["id"] = check_label_item["id"]
                     classification_dict["label_id"] = check_label["id"]
                     classification_dict["source"] = "automatic"
                     classification_dict["value"] = excerpt["class_attributes"]["classification"][classification]["value"]

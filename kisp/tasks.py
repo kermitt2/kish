@@ -36,7 +36,21 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
                           "name": dataset["name"]+"-task"+str(i)+"-"+str(j) }
             if j != 0 and primary_task_id != -1:
                 task_dict["redundant"] = primary_task_id
-            task_id = await insert_item("task", task_dict)
+
+            # prepare excerpts to task
+            offset_from = i * nb_excerpts_per_task
+            offset_to = (i+1) * nb_excerpts_per_task
+            local_excerpts = await get_items("excerpt", { "dataset_id": dataset_id }, offset_from=offset_from, offset_to=offset_to, full=True)
+
+            if len(local_excerpts) == 0:
+                continue
+
+            task_item = await insert_item("task", task_dict)
+            task_id = task_item["id"]
+            
+            if j == 0: 
+                primary_task_id = task_id
+
             # update dataset
             dataset_dict = {}
             if "nb_tasks" in dataset and dataset["nb_tasks"] is not None:
@@ -46,16 +60,6 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
                 dataset_dict["nb_tasks"] = 1
                 dataset["nb_tasks"] = 1
             await update_record("dataset", dataset_id, dataset_dict)
-            if j == 0:
-                primary_task_id = task_id
-
-            # add excerpts to task
-            offset_from = i * nb_excerpts_per_task
-            offset_to = (i+1) * nb_excerpts_per_task
-            local_excerpts = await get_items("excerpt", { "dataset_id": dataset_id }, offset_from=offset_from, offset_to=offset_to, full=True)
-
-            if len(local_excerpts) == 0:
-                continue
 
             for local_excerpt in local_excerpts:
                 #print(local_excerpt)
