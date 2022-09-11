@@ -88,6 +88,8 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
             item["nb_documents"] = task_attributes["nb_documents"]
         if "nb_excerpts" in task_attributes:
             item["nb_excerpts"] = task_attributes["nb_excerpts"]
+        if "nb_annotations" in task_attributes:
+            item["nb_annotations"] = task_attributes["nb_annotations"]
         if "nb_pre_annotations" in task_attributes:
             item["nb_pre_annotations"] = task_attributes["nb_pre_annotations"]
         if "nb_completed_excerpts" in task_attributes:
@@ -161,10 +163,7 @@ async def get_task_excerpt(identifier: str, rank: int = None):
         raise HTTPException(status_code=404, detail="Excerpt not found")
     else:
         # enrich the task item with some additional information
-        # dataset name
         item = items[0]
-        print(item)
-
         from utils_db import get_first_item
         excerpt_item = await get_first_item("excerpt", {"id": item["excerpt_id"]})
         if item == None:
@@ -211,6 +210,20 @@ async def get_dataset_labels(identifier: str, type: str):
         raise HTTPException(status_code=404, detail="Labels not found")
     else:
         result['records'] = items
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/documents/{identifier}", tags=["datasets"], 
+    description="Return information about a document")
+async def get_document_metadata(identifier: str):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_first_item
+    item = await get_first_item("document", {"id": identifier})
+    if item == None:
+        raise HTTPException(status_code=404, detail="Labels not found")
+    else:
+        result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 

@@ -100,6 +100,7 @@ class Annotation(Base):
     date = Column(DateTime)
     type = Column(String)
     ignored = Column(Boolean)
+    comment = Column(String)
 
 class Dataset(Base):
     __tablename__ = "dataset"

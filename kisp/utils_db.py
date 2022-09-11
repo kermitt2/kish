@@ -43,7 +43,7 @@ async def get_first_item(table, item_dict):
             if item_dict != None and len(item_dict)>0:
                 statement += " WHERE "
                 start = True
-                print(item_dict)
+                #print(item_dict)
                 for key in item_dict:
                     if start:
                         start = False
@@ -53,8 +53,8 @@ async def get_first_item(table, item_dict):
                         statement +=  key + " is NULL"
                     else:
                         statement +=  key + " = '" + item_dict[key] + "'"
-                    print(item_dict[key])
-            print(statement)
+                    #print(item_dict[key])
+            #print(statement)
             statement = text(statement)
 
             results = await conn.execute(statement)
@@ -90,7 +90,7 @@ async def get_items(table, item_dict, offset_from=-1, offset_to=-1, full=False):
                 statement += " LIMIT " + str(limit)
             if offset_from != -1 and offset_from != 0:
                 statement += " OFFSET " + str(offset_from)
-            print(statement)
+            #print(statement)
             statement = text(statement)
             results = await conn.execute(statement)
             item_rows = results.all()
@@ -109,48 +109,6 @@ async def get_items(table, item_dict, offset_from=-1, offset_to=-1, full=False):
         error=str(e.__dict__['orig'])
         print("Fail to access records in " + table + ": " + error)
     return items
-
-"""
-async def get_items_by_field_value(table, field, value, offset_from=-1, offset_to=-1):
-    items = []
-    try:
-        async with engine.connect() as conn:
-            statement = "SELECT * FROM "+table+" WHERE "+field+" = '"+value+"'"
-            if offset_to != -1 and (offset_from == -1 or offset_from == 0):
-                statement += " LIMIT " + str(offset_to)
-            elif offset_to != -1 and offset_to > offset_from:
-                limit = offset_to - offset_from
-                statement += " LIMIT " + str(limit)
-            if offset_from != -1 and offset_from != 0:
-                statement += " OFFSET " + str(offset_from)
-            statement = text(statement)
-            results = await conn.execute(statement)
-            item_rows = results.all()
-            if len(item_rows) == 0:
-                return items
-            for item_row in item_rows:
-                items.append(row2dict(item_row))
-    except SQLAlchemyError as e:
-        error=str(e.__dict__['orig'])
-        print("Fail to access records in " + table + ": " + error)
-    return items
-"""
-
-"""
-async def get_first_item_by_field_value(table, field, value):
-    item = None
-    try:
-        async with engine.connect() as conn:
-            statement = text("SELECT * FROM "+table+" WHERE "+field+" = '"+value+"'")
-            results = await conn.execute(statement)
-            item_row = results.first()
-            if item_row != None:
-                item = row2dict(item_row)
-    except SQLAlchemyError as e:
-        error=str(e.__dict__['orig'])
-        print("Fail to access record in " + table + ": " + error)
-    return item
-"""
 
 async def insert_item(table, record_as_dict, add_id=True):
     statement = "INSERT INTO " + table
@@ -181,7 +139,7 @@ async def insert_item(table, record_as_dict, add_id=True):
 
     statement_piece += ")"
     statement += statement_piece
-    print(statement)
+    #print(statement)
     statement = text(statement)
 
     try:
@@ -311,7 +269,7 @@ async def delete_items(table, record_dict):
         else:
             statement += " AND "
         statement += key + " = '" + str(record_dict[key]) + "'"
-    print(statement)
+    #print(statement)
     statement = text(statement)
     try:
         async with engine.connect() as conn:
@@ -328,7 +286,6 @@ async def test_init():
     Init the database with a test task, if not already present
     '''
     # Dataset
-    #statement = text("""INSERT INTO dataset ('id', 'name', 'description', 'image_url') values(:id, :name, :description, :image_url )""")
     dataset_data = { "id": '811b64f1-323f-4a78-bdb8-ebaab44b023a', 
                      "name": "Softcite",
                      "description": "Software mention contexts",
@@ -341,9 +298,6 @@ async def test_init():
 
     await insert_item("dataset", dataset_data)
 
-    #item = await get_first_item("dataset", {"id": 811b64f1-323f-4a78-bdb8-ebaab44b023a"} )
-    #print(item)
-
     # insert data for the dataset
     from loader import import_dataset_json
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
@@ -353,4 +307,3 @@ async def test_init():
     # generate classification tasks from the dataset for 5 users, double annotations
     from kisp.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"])
-
