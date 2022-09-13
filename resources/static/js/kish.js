@@ -486,34 +486,6 @@ var kish = (function($) {
                 response = response["record"]
                 //console.log(response)
 
-                /*
-                var datasetContent = "<td style=\"width:100px;\"><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td>"+
-                    "<td><span style=\"color:white; font-weight: bold;\">"+response["name"]+"</span></td>";
-                if (response["description"])
-                    datasetContent += "<td>"+response["description"]+"</td>";
-                else
-                    datasetContent += "<td></td>";
-                if (response["nb_documents"])
-                    datasetContent += "<td>"+response["nb_documents"]+" documents</td>";
-                else
-                    datasetContent += "<td>0</td>";
-                if (response["nb_excerpts"])
-                    datasetContent += "<td>"+response["nb_excerpts"]+" excertps</td>";
-                else
-                    datasetContent += "<td>0</td>";
-                if (response["nb_tasks"])
-                    datasetContent += "<td>"+response["nb_tasks"]+" tasks</td>";
-                else
-                    datasetContent += "<td>0</td>";
-
-                if (userInfo["is_superuser"]) {
-                    datasetContent += "<td><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
-                    "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
-                } else {
-                    datasetContent += "<td></td>";
-                }
-                */
-
                 var divContent = "<table class=\"table table-borderless\"><tr><td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td>";
 
                 divContent += "<td style=\"text-align: top; max-width: 400px\"><p><span style=\"color:white; font-weight: bold;\">"+response["name"]+"</span></p><p>"+ 
@@ -760,23 +732,27 @@ var kish = (function($) {
                 else
                     taskContent += "<td></td>";
 
+                var origin = "-dataset";
+                if ($("#tasks-home").hasClass("active")) 
+                    origin = "";
+
                 if (response["assigned"]) {
                     color_assign = "grey";
                     if (response["assigned"] === userInfo["email"]) {
-                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
                             "\" style=\"color:orange;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
-                            "<a href=\"#\"><span id=\"annotate-task-"+pos+
+                            "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
                             "\" style=\"color:green;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                     } else {
-                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
                             "\" style=\"color:grey;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
-                            "<a href=\"#\"><span id=\"annotate-task-"+pos+
+                            "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
                             "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                     }
                 } else {
-                    taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                    taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
                     "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
-                    "<a href=\"#\"><span id=\"annotate-task-"+pos+
+                    "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
                     "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                 }
                 
@@ -784,24 +760,23 @@ var kish = (function($) {
 
                 if (response["assigned"]) {
                     if (response["assigned"] === userInfo["email"]) {
-                        $("#self-assign-task-"+pos).click(function() {
+                        $("#self-assign" + origin + "-task-"+pos).click(function() {
                             selfUnassignTask(taskIdentifier);
                             return true;
                         });
-                        $("#annotate-task-"+pos).click(function() {
-                            //annotationTask(taskIdentifier, response["dataset_id"], response["type"], response["nb_excerpts"]);
+                        $("#annotate" + origin + "-task-"+pos).click(function() {
+                            console.log(response);
                             annotationTask(response);
-                            //clearMainContent();
                             return true;
                         });
                     } else {
-                        $("#self-deassign-task-"+pos).click(function() {
+                        $("#self-deassign" + origin + "-task-"+pos).click(function() {
                             unAssignTask(taskIdentifier);
                             return true;
                         });
                     }
                 } else {
-                    $("#self-assign-task-"+pos).click(function() {
+                    $("#self-assign" + origin + "-task-"+pos).click(function() {
                         selfAssignTask(taskIdentifier);
                         return true;
                     });
