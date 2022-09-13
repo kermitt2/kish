@@ -18761,7 +18761,7 @@ input[type=radio] {
 thead th,
 tbody tr td:first-child {
   /*color: #1b223c;*/
-  font-weight: 500;
+  /*font-weight: 500;*/
 }
 
 .table-secondary td {
