@@ -27,8 +27,8 @@ def get_version():
     api_settings = scorer.config['api']
     return api_settings['version']
 
-from kisp.users_manager import fastapi_users
-from kisp.db import User
+from kish.users_manager import fastapi_users
+from kish.db import User
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
 current_user = fastapi_users.current_user(active=True)
 

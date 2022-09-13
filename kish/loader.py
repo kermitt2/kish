@@ -1,6 +1,6 @@
 import ijson
 import gzip
-import kisp.db
+import kish.db
 from utils_db import insert_item, get_items, get_first_item, update_record
 
 # note: ijson is used to stream json loading

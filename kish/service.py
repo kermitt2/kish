@@ -16,9 +16,9 @@ from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 # for managing users and authentication
-from kisp.db import User, create_db_and_tables
-from kisp.schemas import UserCreate, UserRead, UserUpdate
-from kisp.utils import _load_config
+from kish.db import User, create_db_and_tables
+from kish.schemas import UserCreate, UserRead, UserUpdate
+from kish.utils import _load_config
 
 '''
     The web API uses the FastAPI framework. 
@@ -101,17 +101,17 @@ def get_app(server_config) -> FastAPI:
 
     @server.on_event("startup")
     async def startup_message() -> None:
-        ascii_banner = pyfiglet.figlet_format("KISP")
+        ascii_banner = pyfiglet.figlet_format("KISH")
         print(ascii_banner)
         await create_db_and_tables()
-        from kisp.utils_db import create_user, test_init, create_preferences
+        from kish.utils_db import create_user, test_init, create_preferences
         import asyncio
         record = await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
         await test_init()
 
     @server.on_event("shutdown")
     async def shutdown() -> None:
-        print("KISP service stopped")
+        print("KISH service stopped")
 
     @server.exception_handler(Exception)
     async def validation_exception_handler(request, exc):
@@ -135,7 +135,7 @@ def load_server_config(config_path):
 if __name__ == '__main__':
     # stand alone mode, run the application
     parser = argparse.ArgumentParser(
-        description="Run the KISP web app and API service")
+        description="Run the KISH web app and API service")
     parser.add_argument("--host", type=str, default='0.0.0.0',
                         help="host of the service")
     parser.add_argument("--port", type=str, default=8080,
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
     # use uvicorn to serve the app, we again have to set the configuration parameters outside the app because uvicorn is an independent layer
     server_config = load_server_config(config_path)
-    from kisp.users_manager import auth_backend, current_active_user, fastapi_users
+    from kish.users_manager import auth_backend, current_active_user, fastapi_users
 
     app = get_app(server_config)
 

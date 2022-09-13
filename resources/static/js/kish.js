@@ -4,12 +4,12 @@
 *  Author: Patrice Lopez
 */
 
-var kisp = (function($) {
+var kish = (function($) {
 
     var userInfo = null;
 
     setAuthenticatedUserInfo();
-    callToaster("toast-top-center", "success", "Welcome to KISP", "Yo!");
+    callToaster("toast-top-center", "success", "Welcome to KISH", "Yo!");
 
     $(document).ready(function() {
         $("#user-settings").hide();

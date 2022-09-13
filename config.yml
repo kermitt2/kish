@@ -48,7 +48,7 @@ api:
   reload: false
   # the following is used in the generated API documentation
   version: "0.1"
-  name: "KISP web app and API"
+  name: "KISH web app and API"
   description: "Keep It Simple and Painful"
   api_route: ""
 

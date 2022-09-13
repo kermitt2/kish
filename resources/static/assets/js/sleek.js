@@ -283,7 +283,7 @@ $(document).ready(function () {
         showMethod: "fadeIn",
         hideMethod: "fadeOut"
       };
-      toastr.success("Welcome to KISP", "Yo!");
+      toastr.success("Welcome to KISH", "Yo!");
     }
   }*/
 

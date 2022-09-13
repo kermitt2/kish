@@ -1,9 +1,9 @@
 import contextlib
 import asyncio
 import uuid
-from kisp.db import get_async_session, get_user_db, engine
-from kisp.schemas import UserCreate
-from kisp.users_manager import get_user_manager
+from kish.db import get_async_session, get_user_db, engine
+from kish.schemas import UserCreate
+from kish.users_manager import get_user_manager
 from fastapi_users.exceptions import UserAlreadyExists
 from sqlalchemy.sql import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -335,5 +335,5 @@ async def test_init():
         "tests/resources/corpus-false-negative-annotators.classification.json.gz")
 
     # generate classification tasks from the dataset for 5 users, double annotations
-    from kisp.tasks import generate_tasks
+    from kish.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"])
