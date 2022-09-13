@@ -15,8 +15,18 @@ var kisp = (function($) {
         $("#user-settings").hide();
         $('#user-settings-menu').click(function() {
             clearMainContent();
+            activateMenuChoice($("#user-menu-home"));
             settings();
             $("#user-settings").show();
+            return true;
+        });
+
+        $("#user-preferences").hide();
+        $('#user-preferences-menu').click(function() {
+            clearMainContent();
+            activateMenuChoice($("#user-menu-home"));
+            preferences();
+            $("#user-preferences").show();
             return true;
         });
 
@@ -30,29 +40,51 @@ var kisp = (function($) {
             update_settings();
         });
 
+        $('#update-preferences-button').click(function() {
+            event.preventDefault();
+            updatePreferences();
+        });
+
         $("#tasks-home").click(function() {
             clearMainContent();
+            activateMenuChoice($(this));
             displayTasks();
             return true;
         });
 
         $("#users-home").click(function() {
             clearMainContent();
+            activateMenuChoice($(this));
             displayUsers();
             return true;
         });
 
         $("#datasets-home").click(function() {
             clearMainContent();
+            activateMenuChoice($(this));
             displayDatasets();
             return true;
         });
 
     });
 
+    function activateMenuChoice(element) {
+        $("#tasks-home").find('span').css("color", "");
+        $("#tasks-home").removeClass("active");
+        $("#users-home").find('span').css("color", "");
+        $("#users-home").removeClass("active");
+        $("#datasets-home").find('span').css("color", "");
+        $("#datasets-home").removeClass("active");
+        $("#user-menu-home").find('span').css("color", "");
+        $("#user-menu-home").removeClass("active");
+        element.find('span').css("color", "#7DBCFF");
+        element.addClass("active");
+    }
+
     function clearMainContent() {
         $("#user-settings").hide();
-        $("#task-view").hide();
+        $("#user-preferences").hide();
+        $("#my-task-view").hide();
         $("#user-view").hide();
         $("#dataset-view").hide();
         $("#annotation-view").hide();
@@ -88,7 +120,7 @@ var kisp = (function($) {
         
         xhr.onloadend = function () {
             // status
-            if (xhr.status == 200) {
+            if (xhr.status == 200 || xhr.status == 201) {
                 userInfo = JSON.parse(xhr.responseText);
                 updateUserSettings();
                 console.log(userInfo);
@@ -97,6 +129,38 @@ var kisp = (function($) {
                     $("#users-home").show();
                 }
 
+                // get preferences information too
+                setPreferencesUserInfo();
+            } else {
+                // not authorized, redirect to login page (note it should not happen 
+                // as the page would be served under a protected route)
+                window.location.href = "sign-in.html";
+            }
+        };
+
+        xhr.send(null);
+    }
+
+    function setPreferencesUserInfo() {
+        var url = defineBaseURL("users/preferences");
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true); 
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status == 200 || xhr.status == 201) {
+                var preferencesInfo = JSON.parse(xhr.responseText);
+                preferencesInfo = preferencesInfo["record"];
+                if (preferencesInfo["auto_move_on"])
+                    userInfo["auto_move_on"] = preferencesInfo["auto_move_on"];
+                else 
+                     userInfo["auto_move_on"] = 0;
+                if (preferencesInfo["dark_mode"])
+                    userInfo["dark_mode"] = preferencesInfo["dark_mode"];
+                else
+                    userInfo["dark_mode"] = 0;
             } else {
                 // not authorized, redirect to login page (note it should not happen 
                 // as the page would be served under a protected route)
@@ -146,6 +210,20 @@ var kisp = (function($) {
         //$("#email").addclass(readonly);
         $("#firstName").val(userInfo["first_name"]);
         $("#lastName").val(userInfo["last_name"]);
+    }
+
+    function preferences() {
+        var autoMoveOn = 1;
+        var darkMode = 1;
+        if (userInfo["auto_move_on"] == 0)
+            autoMoveOn = userInfo["auto_move_on"];
+        if (userInfo["dark_mode"] == 0)
+            darkMode = userInfo["dark_mode"];
+
+        if (autoMoveOn == 1) 
+            $("#preferences-move-on").prop('checked', true);
+        else 
+            $("#preferences-move-on").prop('checked', false);
     }
 
     function callToaster(positionClass, type, msg, greetings) {
@@ -223,6 +301,43 @@ var kisp = (function($) {
             // send the collected data as JSON
             xhr.send(JSON.stringify(data));
         }
+    }
+
+    function updatePreferences() {
+        var autoMoveOn;
+        if ($("#preferences-move-on").is(":checked")) {
+            autoMoveOn = 1;
+        } else {
+            autoMoveOn = 0;
+        }
+        userInfo["auto_move_on"] = autoMoveOn;
+
+        // update on server
+        var url = defineBaseURL("users/preferences");
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        var data = {}
+        data["auto_move_on"] = autoMoveOn
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200 && xhr.status != 201) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                $('#div-submit-preferences').append("<div class=\"invalid-feedback\" style=\"color:red; display:inline;\">Error preferences update: <br/>"+
+                    response["detail"]+"</div>");
+                callToaster("toast-top-center", "error", response["detail"], "Didn't work!");
+            } else {
+                // otherwise update is done, update local user settings and notify the change
+                callToaster("toast-top-center", "success", "Your preferences are updated", "Yes!");
+            }
+        };
+
+        // send the collected data as JSON
+        xhr.send(JSON.stringify(data));
     }
 
     function validate_settings(email, forname, lastname, oldpassword, password, cpassword) {
@@ -310,30 +425,35 @@ var kisp = (function($) {
 
         xhr.onloadend = function () {
             // status
-            if (xhr.status != 200) {
+            if (xhr.status == 401) {
+                // unauthorized, move to login screen
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, accessing datasets didn't work!");
-                $("#dataset-view-table").html("<tr><td>No dataset available</td></tr>");
+                $("#dataset-view").html("<p>No dataset available</p>");
             } else {
                 // otherwise go through the datasets
                 var response = JSON.parse(xhr.responseText);
                 if (response["records"].length == 0) {
-                    $("#dataset-view-table").html("<tr><td>No dataset available</td></tr>");
+                    $("#dataset-view").html("<p>No dataset available</p>");
                 } else {
-                    var tableContent = 
-                        "<thead><tr><td style=\"width:10%;\"></td>" + 
-                        "<td style=\"width:10%;\">Dataset</td><td style=\"width:30%;\">Description</td>"+
-                        "<td style=\"width:10%;\"># documents</td><td style=\"width:10%;\"># excerpts</td><td style=\"width:10%;\"># tasks</td>"+
-                        "<td style=\"width:20%;\">Action</td></tr></thead><tbody>";
+                    var divContent = ""
                     for(var pos in response["records"]) {
-                        tableContent += "<tr id=\"dataset-"+pos+"\"></tr>\n";
+                        divContent += "<div class=\"row border\"><span id=\"dataset-"+pos+"\"></span>";
+                        divContent += "<div stype=\"border-bottom: 1px solid #8a909d; width: 100%; height: 2px;\">&nbsp;</div>";
+                        // table for the tasks of the dataset
+                        divContent += "<table id=\"dataset-"+pos+"-task-view-table\" class=\"table table-borderless\" style=\"width:90%;table-layout:fixed;border-top: 1px solid #8a909d;\"></table>";
+                        divContent += "</div>";
                     }
-                    tableContent += "</tbody>";
-                    $("#dataset-view-table").html(tableContent);
+
+                    $("#dataset-view").html(divContent);
+
                     for(var pos in response["records"]) {
                         displayDataset(pos, response["records"][pos]);
+                        displayDatasetTasks(pos, response["records"][pos]);
                     }
                 }
             }
@@ -352,7 +472,10 @@ var kisp = (function($) {
 
         xhr.onloadend = function () {
             // status
-            if (xhr.status != 200) {
+            if (xhr.status == 401) {
+                // unauthorized, move to login screen
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
@@ -362,26 +485,54 @@ var kisp = (function($) {
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
                 //console.log(response)
-                var datasetContent = "<td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td><td>"+response["name"]+"</td>";
+
+                /*
+                var datasetContent = "<td style=\"width:100px;\"><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td>"+
+                    "<td><span style=\"color:white; font-weight: bold;\">"+response["name"]+"</span></td>";
                 if (response["description"])
                     datasetContent += "<td>"+response["description"]+"</td>";
                 else
                     datasetContent += "<td></td>";
                 if (response["nb_documents"])
-                    datasetContent += "<td>"+response["nb_documents"]+"</td>";
+                    datasetContent += "<td>"+response["nb_documents"]+" documents</td>";
                 else
                     datasetContent += "<td>0</td>";
                 if (response["nb_excerpts"])
-                    datasetContent += "<td>"+response["nb_excerpts"]+"</td>";
+                    datasetContent += "<td>"+response["nb_excerpts"]+" excertps</td>";
                 else
                     datasetContent += "<td>0</td>";
                 if (response["nb_tasks"])
-                    datasetContent += "<td>"+response["nb_tasks"]+"</td>";
+                    datasetContent += "<td>"+response["nb_tasks"]+" tasks</td>";
                 else
                     datasetContent += "<td>0</td>";
-                datasetContent += "<td><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
+
+                if (userInfo["is_superuser"]) {
+                    datasetContent += "<td><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
                     "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
-                $("#dataset-"+pos).html(datasetContent);
+                } else {
+                    datasetContent += "<td></td>";
+                }
+                */
+
+                var divContent = "<table class=\"table table-borderless\"><tr><td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td>";
+
+                divContent += "<td style=\"text-align: top; max-width: 400px\"><p><span style=\"color:white; font-weight: bold;\">"+response["name"]+"</span></p><p>"+ 
+                response["description"] + "</p></td><td><p>&nbsp;</p></td>";
+
+                divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_documents"]+" documents </p></td>";
+                divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_excerpts"]+" excertps </p></td>";
+                divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_tasks"]+" tasks </p></td>";
+
+                if (userInfo["is_superuser"]) {
+                    divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
+                    "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
+                } else {
+                    divContent += "<td></td>";
+                }
+                
+                divContent += "</tr></table>";
+
+                $("#dataset-"+pos).html(divContent);
                 $("#delete-dataset-"+pos).click(function() {
                     deleteDataset(datasetIdentifier);
                     //clearMainContent();
@@ -395,11 +546,10 @@ var kisp = (function($) {
         xhr.send(null);
     }
 
-    function displayTasks() {
-        $("#task-view").show();
-        var url = defineBaseURL("tasks");
-
-        // retrieve the existing task information
+    function displayDatasetTasks(pos, datasetIdentifier) {
+        // retrieve all the existing task information for a given dataset
+        var url = defineBaseURL("tasks/dataset/"+datasetIdentifier);
+        // retrieve the existing task information assigned to the current user 
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -411,15 +561,16 @@ var kisp = (function($) {
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, accessing tasks didn't work!");
-                $("#task-view-table").html("<tr><td>No tasks available</td></tr>");
+                ("#dataset-"+pos+"-task-view-table").html("<tr><td>No tasks available</td></tr>");
             } else {
                 // otherwise go through the tasks
                 var response = JSON.parse(xhr.responseText);
                 if (response["records"].length == 0) {
-                    $("#task-view-table").html("<tr><td>No tasks available</td></tr>");
+                    $("#dataset-"+pos+"-task-view-table").html("<tr><td>No tasks available</td></tr>");
                 } else {
                     var tableContent = 
                         "<thead><tr>" + 
+                        "<td style=\"width:3%;\"></td>"+
                         "<td style=\"width:15%;\">Task</td>"+
                         "<td style=\"width:10%;\">Type</td>"+
                         "<td style=\"width:10%;\">Dataset</td>"+
@@ -428,15 +579,15 @@ var kisp = (function($) {
                         "<td style=\"width:10%;\"># completed</td>"+
                         "<td style=\"width:10%;\">Status</td>"+
                         "<td style=\"width:10%;\">Assigned to</td>"+
-                        "<td style=\"width:15%;\">Action</td>"+
+                        "<td style=\"width:10%; text-align: right;\">Action</td>"+
                         "</tr></thead><tbody>";
-                    for(var pos in response["records"]) {
-                        tableContent += "<tr id=\"task-"+pos+"\"></tr>\n";
+                    for(var pos2 in response["records"]) {
+                        tableContent += "<tr id=\"dataset-"+pos+"-task-"+pos2+"\"></tr>\n";
                     }
                     tableContent += "</tbody>";
-                    $("#task-view-table").html(tableContent);
-                    for(var pos in response["records"]) {
-                        displayTask(pos, response["records"][pos]);
+                    $("#dataset-"+pos+"-task-view-table").html(tableContent);
+                    for(var pos2 in response["records"]) {
+                        displayTask("dataset-"+pos, pos2, response["records"][pos2]);
                     }
                 }
             }
@@ -445,7 +596,109 @@ var kisp = (function($) {
         xhr.send(null);
     }
 
-    function displayTask(pos, taskIdentifier) {
+    function displayTasks() {
+        $("#my-task-view").show();
+        var url = defineBaseURL("tasks/user");
+        // retrieve the existing task information assigned to the current user 
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status == 401) {
+                // unauthorized, move to login screen
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing tasks didn't work!");
+                $("#active-task-view-table").html("<tr><td>No tasks available</td></tr>");
+                $("#assigned-task-view-table").html("<tr><td>No tasks available</td></tr>");
+                $("#completed-task-view-table").html("<tr><td>No tasks available</td></tr>");
+            } else {
+                // otherwise go through the tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"].length == 0) {
+                    $("#active-task-view-table").html("<tr><td>No tasks available</td></tr>");
+                    $("#assigned-task-view-table").html("<tr><td>No tasks available</td></tr>");
+                    $("#completed-task-view-table").html("<tr><td>No tasks available</td></tr>");
+                } else {
+                    var tableContent = initTaskTableHeader();
+                    tableContent = tableContent.replace("{{first_col_width}}", "0");
+                    var tableContentCompleted = tableContent.replace("{{status}}", "");
+                    var tableContentInProgress = tableContent.replace("{{status}}", "");
+                    var tableContentAssigned = tableContent.replace("{{status}}", "");
+
+                    var hasCompletedTask = false;
+                    var hasInProgressTask = false;
+                    var hasAssignedTask = false;
+                    for(var pos in response["records"]) {
+                        const localAssignedTask = response["records"][pos];
+
+                        if (localAssignedTask["is_completed"] == 1) {
+                            // task is done
+                            tableContentCompleted += "<tr id=\"active-task-"+pos+"\"></tr>\n";
+                            hasCompletedTask = true;
+                        } else if (localAssignedTask["in_progress"] == 1 || localAssignedTask["completed_excerpts"]>0) {
+                            // active task in progress
+                            tableContentInProgress += "<tr id=\"active-task-"+pos+"\"></tr>\n";
+                            hasInProgressTask = true;
+                        } else {
+                            // task simply assigned
+                            tableContentAssigned += "<tr id=\"active-task-"+pos+"\"></tr>\n";
+                            hasAssignedTask = true;
+                        }
+                    }
+
+                    tableContentCompleted += "</tbody>";
+                    tableContentInProgress += "</tbody>";
+                    tableContentAssigned += "</tbody>";
+
+                    if (hasCompletedTask)
+                        $("#completed-task-view-table").html(tableContentCompleted);
+                    else
+                        $("#completed-task-view-table").html("<tr><td>No completed task yet</td></tr>");
+
+                    if (hasInProgressTask)
+                        $("#active-task-view-table").html(tableContentInProgress);
+                    else
+                        $("#active-task-view-table").html("<tr><td>No active in progress task yet</td></tr>");
+
+                    if (hasAssignedTask)
+                        $("#assigned-task-view-table").html(tableContentAssigned);
+                    else
+                        $("#assigned-task-view-table").html("<tr><td>No assigned task - select open tasks in Datasets view !</td></tr>");
+
+                    for(var pos in response["records"]) {
+                        displayTask("active", pos, response["records"][pos]["task_id"]);
+                    }
+                }
+            }
+        };
+
+        xhr.send(null);
+    }
+
+    function initTaskTableHeader() {
+        var tableContent = 
+            "<thead><tr>" + 
+            "<td style=\"width:{{first_col_width}}%;\"></td>"+
+            "<td style=\"width:15%; font-weight: bold;\">{{status}} Task</td>"+
+            "<td style=\"width:10%;\">Type</td>"+
+            "<td style=\"width:10%;\">Dataset</td>"+
+            "<td style=\"width:10%;\"># documents</td>"+
+            "<td style=\"width:10%;\"># excerpts</td>"+
+            "<td style=\"width:10%;\"># completed</td>"+
+            "<td style=\"width:10%;\">Status</td>"+
+            "<td style=\"width:15%;\">Assigned to</td>"+
+            "<td style=\"width:10%;text-align: right;\">Action</td>"+
+            "</tr></thead><tbody>";
+        return tableContent
+    }
+
+    function displayTask(table, pos, taskIdentifier) {
         var url = defineBaseURL("tasks/"+taskIdentifier);
 
         // retrieve the existing task information
@@ -466,7 +719,7 @@ var kisp = (function($) {
                 response = response["record"]
                 //console.log(response)
                 var taskContent = "";
-                
+                taskContent += "<td></td>";
                 if (response["name"])
                     taskContent += "<td>"+response["name"]+"</td>";
                 else
@@ -510,24 +763,24 @@ var kisp = (function($) {
                 if (response["assigned"]) {
                     color_assign = "grey";
                     if (response["assigned"] === userInfo["email"]) {
-                        taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign-task-"+pos+
                             "\" style=\"color:orange;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
                             "<a href=\"#\"><span id=\"annotate-task-"+pos+
                             "\" style=\"color:green;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                     } else {
-                        taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign-task-"+pos+
                             "\" style=\"color:grey;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
                             "<a href=\"#\"><span id=\"annotate-task-"+pos+
                             "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                     }
                 } else {
-                    taskContent += "<td><a href=\"#\"><span id=\"self-assign-task-"+pos+
+                    taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign-task-"+pos+
                     "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
                     "<a href=\"#\"><span id=\"annotate-task-"+pos+
                     "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                 }
                 
-                $("#task-"+pos).html(taskContent);
+                $("#"+table+"-task-"+pos).html(taskContent);
 
                 if (response["assigned"]) {
                     if (response["assigned"] === userInfo["email"]) {
@@ -572,12 +825,16 @@ var kisp = (function($) {
             // status
             if (xhr.status != 200) {
                 // display server level error
+                // Note: assignment can be refused if the task has been assigned to someone else in between ! 
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, task self-assignment didn't work!");
             } else {
                 callToaster("toast-top-center", "success", "Success!", "Self-assignment to task");
-                displayTasks();
+                if ($("#tasks-home").hasClass("active"))
+                    displayTasks();
+                else                
+                    displayDatasets();
             }
         }
 
@@ -602,14 +859,17 @@ var kisp = (function($) {
                 callToaster("toast-top-center", "error", response["detail"], "Damn, task self-unassignment didn't work!");
             } else {
                 callToaster("toast-top-center", "success", "Success!", "Self-unassignment from the task");
-                displayTasks();
+                if ($("#tasks-home").hasClass("active"))
+                    displayTasks();
+                else                
+                    displayDatasets();
             }
         }
 
         xhr.send(null);
     }
 
-    var classColorBootstrapMapping = { "blue": "primary", "grey": "default", "green" : "success", "orange": "warning", "red": "danger", "cyan": "info"};
+    //var classColorBootstrapMapping = { "blue": "primary", "grey": "default", "green" : "success", "orange": "warning", "red": "danger", "cyan": "info"};
 
     function annotationTask(taskInfo) {
         event.preventDefault();
@@ -627,12 +887,12 @@ var kisp = (function($) {
 
         xhr.onloadend = function () {
             var response = JSON.parse(xhr.responseText);
-            if (xhr.status != 200) {
+            if (xhr.status == 401) {
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
                 // display server level error
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, accessing excepts of the task failed!");
-            } else if (xhr.status == 401) {
-                window.location.href = "sign-in.html";
             } else {
                 var excerpts = []
                 for (var excerptPos in response["records"]["excerpts"]) {
@@ -693,13 +953,13 @@ var kisp = (function($) {
         xhr.onloadend = function () {
             // status
             var response = JSON.parse(xhr.responseText);
-            if (xhr.status != 200) {
+            if (xhr.status == 401) {
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
                 // display server level error
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, accessing task records didn't work!");
                 $("#annotation-doc-view").html("<p>The task record is not available</p>");
-            } else if (xhr.status == 401) {
-                window.location.href = "sign-in.html";
             } else {
                 response = response["record"];
 
@@ -796,6 +1056,9 @@ var kisp = (function($) {
         xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
+        const localHeight = 40*labels.length;
+        $("#annotation-val-area").css("min-height", localHeight);
+
         xhr.onloadend = function () {
             var prelabeling = {}
             var userAnnotation = false;
@@ -828,8 +1091,7 @@ var kisp = (function($) {
                 
                 if (prelabeling[label["id"]]) {
                     let prelabel = prelabeling[label["id"]];
-
-                    console.log(prelabel);
+                    //console.log(prelabel);
 
                     labelHtmlContent += 
                             "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
@@ -891,18 +1153,11 @@ var kisp = (function($) {
                 });
             }
 
-            /*if (userAnnotation) {
-                $("#button-validate").click(function() {
-                    updateAnnotation(taskInfo, labels, rank, excerptIdentifier);
-                    return true;
-                });
-            } else {*/
-                $("#button-validate").click(function() {
-                    validateAnnotation(taskInfo, labels, rank, excerptIdentifier, userAnnotation);
-                    return true;
-                });
-            //}
-
+            $("#button-validate").click(function() {
+                validateAnnotation(taskInfo, labels, rank, excerptIdentifier, userAnnotation);
+                return true;
+            });
+            
             if (!isIgnoredExcerpt) {
                 $("#button-ignore").click(function() {
                     ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier, userAnnotation);
@@ -925,7 +1180,6 @@ var kisp = (function($) {
                     return true;
                 });
             }
-
         }
         xhr.send(null);
     }
@@ -945,133 +1199,172 @@ var kisp = (function($) {
 
         // store annotation
         for(var key in classValueMap) {
-            var url = defineBaseURL("annotations/annotation");
-            var data = {}
-            data["label_id"] = key;
-            data["value"] = classValueMap[key];
-            data["excerpt_id"] = excerptIdentifier;
-            data["task_id"] = taskInfo["id"];
-            data["score"] = 1.0;
-            data["source"] = "manual";
-            const timeElapsed = Date.now();
-            const date = new Date(timeElapsed);
-            data["date"] = date.toISOString()
-            data["type"] = taskInfo["type"];
-            data["ignored"] = 0;
+            storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key]);
+        }
 
-            // retrieve the existing task information
-            var xhr = new XMLHttpRequest();
-            xhr.open("PUT", url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-
-            xhr.onloadend = function () {
-                if (xhr.status != 200) {
-                    // display server level error
-                    var response = JSON.parse(xhr.responseText);
-                    console.log(response["detail"]);
-                    callToaster("toast-top-center", "error", response["detail"], "Damn, adding annotation didn't work!");
-                } else if (xhr.status == 401) {
-                    window.location.href = "sign-in.html";
-                } else {
-                    // update progress info display
-                    if (!update) {
-                        var currentcountStr = $("#progress-done").text();
-                        var currentCount = parseInt(currentcountStr);
-                        if (currentCount != NaN) {
-                            currentCount += 1;
-                            if (currentCount == taskInfo["nb_excerpts"]) {
-                                $("#progress-done").html(currentCount);
-                                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
-                            } else if (currentCount < taskInfo["nb_excerpts"]) {
-                                $("#progress-done").html(currentCount);
-                            }
-                        }
-                    }
-
-                    // update button
-                    $("#button-validate").css("background-color", "#fec400");
-                    $("#button-validate").html("Update");
-                    $("#button-validate").css("color", "black");
-
-                    $("#button-ignore").css("background-color", "#8a909d");
-                    $("#button-ignore").html("Ignore");
-                    $("#button-ignore").css("color", "white");
-                    
-                    $("#button-validate").off('click');
-                    $("#button-validate").click(function() {
-                        validateAnnotation(taskInfo, labels, rank, excerptIdentifier, true);
-                        return true;
-                    });
-                    $("#button-ignore").off('click');
-                    $("#button-ignore").click(function() {
-                        ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier);
-                        return true;
-                    });
+        // update progress info display
+        var completed = false;
+        var currentcountStr = $("#progress-done").text();
+        var currentCount = parseInt(currentcountStr);
+        if (!update) {
+            if (currentCount != NaN) {
+                currentCount += 1;
+                if (currentCount == taskInfo["nb_excerpts"]) {
+                    $("#progress-done").html(currentCount);
+                    $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+                    completed = true;
+                } else if (currentCount < taskInfo["nb_excerpts"]) {
+                    $("#progress-done").html(currentCount);
                 }
             }
-
-            xhr.send(JSON.stringify(data));
         }
+
+        // update button
+        $("#button-validate").css("background-color", "#fec400");
+        $("#button-validate").html("Update");
+        $("#button-validate").css("color", "black");
+
+        $("#button-ignore").css("background-color", "#8a909d");
+        $("#button-ignore").html("Ignore");
+        $("#button-ignore").css("color", "white");
+        
+        $("#button-validate").off('click');
+        $("#button-validate").click(function() {
+            validateAnnotation(taskInfo, labels, rank, excerptIdentifier, true);
+            return true;
+        });
+        $("#button-ignore").off('click');
+        $("#button-ignore").click(function() {
+            ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier);
+            return true;
+        });
+
+        // update task assignment information to keep track of the progress more easily
+        updateTaskAssignment(taskInfo["id"], completed, currentCount);
+
+        // if auto move on is set, we move automatically to the next excerpt item of the task
+        if (userInfo["auto_move_on"] == 1) {
+            setExcerptView(taskInfo, labels, rank+1);
+        }
+    }
+
+    function storeAnnotation(taskInfo, excerptIdentifier, label_id, value) {
+        var url = defineBaseURL("annotations/annotation");
+        var data = {};
+        data["label_id"] = label_id;
+        data["value"] = value;
+        data["excerpt_id"] = excerptIdentifier;
+        data["task_id"] = taskInfo["id"];
+        data["score"] = 1.0;
+        data["source"] = "manual";
+        const timeElapsed = Date.now();
+        const date = new Date(timeElapsed);
+        data["date"] = date.toISOString()
+        data["type"] = taskInfo["type"];
+        data["ignored"] = 0;
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            if (xhr.status == 401) {
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, adding annotation didn't work!");
+            } else {
+                // successfully store new annotation, nothing to worry here
+            }
+        }
+
+        xhr.send(JSON.stringify(data));
+    }
+
+    function updateTaskAssignment(taskIdentifier, completed, currentCount) {
+        var url = defineBaseURL("tasks/"+taskIdentifier+"/assign");
+        var data = {}
+        data["in_progress"] = true;
+        data["is_completed"] = completed;
+        data["completed_excerpts"] = currentCount
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            if (xhr.status == 401) { 
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, updating task assigment progress didn't work!");
+            }
+        }
+        xhr.send(JSON.stringify(data));
     }
 
     function ignoreExcerpt(taskInfo, labels, rank, excerptIdentifier) {
         var url = defineBaseURL("annotations/annotation");
-            var data = {}
-            data["excerpt_id"] = excerptIdentifier;
-            data["task_id"] = taskInfo["id"];
-            data["source"] = "manual";
-            const timeElapsed = Date.now();
-            const date = new Date(timeElapsed);
-            data["date"] = date.toISOString()
-            data["type"] = taskInfo["type"];
-            data["ignored"] = 1;
+        var data = {}
+        data["excerpt_id"] = excerptIdentifier;
+        data["task_id"] = taskInfo["id"];
+        data["source"] = "manual";
+        const timeElapsed = Date.now();
+        const date = new Date(timeElapsed);
+        data["date"] = date.toISOString()
+        data["type"] = taskInfo["type"];
+        data["ignored"] = 1;
 
-            var xhr = new XMLHttpRequest();
-            xhr.open("PUT", url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
-            xhr.onloadend = function () {
-                if (xhr.status != 200) {
-                    // display server level error
-                    var response = JSON.parse(xhr.responseText);
-                    console.log(response["detail"]);
-                    callToaster("toast-top-center", "error", response["detail"], "Damn, ignoring excerpt didn't work!");
-                } else if (xhr.status == 401) {
-                    window.location.href = "sign-in.html";
-                } else {
-                    // update progress info display
-                    var currentcountStr = $("#progress-done").text();
-                    var currentCount = parseInt(currentcountStr);
-                    if (currentCount != NaN) {
-                        currentCount += 1;
-                        if (currentCount == taskInfo["nb_excerpts"]) {
-                            $("#progress-done").html(currentCount);
-                            $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
-                        } else if (currentCount < taskInfo["nb_excerpts"]) {
-                            $("#progress-done").html(currentCount);
-                        }
+        xhr.onloadend = function () {
+            if (xhr.status == 401) { 
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, ignoring excerpt didn't work!");
+            } else {
+                // update progress info display
+                var currentcountStr = $("#progress-done").text();
+                var currentCount = parseInt(currentcountStr);
+                if (currentCount != NaN) {
+                    currentCount += 1;
+                    if (currentCount == taskInfo["nb_excerpts"]) {
+                        $("#progress-done").html(currentCount);
+                        $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+                    } else if (currentCount < taskInfo["nb_excerpts"]) {
+                        $("#progress-done").html(currentCount);
                     }
-
-                    // update button
-                    $("#button-validate").css("background-color", "#8a909d");
-                    $("#button-validate").html("Update");
-                    $("#button-validate").css("color", "white");
-
-                    $("#button-ignore").css("background-color", "red");
-                    $("#button-ignore").html("Ignored");
-                    $("#button-ignore").css("color", "black");
-
-                    $("#button-validate").off('click');
-                    $("#button-ignore").off('click');
-                    $("#button-validate").click(function() {
-                        validateAnnotation(taskInfo, labels, rank, excerptIdentifier, true);
-                        return true;
-                    });
                 }
+
+                // update button
+                $("#button-validate").css("background-color", "#8a909d");
+                $("#button-validate").html("Update");
+                $("#button-validate").css("color", "white");
+
+                $("#button-ignore").css("background-color", "red");
+                $("#button-ignore").html("Ignored");
+                $("#button-ignore").css("color", "black");
+
+                $("#button-validate").off('click');
+                $("#button-ignore").off('click');
+                $("#button-validate").click(function() {
+                    validateAnnotation(taskInfo, labels, rank, excerptIdentifier, true);
+                    return true;
+                });
             }
+        }
 
-            xhr.send(JSON.stringify(data));
-
+        xhr.send(JSON.stringify(data));
     }
 
     function displayUsers() {

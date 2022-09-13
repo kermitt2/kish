@@ -43,7 +43,8 @@ var base = (function($) {
     }
     
     function signin() {
-        var email = $("#username").val();
+        //var email = $("#username").val();
+        var email = $("#email").val();
         var password = $("#password").val();
 
         if (validate_signin(email, password)) {
@@ -85,6 +86,8 @@ var base = (function($) {
     }
 
     function signup() {
+        // possible logout required?
+
         var email = $("#email").val();
         var forname = $("#forename").val();
         var lastname = $("#lastname").val();
@@ -117,8 +120,8 @@ var base = (function($) {
                     $('#div-submit').append("<div class=\"invalid-feedback\" style=\"color:red; display:inline;\">Error user registration: <br/>"+
                         response["detail"]+"</div>");
                 } else {
-                    // otherwise cookie is set, start the application with a redirect
-                    window.location.href = "index.html";
+                    // cookie to be set
+                    signin();
                 }
             };
 
@@ -199,18 +202,18 @@ var base = (function($) {
             feedb.remove();
         });
 
-        $("#username").removeClass("is-invalid");
-        $("#username").removeClass("is-valid");
+        $("#email").removeClass("is-invalid");
+        $("#email").removeClass("is-valid");
         if (email === "") {
-            $("#username").addClass("is-invalid");
+            $("#email").addClass("is-invalid");
             $("#div-username").append("<div class=\"invalid-feedback\">Please enter an email</div>");
             validation = false;
         } else if (email.indexOf("@") == -1) {
-            $("#username").addClass("is-invalid");
+            $("#email").addClass("is-invalid");
             $("#div-username").append("<div class=\"invalid-feedback\">It does not look like an email</div>");
             validation = false;
         } else {
-            $("#username").addClass("is-valid");
+            $("#email").addClass("is-valid");
         }
 
         $("#password").removeClass("is-invalid");
@@ -229,5 +232,23 @@ var base = (function($) {
 
         return validation;
     }   
+
+    function logout() {
+        var url = defineBaseURL("auth/jwt/logout");
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true); 
+        
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status == 200) {
+                userInfo = JSON.parse(xhr.responseText);
+                console.log(userInfo);
+            } else if (xhr.status == 401) {
+                // it is fine and expected, no user logged
+            }
+        };
+        xhr.send(null);
+    }
 
 })(jQuery);
