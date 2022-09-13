@@ -17,6 +17,16 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     last_name = Column(String(255), nullable=True)
     role = Column(String(255), nullable=True)
 
+class UserPreferences(Base):
+    '''
+    To store a set of user preferences
+    '''
+    __tablename__ = "preferences"
+
+    user_id = Column(String, ForeignKey("user.id"), primary_key=True)
+    auto_move_on = Column(Boolean)
+    dark_mode = Column(Boolean)
+
 class Label(Base):
     '''
     A dataset can have N labels
@@ -138,9 +148,10 @@ class Assign(Base):
     '''
     __tablename__ = "assign"
 
-    task_id = Column(String, ForeignKey("task.id"), nullable=False, primary_key=True)
+    task_id = Column(String, ForeignKey("task.id"), nullable=False, primary_key=True, unique=True)
     user_id = Column(String, ForeignKey("user.id"), nullable=False, primary_key=True)
     in_progress = Column(Boolean)
+    is_completed = Column(Boolean)
     completed_excerpts = Column(Integer)
 
 engine = create_async_engine(DATABASE_URL)

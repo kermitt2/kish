@@ -104,9 +104,9 @@ def get_app(server_config) -> FastAPI:
         ascii_banner = pyfiglet.figlet_format("KISP")
         print(ascii_banner)
         await create_db_and_tables()
-        from kisp.utils_db import create_user, test_init
+        from kisp.utils_db import create_user, test_init, create_preferences
         import asyncio
-        await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
+        record = await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
         await test_init()
 
     @server.on_event("shutdown")

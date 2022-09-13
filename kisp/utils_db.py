@@ -31,9 +31,14 @@ async def create_user(email: str, password: str, is_superuser: bool = False, rol
                             email=email, password=password, is_superuser=is_superuser, role=role
                         )
                     )
-                    #print(f"User created {user}")
+                    await create_preferences(str(user.id))
     except UserAlreadyExists:
         print(f"User {email} already exists")
+
+async def create_preferences(user_id: str):
+    # default value for preferences
+    record = await insert_item("preferences", {"user_id": user_id, "auto_move_on": True, "dark_mode": True}, add_id=False)
+    return record
 
 async def get_first_item(table, item_dict):
     item = None
@@ -165,7 +170,10 @@ async def update_record(table, record_id, record_dict):
         else:
             statement += ", "
         statement += key + " = '" + str(record_dict[key]) + "'"
-    statement += " WHERE id = '" + record_id + "'";
+    if table == 'preferences':
+        statement += " WHERE user_id = '" + record_id + "'";
+    else:
+        statement += " WHERE id = '" + record_id + "'";
     statement = text(statement)
 
     try:
@@ -179,8 +187,30 @@ async def update_record(table, record_id, record_dict):
 
     return {"id": record_id}
 
+async def update_task_assignment_progress(task_id, user_id, record_dict):
+    statement = "UPDATE assign SET " 
+    start = True
+    for key in record_dict:
+        if start:
+            start = False
+        else:
+            statement += ", "
+        statement += key + " = '" + str(record_dict[key]) + "'"
+    statement += " WHERE user_id = '" + user_id + "' AND task_id='"+task_id+"'";
+    statement = text(statement)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(statement)
+            await conn.commit()
+    except SQLAlchemyError as e:
+        error=str(e.orig)
+        print("Fail to update assign record: " + error)
+        return {"error": error}
+
+    return {}
+
 async def get_assigned_user(task_id):
-    statement = text("SELECT assign.user_id, user.email FROM assign, user WHERE task_id = '"+task_id+"'")
+    statement = text("SELECT assign.user_id, user.email FROM assign, user WHERE assign.task_id = '"+task_id+"' AND user.id == assign.user_id")
     item = None
     try:
         async with engine.connect() as conn:

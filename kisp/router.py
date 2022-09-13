@@ -37,12 +37,43 @@ current_user = fastapi_users.current_user(active=True)
 async def get_users(user: User = Depends(current_superuser)):
     start_time = time.time()
     result = {}
-    result['count'] = 1
     from utils_db import get_items
     records = await get_items("user", {})
+    result['count'] = 1
     result['records'] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
+
+@router.get("/users/preferences", tags=["users"],
+    description="Return the preferences of the current user.")
+async def get_user_preferences(user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    from utils_db import get_first_item
+    record = await get_first_item("preferences", { "user_id": str(user.id) })
+
+    if record == None:
+        # no preference for the user, we add some default one and return it
+        from utils_db import create_preferences
+        await create_preferences(str(user.id))
+        record = await get_first_item("preferences", { "user_id": str(user.id) })
+
+    result['count'] = 1
+    result['record'] = record
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.put("/users/preferences", tags=["users"],
+    description="Update the preferences of the current user.")
+async def put_user_preferences(request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    preferences_dict = await request.json()
+    from utils_db import update_record
+    record = await update_record("preferences", str(user.id), preferences_dict)
+    result['record'] = record
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result    
 
 @router.get("/tasks", tags=["tasks"],
     description="Return the list of available tasks.")
@@ -56,15 +87,51 @@ async def get_tasks():
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.get("/tasks/dataset/{identifier}", tags=["tasks"],
+    description="Return the list of tasks for a given dataset.")
+async def get_dataset_tasks(identifier: str):
+    start_time = time.time()
+    result = {}
+    result['count'] = 1
+    from utils_db import get_items
+    records = await get_items("task", { "dataset_id": identifier})
+    result['records'] = records
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/tasks/user", tags=["tasks"],
+    description="Return the list of tasks assigned to the current user.")
+async def get_user_tasks(user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    result['count'] = 1
+    from utils_db import get_items
+    records = await get_items("assign", { "user_id": str(user.id)}, full=True)
+    result['records'] = records
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/tasks/user/{identifier}", tags=["tasks"],
+    description="Return the list of tasks assigned to an arbitrary given user (require to be superuser).")
+async def get_user_tasks(identifier: str, user: User = Depends(current_superuser)):
+    start_time = time.time()
+    result = {}
+    result['count'] = 1
+    from utils_db import get_items
+    records = await get_items("task", { "user_id": str(user.id)}, full=True)
+    result['records'] = records
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
 @router.get("/tasks/{identifier}", tags=["tasks"], 
-    description="Return a task by its id")
+    description="Return a task by its identifier")
 async def get_task(identifier: str, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
     from utils_db import get_first_item
     item = await get_first_item("task", {"id": identifier})
     if item == None:
-        raise HTTPException(status_code=404, detail="Dataset not found")
+        raise HTTPException(status_code=404, detail="Task not found")
     else:
         # enrich the task item with some additional information
         # dataset name
@@ -100,7 +167,7 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
     return result
 
 @router.get("/tasks/{identifier}/excerpts", tags=["tasks"], 
-    description="Return all excerpt identifiers from the given task")
+    description="Return all excerpt identifiers from the given task.")
 async def get_task_excerpts(identifier: str):
     start_time = time.time()
     result = {}
@@ -138,7 +205,7 @@ async def get_task_excerpts(identifier: str):
     return result   
 
 @router.get("/tasks/{identifier}/excerpt", tags=["tasks"], 
-    description="Return an excerpt from the given task")
+    description="Return an excerpt from the given task.")
 async def get_task_excerpt(identifier: str, rank: int = None):
     '''
     To get an excerpt to be annotated or already annotated in task, parameter
@@ -186,7 +253,7 @@ async def get_datasets():
     return result
 
 @router.get("/datasets/{identifier}", tags=["datasets"], 
-    description="Return a dataset by its id")
+    description="Return a dataset by its id.")
 async def get_dataset(identifier: str):
     start_time = time.time()
     result = {}
@@ -200,7 +267,7 @@ async def get_dataset(identifier: str):
     return result
 
 @router.get("/datasets/{identifier}/labels", tags=["datasets"], 
-    description="Return the labels used in the dataset for a task type")
+    description="Return the labels used in the dataset for a task type.")
 async def get_dataset_labels(identifier: str, type: str):
     start_time = time.time()
     result = {}
@@ -214,7 +281,7 @@ async def get_dataset_labels(identifier: str, type: str):
     return result
 
 @router.get("/documents/{identifier}", tags=["datasets"], 
-    description="Return information about a document")
+    description="Return information about a document.")
 async def get_document_metadata(identifier: str):
     start_time = time.time()
     result = {}
@@ -228,7 +295,7 @@ async def get_document_metadata(identifier: str):
     return result
 
 @router.post("/tasks/{identifier}/assign", tags=["tasks"], 
-    description="Assign a task to the current user")
+    description="Assign a task to the current user.")
 async def post_self_assign_task(identifier: str, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
@@ -237,7 +304,7 @@ async def post_self_assign_task(identifier: str, user: User = Depends(current_us
     if item == None:
         raise HTTPException(status_code=400, detail="Task not found")
     else:
-        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": False, "completed_excerpts": 0 }
+        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": False, "is_completed":False, "completed_excerpts": 0 }
         from utils_db import insert_item
         assign_result = await insert_item("assign", assign_dict, add_id=False)
         if assign_result != None and "error" in assign_result:
@@ -245,8 +312,27 @@ async def post_self_assign_task(identifier: str, user: User = Depends(current_us
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.put("/tasks/{identifier}/assign", tags=["tasks"], 
+    description="Update progress of a task assigned to the current user.")
+async def put_update_assigned_task(identifier: str, request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    task_assign_dict = await request.json()
+
+    # some validation here...
+    print(task_assign_dict)
+
+    from utils_db import update_task_assignment_progress
+    update_result = await update_task_assignment_progress(identifier, str(user.id), task_assign_dict)
+    if update_result != None and "error" in update_result:
+        raise HTTPException(status_code=500, detail="Task assigment progress update failed: "+update_result["error"])
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
 @router.post("/tasks/{identifier}/assign/{user_id}", tags=["tasks"], 
-    description="Assign a task to an arbitrary given user")
+    description="Assign a task to an arbitrary given user (require to be superuser.")
 async def post_assign_task(identifier: str, user_id: str, user: User = Depends(current_superuser)):
     start_time = time.time()
     result = {}
@@ -257,7 +343,7 @@ async def post_assign_task(identifier: str, user_id: str, user: User = Depends(c
     user = await get_user("user", user_id)
     if user == None:
         raise HTTPException(status_code=400, detail="User not found")
-    assign_dict = {"task_id": identifier, "user_id": user_id }
+    assign_dict = {"task_id": identifier, "user_id": user_id, "in_progress": False, "is_completed":False, "completed_excerpts": 0  }
     from utils_db import insert_item
     assign_result = await insert_item("assign", assign_dict, add_id=False)
     if assign_result != None and "error" in assign_result:
@@ -266,7 +352,7 @@ async def post_assign_task(identifier: str, user_id: str, user: User = Depends(c
     return result
 
 @router.delete("/tasks/{identifier}/assign", tags=["tasks"], 
-    description="Unassign a task from the current user")
+    description="Unassign a task from the current user.")
 async def post_self_unassign_task(identifier: str, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
@@ -284,7 +370,7 @@ async def post_self_unassign_task(identifier: str, user: User = Depends(current_
     return result
 
 @router.delete("/tasks/{identifier}/assign/{user_id}", tags=["tasks"], 
-    description="Unassign a task from a given user")
+    description="Unassign a task from a given user.")
 async def post_assign_task(identifier: str, user_id: str, user: User = Depends(current_superuser)):
     start_time = time.time()
     result = {}
@@ -304,7 +390,7 @@ async def post_assign_task(identifier: str, user_id: str, user: User = Depends(c
     return result
 
 @router.get("/annotations/{identifier}", tags=["annotations"], 
-    description="Return an annotation by its id")
+    description="Return an annotation by its id.")
 async def get_annotation(identifier: str):
     start_time = time.time()
     result = {}
@@ -318,7 +404,7 @@ async def get_annotation(identifier: str):
     return result
 
 @router.get("/annotations/excerpt/{identifier}", tags=["annotations"], 
-    description="Return the annotations for a given excerpt, restricted to pre-annotations and current user annotations")
+    description="Return the annotations for a given excerpt, restricted to pre-annotations and current user annotations.")
 async def get_excerpt_annotation(identifier: str, type: str, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
@@ -335,7 +421,7 @@ async def get_excerpt_annotation(identifier: str, type: str, user: User = Depend
     return result
 
 @router.put("/annotations/annotation", tags=["annotations"], 
-    description="Add or update an annotation")
+    description="Add or update an annotation.")
 async def add_annotation(request: Request, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
