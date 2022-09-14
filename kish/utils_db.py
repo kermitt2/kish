@@ -37,7 +37,7 @@ async def create_user(email: str, password: str, is_superuser: bool = False, rol
 
 async def create_preferences(user_id: str):
     # default value for preferences
-    record = await insert_item("preferences", {"user_id": user_id, "auto_move_on": True, "dark_mode": True}, add_id=False)
+    record = await insert_item("preferences", {"user_id": user_id, "auto_move_on": 1, "dark_mode": 1}, add_id=False)
     return record
 
 async def get_first_item(table, item_dict):
@@ -329,6 +329,7 @@ async def test_init():
     await insert_item("dataset", dataset_data)
 
     # insert data for the dataset
+    """
     from loader import import_dataset_json
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
@@ -337,3 +338,13 @@ async def test_init():
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"])
+    """
+
+    # insert smaller data for dedicated tests
+    from loader import import_dataset_json
+    result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
+        "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
+        "tests/resources/dummy.classification.json")
+
+    from kish.tasks import generate_tasks
+    await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=1, redundancy=2, labels=["created", "used", "shared"])

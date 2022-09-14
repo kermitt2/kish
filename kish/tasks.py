@@ -33,7 +33,8 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
             # create task
             task_dict = { "type": task_type, 
                           "dataset_id": dataset_id, 
-                          "name": dataset["name"]+"-task"+str(i)+"-"+str(j) }
+                          "name": dataset["name"]+"-task"+str(i)+"-"+str(j),
+                          "guidelines": "guidelines-softcite-context-classification.md" }
             if j != 0 and primary_task_id != -1:
                 task_dict["redundant"] = primary_task_id
 
@@ -73,7 +74,7 @@ async def assign_user(task_id, user_id):
     """
     Assign a user to a task
     """
-    assign_dict = { "task_id": task_id, "user_id": user_id, "in_progress": False, "is_completed": False, "completed_excerpts": 0 }
+    assign_dict = { "task_id": task_id, "user_id": user_id, "in_progress": 0, "is_completed": 0, "completed_excerpts": 0 }
     result = await insert_item("assign", assign_dict, add_id=False)
     if result != None and "error" in result:
         return result

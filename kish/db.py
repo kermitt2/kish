@@ -53,6 +53,7 @@ class Task(Base):
     name = Column(String)
     type = Column(String)
     redundant = Column(String, ForeignKey("task.id"))
+    guidelines = Column(String)
 
 class Document(Base):
     __tablename__ = "document"

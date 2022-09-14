@@ -1,6 +1,7 @@
 import io
 import os
 import yaml
+import markdown 
 
 global_config = None
 
@@ -28,3 +29,19 @@ def _load_config(config_file='./config.yaml'):
     global_config = configuration
 
     return configuration
+
+def deliver_markdown(filename):
+    
+    filepath = os.path.join("resources/data/markdown/", filename)
+    print(filepath)
+    text = None
+    data = {}
+
+    with open(filepath, "rt", encoding="utf-8") as input_file:
+        text = input_file.read()
+
+    if text != None and len(text)>0:
+        html = markdown.markdown(text)
+        data["text"] = html
+        
+    return data

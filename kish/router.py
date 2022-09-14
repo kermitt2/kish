@@ -1,6 +1,7 @@
 import os 
 import binascii
 import time 
+from kish.utils import deliver_markdown
 from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from fastapi import File, Form, UploadFile
 from fastapi.responses import PlainTextResponse, RedirectResponse
@@ -101,7 +102,7 @@ async def get_dataset_tasks(identifier: str):
 
 @router.get("/tasks/user", tags=["tasks"],
     description="Return the list of tasks assigned to the current user.")
-async def get_user_tasks(user: User = Depends(current_user)):
+async def get_current_user_tasks(user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
     result['count'] = 1
@@ -146,7 +147,11 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
             item["assigned"] = None
         else:
             item["assigned"] = local_user["email"]
-            item["status"] = "assigned"
+            assign_item = await get_first_item("assign", {"task_id": identifier, "user_id": local_user["user_id"]})
+            if assign_item["is_completed"]:
+                item["status"] = "completed"
+            else: 
+                item["status"] = "assigned"
 
         # number of documents, excerpts and annotations
         from utils_db import get_task_attributes
@@ -240,6 +245,24 @@ async def get_task_excerpt(identifier: str, rank: int = None):
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.get("/tasks/{identifier}/guidelines", tags=["tasks"], 
+    description="Return the guidelines associated to the given task.")
+async def get_task_guidelines(identifier: str):
+    start_time = time.time()
+    result = {}
+    task_dict = { "id": identifier }
+
+    from utils_db import get_first_item
+    item = await get_first_item("task", task_dict)
+    if item == None:
+        raise HTTPException(status_code=404, detail="Guidelines not found")
+    else:
+        record = {}
+        result["record"] = deliver_markdown(item["guidelines"])
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result   
+
 @router.get("/datasets", tags=["datasets"],
     description="Return the list of available datasets.")
 async def get_datasets():
@@ -294,6 +317,88 @@ async def get_document_metadata(identifier: str):
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.get("/tasks/redundant/me", tags=["tasks"], 
+    description="Return the list of redundant tasks that can not be assigned to the current user.")
+async def get_redundant_tasks_current_user(user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+    records = []
+
+    # get the tasks assigned to the user
+    from utils_db import get_items
+    assign_dict = { "user_id": str(user.id) }
+    items = await get_items("assign", assign_dict, full=True)
+
+    if items == None or len(items) == 0:
+        result['runtime'] = round(time.time() - start_time, 3)
+        result["records"] = records
+        return result
+
+    # get the redundant tasks
+    for item in items:
+        from utils_db import get_first_item
+        local_task = await get_first_item("task", { "id": item["task_id"] })
+        if local_task["redundant"] != None:
+            # it is a "secondary" task, get the primary task (given in this case by the field "redundant") 
+            # and the other secondary tasks
+            records.append(local_task["redundant"])
+            # get other redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": local_task["redundant"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records and redundant_task != item["task_id"]:
+                    records.append(redundant_task)
+        else:
+            # it is a "primary" task, get its redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": local_task["id"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records:
+                    records.append(redundant_task)
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    result["records"] = records
+    return result        
+
+@router.get("/tasks/redundant/{user_id}", tags=["tasks"], 
+    description="Return the list of redundant tasks that can not be assigned to an arbitrary user (require to be superuser).")
+async def get_redundant_tasks(user_id: str, user: User = Depends(current_superuser)):
+    start_time = time.time()
+    result = {}
+    records = []
+
+    # get the tasks assigned to the user
+    from utils_db import get_items
+    assign_dict = { "user_id": user_id }
+    items = await get_items("assign", assign_dict, full=True)
+
+    if items == None or len(items) == 0:
+        result['runtime'] = round(time.time() - start_time, 3)
+        result["records"] = records
+        return result
+
+    # get the redundant tasks
+    for item in items:
+        from utils_db import get_first_item
+        local_task = await get_first_item("task", { "id": item["task_id"] })
+        if local_task["redundant"] != None:
+            # it is a "secondary" task, get the primary task (given in this case by the field "redundant") 
+            # and the other secondary tasks
+            records.append(local_task["redundant"])
+            # get other redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": local_task["redundant"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records and redundant_task != item["task_id"]:
+                    records.append(redundant_task)
+        else:
+            # it is a "primary" task, get its redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": local_task["id"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records:
+                    records.append(redundant_task)
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    result["records"] = records
+    return result
+
 @router.post("/tasks/{identifier}/assign", tags=["tasks"], 
     description="Assign a task to the current user.")
 async def post_self_assign_task(identifier: str, user: User = Depends(current_user)):
@@ -304,11 +409,30 @@ async def post_self_assign_task(identifier: str, user: User = Depends(current_us
     if item == None:
         raise HTTPException(status_code=400, detail="Task not found")
     else:
-        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": False, "is_completed":False, "completed_excerpts": 0 }
+        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": 0, "is_completed": 0, "completed_excerpts": 0 }
         from utils_db import insert_item
         assign_result = await insert_item("assign", assign_dict, add_id=False)
         if assign_result != None and "error" in assign_result:
             raise HTTPException(status_code=500, detail="Assignment failed: "+assign_result["error"])
+        # return the list of redundant tasks for the assigned one
+        records = []
+        from utils_db import get_items
+        if item["redundant"] != None:
+            # it is a "secondary" task, get the primary task (given in this case by the field "redundant") 
+            # and the other secondary tasks
+            records.append(item["redundant"])
+            # get other redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": item["redundant"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records and redundant_task != identifier:
+                    records.append(redundant_task)
+        else:
+            # it is a "primary" task, get its redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": item["id"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records:
+                    records.append(redundant_task)
+        result["records"] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
@@ -353,7 +477,7 @@ async def post_assign_task(identifier: str, user_id: str, user: User = Depends(c
 
 @router.delete("/tasks/{identifier}/assign", tags=["tasks"], 
     description="Unassign a task from the current user.")
-async def post_self_unassign_task(identifier: str, user: User = Depends(current_user)):
+async def delete_self_assign_task(identifier: str, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
     from utils_db import get_first_item
@@ -366,12 +490,32 @@ async def post_self_unassign_task(identifier: str, user: User = Depends(current_
         assign_result = await delete_items("assign", assign_dict)
         if assign_result != None and "error" in assign_result:
             raise HTTPException(status_code=500, detail="Unassignment failed: "+assign_result["error"])
+        # return the list of redundant tasks for the unassigned one
+        records = []
+        from utils_db import get_items
+        if item["redundant"] != None:
+            # it is a "secondary" task, get the primary task (given in this case by the field "redundant") 
+            # and the other secondary tasks
+            records.append(item["redundant"])
+            # get other redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": item["redundant"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records and redundant_task != identifier:
+                    records.append(redundant_task)
+        else:
+            # it is a "primary" task, get its redundant tasks
+            redundant_tasks = await get_items("task", { "redundant": item["id"] })
+            for redundant_task in redundant_tasks:
+                if redundant_task not in records:
+                    records.append(redundant_task)
+        result["records"] = records
+
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
 @router.delete("/tasks/{identifier}/assign/{user_id}", tags=["tasks"], 
     description="Unassign a task from a given user.")
-async def post_assign_task(identifier: str, user_id: str, user: User = Depends(current_superuser)):
+async def delete_assign_task(identifier: str, user_id: str, user: User = Depends(current_superuser)):
     start_time = time.time()
     result = {}
     from utils_db import get_first_item
