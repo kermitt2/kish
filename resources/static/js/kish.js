@@ -7,7 +7,7 @@
 var kish = (function($) {
 
     var userInfo = null;
-
+    clearMainContent();
     setAuthenticatedUserInfo();
     callToaster("toast-top-center", "success", "Welcome to KISH", "Yo!");
 
@@ -66,6 +66,28 @@ var kish = (function($) {
             return true;
         });
 
+        $("#annotate-side-bar").click(function() {
+            clearMainContent();
+            activateMenuChoice($("#tasks-home"));
+            $("#guidelines-side-bar").show();
+            $("#annotate-side-bar").show();
+            $("#annotation-view").show();
+            return true;
+        });
+
+        $("#guidelines-side-bar").click(function() {
+            clearMainContent();
+            activateMenuChoice($("#tasks-home"));
+            var taskIdentifier = $("#guidelines-task-id").text();
+            showGuidelines(taskIdentifier);
+            $("#guidelines-side-bar").show();
+            $("#annotate-side-bar").show();
+            $("#guidelines-view").show();
+            return true;
+        });
+
+        // prepare sidebar toggle
+        $("#sidebar-toggler").trigger('click');
     });
 
     function activateMenuChoice(element) {
@@ -88,6 +110,9 @@ var kish = (function($) {
         $("#user-view").hide();
         $("#dataset-view").hide();
         $("#annotation-view").hide();
+        $("#guidelines-view").hide();
+        $("#annotate-side-bar").hide();
+        $("#guidelines-side-bar").hide();
     }
 
     function defineBaseURL(ext) {
@@ -121,20 +146,56 @@ var kish = (function($) {
         xhr.onloadend = function () {
             // status
             if (xhr.status == 200 || xhr.status == 201) {
-                userInfo = JSON.parse(xhr.responseText);
+                userInfo = JSON.parse(xhr.responseText);                
                 updateUserSettings();
                 console.log(userInfo);
-
                 if (userInfo["role"] == "admin") {
                     $("#users-home").show();
                 }
-
-                // get preferences information too
-                setPreferencesUserInfo();
+                initTaskState()
             } else {
                 // not authorized, redirect to login page (note it should not happen 
                 // as the page would be served under a protected route)
                 window.location.href = "sign-in.html";
+            }
+        };
+
+        xhr.send(null);
+    }
+
+    function initTaskState() {
+        var url = defineBaseURL("tasks/redundant/me");
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true); 
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        // default
+        userInfo["redundant_tasks"] = []
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status == 401) {
+                window.location.href = "sign-in.html";
+            }
+            else if (xhr.status == 200) {
+                var response = JSON.parse(xhr.responseText);
+                var records = response["records"];
+
+                userInfo["redundant_tasks"] = records;
+
+                // get preferences information too, in background...
+                setPreferencesUserInfo();
+
+                // once login done and user tasks ready, activate My Tasks 
+                $("#tasks-home").trigger('click');
+            } else {
+                // something's wrong !
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                $('#div-submit').append("<div class=\"invalid-feedback\" style=\"color:red; display:inline;\">Error user login: <br/>"+
+                    response["detail"]+"</div>");
+                callToaster("toast-top-center", "error", response["detail"], "Didn't work!");
             }
         };
 
@@ -496,7 +557,7 @@ var kish = (function($) {
                 divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_tasks"]+" tasks </p></td>";
 
                 if (userInfo["is_superuser"]) {
-                    divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><span style=\"color:orange;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; " + 
+                    divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><span style=\"color:orange;\"><i class=\"mdi mdi-database-edit\"/></span> &nbsp; " + 
                     "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
                 } else {
                     divContent += "<td></td>";
@@ -521,14 +582,16 @@ var kish = (function($) {
     function displayDatasetTasks(pos, datasetIdentifier) {
         // retrieve all the existing task information for a given dataset
         var url = defineBaseURL("tasks/dataset/"+datasetIdentifier);
-        // retrieve the existing task information assigned to the current user 
+
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
         xhr.onloadend = function () {
             // status
-            if (xhr.status != 200) {
+            if (xhr.status == 401) {
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
@@ -540,19 +603,10 @@ var kish = (function($) {
                 if (response["records"].length == 0) {
                     $("#dataset-"+pos+"-task-view-table").html("<tr><td>No tasks available</td></tr>");
                 } else {
-                    var tableContent = 
-                        "<thead><tr>" + 
-                        "<td style=\"width:3%;\"></td>"+
-                        "<td style=\"width:15%;\">Task</td>"+
-                        "<td style=\"width:10%;\">Type</td>"+
-                        "<td style=\"width:10%;\">Dataset</td>"+
-                        "<td style=\"width:10%;\"># documents</td>"+
-                        "<td style=\"width:10%;\"># excerpts</td>"+
-                        "<td style=\"width:10%;\"># completed</td>"+
-                        "<td style=\"width:10%;\">Status</td>"+
-                        "<td style=\"width:10%;\">Assigned to</td>"+
-                        "<td style=\"width:10%; text-align: right;\">Action</td>"+
-                        "</tr></thead><tbody>";
+
+                    var tableContent = initTaskTableHeader();
+                    tableContent = tableContent.replace("{{first_col_width}}", "3");
+                    tableContent = tableContent.replace("{{status}}", "");
                     for(var pos2 in response["records"]) {
                         tableContent += "<tr id=\"dataset-"+pos+"-task-"+pos2+"\"></tr>\n";
                     }
@@ -609,7 +663,9 @@ var kish = (function($) {
                     for(var pos in response["records"]) {
                         const localAssignedTask = response["records"][pos];
 
-                        if (localAssignedTask["is_completed"] == 1) {
+                        console.log(localAssignedTask);
+
+                        if (localAssignedTask["is_completed"] == 1 || localAssignedTask["is_completed"] == true) {
                             // task is done
                             tableContentCompleted += "<tr id=\"active-task-"+pos+"\"></tr>\n";
                             hasCompletedTask = true;
@@ -722,8 +778,13 @@ var kish = (function($) {
                 else
                     taskContent += "<td>0</td>";
                 
-                if (response["status"])
-                    taskContent += "<td>"+response["status"]+"</td>";
+                if (response["status"]) {
+                    if (response["status"] == "completed") {
+                        taskContent += "<td><span style=\"color: green;\">completed</span></td>";
+                    } else {
+                        taskContent += "<td>"+response["status"]+"</td>";
+                    }
+                }
                 else
                     taskContent += "<td>unknown</td>";
                 
@@ -737,7 +798,6 @@ var kish = (function($) {
                     origin = "";
 
                 if (response["assigned"]) {
-                    color_assign = "grey";
                     if (response["assigned"] === userInfo["email"]) {
                         taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
                             "\" style=\"color:orange;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
@@ -750,10 +810,18 @@ var kish = (function($) {
                             "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
                     }
                 } else {
-                    taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
-                    "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
-                    "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
-                    "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                    // is this task redundant with one already assigned to the user ? 
+                    if (userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1) {
+                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
+                        "\" style=\"color:grey;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
+                        "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
+                        "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                    } else {
+                        taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
+                        "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
+                        "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
+                        "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+                    }
                 }
                 
                 $("#"+table+"-task-"+pos).html(taskContent);
@@ -776,10 +844,12 @@ var kish = (function($) {
                         });
                     }
                 } else {
-                    $("#self-assign" + origin + "-task-"+pos).click(function() {
-                        selfAssignTask(taskIdentifier);
-                        return true;
-                    });
+                    if (userInfo["redundant_tasks"].indexOf(taskIdentifier) == -1) {
+                        $("#self-assign" + origin + "-task-"+pos).click(function() {
+                            selfAssignTask(taskIdentifier);
+                            return true;
+                        });
+                    }
                 }
             }
         };
@@ -805,10 +875,21 @@ var kish = (function($) {
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, task self-assignment didn't work!");
             } else {
+                // add new redundant tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"]) {
+                    var records = response["records"];
+                    for (recordPos in records) {
+                        var record = records[recordPos];
+                        if (userInfo["redundant_tasks"].indexOf(record) == -1) {
+                            userInfo["redundant_tasks"].push(record);
+                        }
+                    }
+                }
                 callToaster("toast-top-center", "success", "Success!", "Self-assignment to task");
                 if ($("#tasks-home").hasClass("active"))
                     displayTasks();
-                else                
+                else
                     displayDatasets();
             }
         }
@@ -833,6 +914,19 @@ var kish = (function($) {
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, task self-unassignment didn't work!");
             } else {
+                // remove old redundant tasks
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"]) {
+                    var records = response["records"];
+                    for (recordPos in records) {
+                        const record = records[recordPos];
+                        const ind = userInfo["redundant_tasks"].indexOf(record);
+                        if (ind != -1) {
+                            userInfo["redundant_tasks"].splice(ind, 1);
+                        }
+                    }
+                }
+
                 callToaster("toast-top-center", "success", "Success!", "Self-unassignment from the task");
                 if ($("#tasks-home").hasClass("active"))
                     displayTasks();
@@ -850,6 +944,10 @@ var kish = (function($) {
         event.preventDefault();
         clearMainContent();
         $("#annotation-view").show();
+
+        $("#annotate-side-bar").show();
+        $("#guidelines-task-id").html(taskInfo["id"]);
+        $("#guidelines-side-bar").show();
 
         setTaskInfo(taskInfo);
 
@@ -874,7 +972,12 @@ var kish = (function($) {
                     excerpts.push(response["records"][excerptPos]);
                 }
                 taskInfo["excerpts"] = excerpts;
-                taskInfo["first_non_complete"] = response["records"]["first_non_complete"];
+
+                console.log(response["records"]);
+                if (response["records"]["first_non_complete"])
+                    taskInfo["first_non_complete"] = response["records"]["first_non_complete"];
+                else
+                    taskInfo["first_non_complete"] = taskInfo["nb_excerpts"]-1;
 
                 getTaskLabels(taskInfo);
             }
@@ -985,7 +1088,7 @@ var kish = (function($) {
                     docText += "<a href=\""+response["pdf_uri"]+"\" target=\"_blank\">full text</a> ";
                 } 
                 if (response["doi"])
-                    docText += response["doi"];
+                    docText += " - " + response["doi"];
                 $("#doc_url").html(docText);
             }
         }
@@ -1094,22 +1197,51 @@ var kish = (function($) {
             $("#annotation-val-area").html(labelHtmlContent);
 
             // validation/paging area
-            pagingHtmlContent = "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
-            pagingHtmlContent += " &nbsp; &nbsp; ";
-            if (isIgnoredExcerpt) {
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
-            } else if (userAnnotation) {
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+            var localWidth = $("#annotation-val-view").width();
+            var pagingHtmlContent = "";
+            if (localWidth < 400) {
+                // we will need to place the navigation buttons under the valid/ignore buttons
+                pagingHtmlContent += "<div class=\"row w-100 justify-content-center \" style=\"width: 100%;\">";
+                if (isIgnoredExcerpt) {
+                    pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+                } else if (userAnnotation) {
+                    pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+                } else {
+                    pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+                }
+                pagingHtmlContent += "</div>";
+
+                pagingHtmlContent += "<div class=\"row w-100 justify-content-between \"  style=\"width: 100%;\">";
+                pagingHtmlContent += "<div>";
+                pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
+                pagingHtmlContent += " &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
+                pagingHtmlContent += "</div>";
+                pagingHtmlContent += "<div>";
+                pagingHtmlContent += " <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
+                pagingHtmlContent += " &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
+                pagingHtmlContent += "</div>";
+                pagingHtmlContent += "</div>";
             } else {
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+                pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
+                pagingHtmlContent += " &nbsp; &nbsp; ";
+                if (isIgnoredExcerpt) {
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+                } else if (userAnnotation) {
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+                } else {
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
+                    pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+                }
+                pagingHtmlContent += " &nbsp; &nbsp; ";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
             }
-            pagingHtmlContent += " &nbsp; &nbsp; ";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
             $("#annotation-paging").html(pagingHtmlContent);
 
             if (rank == 0) {
@@ -1140,7 +1272,7 @@ var kish = (function($) {
                 });
             }
             
-            if (rank+1 == taskInfo["nb_excerpts"]) {
+            if (rank+1 >= taskInfo["nb_excerpts"]) {
                 $("#button-next").css("visibility", "hidden");
                 $("#button-end").css("visibility", "hidden");
             } else {
@@ -1178,19 +1310,25 @@ var kish = (function($) {
         }
 
         // update progress info display
-        var completed = false;
+        var completed = 0;
         var currentcountStr = $("#progress-done").text();
         var currentCount = parseInt(currentcountStr);
         if (!update) {
             if (currentCount != NaN) {
                 currentCount += 1;
-                if (currentCount == taskInfo["nb_excerpts"]) {
+                if (currentCount >= taskInfo["nb_excerpts"]) {
                     $("#progress-done").html(currentCount);
                     $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
-                    completed = true;
+                    completed = 1;
+                    currentCount = taskInfo["nb_excerpts"];
                 } else if (currentCount < taskInfo["nb_excerpts"]) {
                     $("#progress-done").html(currentCount);
                 }
+            }
+        } else {
+            if (currentCount >= taskInfo["nb_excerpts"]) {
+                completed = 1;
+                currentCount = taskInfo["nb_excerpts"];
             }
         }
 
@@ -1214,13 +1352,13 @@ var kish = (function($) {
             return true;
         });
 
-        // update task assignment information to keep track of the progress more easily
-        updateTaskAssignment(taskInfo["id"], completed, currentCount);
-
-        // if auto move on is set, we move automatically to the next excerpt item of the task
-        if (userInfo["auto_move_on"] == 1) {
+        // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
+        if (userInfo["auto_move_on"] == 1 && completed == 0 && ((rank+1) != taskInfo["nb_excerpts"])) {
             setExcerptView(taskInfo, labels, rank+1);
         }
+
+        // update task assignment information to keep track of the progress more easily
+        updateTaskAssignment(taskInfo["id"], completed, currentCount);
     }
 
     function storeAnnotation(taskInfo, excerptIdentifier, label_id, value) {
@@ -1262,7 +1400,7 @@ var kish = (function($) {
     function updateTaskAssignment(taskIdentifier, completed, currentCount) {
         var url = defineBaseURL("tasks/"+taskIdentifier+"/assign");
         var data = {}
-        data["in_progress"] = true;
+        data["in_progress"] = 1;
         data["is_completed"] = completed;
         data["completed_excerpts"] = currentCount
 
@@ -1448,6 +1586,37 @@ var kish = (function($) {
                 callToaster("toast-top-center", "success", "", "User has been deleted!");
             }
             displayUsers()
+        };
+
+        // send the collected data as JSON
+        xhr.send(null);
+    }
+
+    function showGuidelines(taskIdentifier) {
+        event.preventDefault();
+        var url = defineBaseURL("tasks/"+taskIdentifier+"/guidelines");
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing guidelines didn't work!");
+            } else {
+                var response = JSON.parse(xhr.responseText);
+                if (response["record"] && response["record"]["text"]) {
+                    var guidelineContent = response["record"]["text"];
+                    $("#guidelines-view").html(guidelineContent);   
+                } else {
+                    $("#guidelines-view").html("No guidelines available for this task :(");
+                }
+            }
         };
 
         // send the collected data as JSON

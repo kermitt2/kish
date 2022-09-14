@@ -23,8 +23,9 @@
     
     <link href='assets/plugins/toastr/toastr.min.css' rel='stylesheet'>  
 
-    <!-- SLEEK CSS -->
+    <!-- CSS -->
     <link id="sleek-css" rel="stylesheet" href="assets/css/sleek-dark.css" />
+    <link id="guidelines-css" rel="stylesheet" href="css/guidelines-dark.css" />
   
     <script src="assets/plugins/jquery/jquery.min.js"></script>
     <script src="assets/js/he.js"></script>
@@ -61,85 +62,29 @@
             <!-- Aplication Brand -->
             <div class="app-brand">
               <a href="#" title="KISH">
-                <!--svg
-                  class="brand-icon"
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="xMidYMid"
-                  width="30"
-                  height="33"
-                  viewBox="0 0 30 33">
-                  <g fill="none" fill-rule="evenodd">
-                    <path class="logo-fill-blue" fill="#7DBCFF" d="M0 4v25l8 4V0zM22 4v25l8 4V0z" />
-                    <path class="logo-fill-white" fill="#FFF" d="M11 4v25l8 4V0z" />
-                  </g>
-                </svg-->
-
                 <span class="brand-name text-truncate">KISH</span>
               </a>
             </div>
 
             <!-- begin sidebar scrollbar -->
-            <div class="" data-simplebar style="height:100%;display:none;">
+            <div class="" data-simplebar style="height:100%;">
               <!-- sidebar menu -->
               <ul class="nav sidebar-inner" id="sidebar-menu">
-                <li class="has-sub active expand">
+
+                <li id="annotate-side-bar" class="" style="display:none;">
                   <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#dashboard"
                     aria-expanded="false" aria-controls="dashboard">
-                    <i class="mdi mdi-view-dashboard-outline"></i>
-                    <span class="nav-text">Annotate</span> <b class="caret"></b>
+                    <i class="mdi mdi-pencil-box-multiple"></i>
+                    <span class="nav-text">Annotate</span> </b>
                   </a>
-
-                  <!--ul class="collapse show" id="dashboard" data-parent="#sidebar-menu">
-                    <div class="sub-menu">
-                      <li class="active">
-                        <a class="sidenav-item-link" href="index.html">
-                          <span class="nav-text">Ecommerce</span>
-                        </a>
-                      </li>
-
-                      <li class="">
-                        <a class="sidenav-item-link" href="analytics.html">
-                          <span class="nav-text">Analytics</span>
-                        </a>
-                      </li>
-                    </div>
-                  </ul-->
                 </li>
 
-                <li class="has-sub ">
+                <li id="guidelines-side-bar" class="" style="display:none;">
                   <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#app"
                     aria-expanded="false" aria-controls="app">
-                    <i class="mdi mdi-pencil-box-multiple"></i>
-                    <span class="nav-text">Guidelines</span> <b class="caret"></b>
+                    <i class="mdi mdi-teach"></i>
+                    <span class="nav-text">Guidelines</span> <span id="guidelines-task-id" style="display:none;"></span></b>
                   </a>
-
-                  <!--ul class="collapse " id="app" data-parent="#sidebar-menu">
-                    <div class="sub-menu">
-                      <li class="">
-                        <a class="sidenav-item-link" href="chat.html">
-                          <span class="nav-text">Chat</span>
-                        </a>
-                      </li>
-
-                      <li class="">
-                        <a class="sidenav-item-link" href="contacts.html">
-                          <span class="nav-text">Contacts</span>
-                        </a>
-                      </li>
-
-                      <li class="">
-                        <a class="sidenav-item-link" href="team.html">
-                          <span class="nav-text">Team</span>
-                        </a>
-                      </li>
-
-                      <li class="">
-                        <a class="sidenav-item-link" href="calendar.html">
-                          <span class="nav-text">Calendar</span>
-                        </a>
-                      </li>
-                    </div>
-                  </ul-->
                 </li>
 
                 <!--li class="has-sub ">
@@ -173,7 +118,6 @@
                     </div>
                   </ul>
                 </li-->
-
                 
               </ul>
             </div>
@@ -361,14 +305,13 @@
               ——— List of datasets
               ===================================== -->
               <div id="dataset-view" class="col-lg-10 col-xl-11" style="display:none;">
-                
               </div>
               
 
               <!-- ====================================
               ——— List of users
               ===================================== -->
-              <div id="user-view" class="col-lg-10 col-xl-11" style="display:none;">
+              <div id="user-view" class="col-lg-8 col-xl-9" style="display:none;">
                 <table id="user-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
               </div>
 
@@ -385,18 +328,22 @@
                       <div id="annotation-doc-view" class="col-8 border pt-3 pb-3"></div>
                       <div id="annotation-val-view" class="col-4 border align-items-top" style="position:relative;">
                         <div class="row w-100 align-items-top" style="width: 100%; min-height: 100px;">
-                          <!--div id="annotation-val-area" class="pl-4 pt-2 w-100" style="min-height: 100px;"></div-->
                           <div id="annotation-val-area" class="pl-4 pt-2 w-100"></div>
                         </div>
-                        <!--div class="row w-100" style="width: 100%; position:absolute; bottom:0; left: 0px;"-->
                         <div class="row w-100" style="width: 100%;">
-                          <div id="annotation-paging" class="d-flex justify-content-center pb-2" style="width:100%; align-items: center; justify-content: center;"></div>
+                          <div id="annotation-paging" class="justify-content-center pb-2 w-100" style="width:100%; align-items: center; justify-content: center;"></div>
                         </div>
                       </div>
                     </div>
                     
                   </div>
                 </div>          
+              </div>
+
+              <!-- ====================================
+              ——— Display task guidelines
+              ===================================== -->
+              <div id="guidelines-view" class="col-lg-10 col-xl-11 markdown-body" style="display:none;">
               </div>
 
               <!-- ====================================
