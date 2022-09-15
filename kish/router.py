@@ -176,10 +176,9 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
 async def get_task_excerpts(identifier: str):
     start_time = time.time()
     result = {}
-    intask_dict = { "task_id": identifier }
 
     from utils_db import get_items
-    items = await get_items("intask", intask_dict, full=True)
+    items = await get_items("intask", { "task_id": identifier }, full=True)
     if items == None or len(items)==0:
         raise HTTPException(status_code=404, detail="Excerpt not found")
     else:
@@ -194,18 +193,22 @@ async def get_task_excerpts(identifier: str):
             local_annotation_dict = { "task_id": identifier, "excerpt_id": item["excerpt_id"], }
             local_annotations = await get_items("annotation", local_annotation_dict, full=True)
             excerptDone = False
-            for local_annotation in local_annotations:
-                if "user_id" in local_annotation and local_annotation["user_id"] != None:
-                    excerptDone = True
-                    continue
 
-            if not excerptDone:
+            if local_annotations == None or len(local_annotations) == 0:
                 all_records["first_non_complete"] = i
                 break
+            else:
+                for local_annotation in local_annotations:
+                    if "user_id" in local_annotation and local_annotation["user_id"] != None:
+                        excerptDone = True
+                        break
+                if not excerptDone:
+                    all_records["first_non_complete"] = i
+                    break
             i += 1
 
         result["records"] = all_records
-
+        
     result['runtime'] = round(time.time() - start_time, 3)
     return result   
 

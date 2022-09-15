@@ -1,11 +1,12 @@
 from utils_db import insert_item, get_first_item, update_record, get_items
 
-async def generate_tasks(dataset_id, task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"]):
+async def generate_tasks(dataset_id, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, labels=["created", "used", "shared"]):
     """
     For a given dataset and some specifications, create a list of tasks to be assigned or selected by users.
     Task can be of type "classification" or "labeling".
     The number of annotators is used to create a certain number of tasks, dividing the full dataset into
     smaller sets to be annotated.
+    The maximum size of a task is bounded by a parameter too. 
     The redundancy parameter indicates by how many users the same task should be performed in order to allow 
     reconcialiation step/correction for disagreements and/or to produce Inter Annotator Agreement scores.
     A set of labels should also be provided (already existing in the dataset or no). 
@@ -20,8 +21,17 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
 
     nb_document = dataset["nb_documents"]
     nb_excerpts = dataset["nb_excerpts"]
+
+    # to determine task size, we check which criteria between number of annotators (first) 
+    # and max_task_size (second) should apply
     nb_excerpts_per_task = (nb_excerpts // target_annotators) + 1
-    nb_tasks = target_annotators
+    if nb_excerpts_per_task > max_task_size:
+        # we sub-partition
+        divider = (nb_excerpts // max_task_size) + 1
+        nb_tasks = divider
+        nb_excerpts_per_task = (nb_excerpts // nb_tasks) + 1
+    else:
+        nb_tasks = target_annotators
 
     print("nb_tasks: " + str(nb_tasks))
     print("nb_excerpts_per_task: " + str(nb_excerpts_per_task))

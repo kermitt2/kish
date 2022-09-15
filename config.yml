@@ -54,7 +54,7 @@ api:
 
   # default admin super-user when not existing, admin_email must be an email and password must be kept secret 
   admin: "admin@admin.com"
-  admin_password: ""
+  admin_password: "admin"
   # pass phrase for signing reset and verification password token (choose something strong)
   passphrase: ""
   # lifetime in seconds of reset and verification token

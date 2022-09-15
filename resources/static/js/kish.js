@@ -148,7 +148,7 @@ var kish = (function($) {
             if (xhr.status == 200 || xhr.status == 201) {
                 userInfo = JSON.parse(xhr.responseText);                
                 updateUserSettings();
-                console.log(userInfo);
+                //console.log(userInfo);
                 if (userInfo["role"] == "admin") {
                     $("#users-home").show();
                 }
@@ -256,7 +256,6 @@ var kish = (function($) {
             if (xhr.status == 200) {
                 // display server level error
                 userInfo = JSON.parse(xhr.responseText);
-                console.log(userInfo);
                 // redirect to login page 
                 window.location.href = "sign-in.html";
             } else if (xhr.status == 401) {
@@ -545,7 +544,6 @@ var kish = (function($) {
                 // otherwise display the dataset information
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
-                //console.log(response)
 
                 var divContent = "<table class=\"table table-borderless\"><tr><td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td>";
 
@@ -571,7 +569,6 @@ var kish = (function($) {
                     //clearMainContent();
                     return true;
                 });
-                //console.log(datasetContent);
             }
         };
 
@@ -662,8 +659,7 @@ var kish = (function($) {
                     var hasAssignedTask = false;
                     for(var pos in response["records"]) {
                         const localAssignedTask = response["records"][pos];
-
-                        console.log(localAssignedTask);
+                        //console.log(localAssignedTask);
 
                         if (localAssignedTask["is_completed"] == 1 || localAssignedTask["is_completed"] == true) {
                             // task is done
@@ -745,7 +741,6 @@ var kish = (function($) {
                 // otherwise display the task information
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
-                //console.log(response)
                 var taskContent = "";
                 taskContent += "<td></td>";
                 if (response["name"])
@@ -833,7 +828,6 @@ var kish = (function($) {
                             return true;
                         });
                         $("#annotate" + origin + "-task-"+pos).click(function() {
-                            console.log(response);
                             annotationTask(response);
                             return true;
                         });
@@ -973,8 +967,7 @@ var kish = (function($) {
                 }
                 taskInfo["excerpts"] = excerpts;
 
-                console.log(response["records"]);
-                if (response["records"]["first_non_complete"])
+                if(response["records"].hasOwnProperty('first_non_complete'))
                     taskInfo["first_non_complete"] = response["records"]["first_non_complete"];
                 else
                     taskInfo["first_non_complete"] = taskInfo["nb_excerpts"]-1;
@@ -1169,8 +1162,6 @@ var kish = (function($) {
                 
                 if (prelabeling[label["id"]]) {
                     let prelabel = prelabeling[label["id"]];
-                    //console.log(prelabel);
-
                     labelHtmlContent += 
                             "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
                                 "<label class=\"control control-checkbox checkbox-primary\" >"+label["name"];
@@ -1539,7 +1530,6 @@ var kish = (function($) {
             } else {
                 // otherwise display the user information
                 var response = JSON.parse(xhr.responseText);
-                //console.log(response)
                 var userContent = "<td><i class=\"mdi mdi-account-box\"></td><td>"+response["email"]+"</td>";
                 if (response["first_name"])
                     userContent += "<td>"+response["first_name"]+"</td>";
@@ -1558,7 +1548,6 @@ var kish = (function($) {
                     //clearMainContent();
                     return true;
                 });
-                //console.log(userContent);
             }
         };
 
