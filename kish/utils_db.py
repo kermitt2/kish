@@ -329,11 +329,12 @@ async def test_init():
     await insert_item("dataset", dataset_data)
 
     # insert data for the dataset
-    
+    sofcite_dataset_sources = ["tests/resources/corpus-false-negative-annotators.classification.json.gz", ]
+
     from loader import import_dataset_json
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
-        "tests/resources/corpus-false-negative-annotators.classification.json.gz")
+        sofcite_dataset_sources)
 
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks
