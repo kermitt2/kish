@@ -1,5 +1,6 @@
 /**
-*  Javascript functions for the front end single page application.
+*  Javascript methods for the front end single page application.
+*  This file should preferably be under a protected route, so that only logged users can access it. 
 *
 *  Author: Patrice Lopez
 */

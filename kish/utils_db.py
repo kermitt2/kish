@@ -351,3 +351,10 @@ async def test_init():
     from kish.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=1, redundancy=2, labels=["created", "used", "shared"])
     '''
+
+async def test_export():
+    # test export dataset
+    from exporter import export_dataset_json
+    result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await export_dataset_json(
+        "811b64f1-323f-4a78-bdb8-ebaab44b023a", "tests/resources/exported_dataset.json")
+

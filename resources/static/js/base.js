@@ -1,5 +1,6 @@
 /**
-*  Basic javascript functions for managing the authentication pages.
+*  Basic javascript methods for managing the authentication, sign-up, and password reset.
+*  This javascript file should not be under a protected static route. 
 *
 *  Author: Patrice Lopez
 */

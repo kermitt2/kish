@@ -112,6 +112,7 @@ class Annotation(Base):
     type = Column(String)
     ignored = Column(Boolean)
     comment = Column(String)
+    curated = Column(Boolean)
 
 class Dataset(Base):
     __tablename__ = "dataset"

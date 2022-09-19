@@ -52,12 +52,13 @@ async def import_dataset_json(dataset_id: str, paths: list):
                 document_dict["pmid"] = record["pmid"]
             document_item = await insert_item("document", document_dict)
             document_id = document_item["id"]
+
+            await insert_item("incollection", {"document_id": document_id, "dataset_id": dataset_id}, add_id=False)
+
             nb_documents += 1
 
             if "texts" not in record:
                 continue
-
-            #print(record["texts"])
 
             for excerpt in record["texts"]:
                 excerpt_dict = {}
