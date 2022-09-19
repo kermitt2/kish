@@ -13,7 +13,7 @@ async def import_dataset_json(dataset_id: str, paths: list):
     Note: there is no shuffle of the documents or excerpts on the dataset right noe, so a shuffle needs 
     to be done on the JSON files prior loading.
     '''
-    print("import..." + paths + " in dataset " + dataset_id)
+    print("import..." + str(paths) + " in dataset " + dataset_id)
 
     nb_documents = 0
     nb_excepts = 0

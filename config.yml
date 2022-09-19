@@ -55,7 +55,16 @@ api:
   # default admin super-user when not existing, admin_email must be an email and password must be kept secret 
   admin: "admin@admin.com"
   admin_password: "admin"
-  # pass phrase for signing reset and verification password token (choose something strong)
+  # pass phrase for signing reset and verification password token (choose something strong and keep it secret)
   passphrase: ""
   # lifetime in seconds of reset and verification token
   lifetime: 3600
+
+## information for sending password reset email, assuming TTL secured SMTP server, keep it secret
+smtp:
+  host: 
+  port:
+  account:
+  pwd: "*SECRET*"
+  # root url where the app is running to generate usable link in the email (e.g. https://somewhere.com/kish/app)
+  app_domain: 
