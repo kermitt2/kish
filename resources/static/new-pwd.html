@@ -24,8 +24,8 @@
 
   <body class="" id="body">
     <div class="container d-flex align-items-center justify-content-center vh-100">
-      <div class="row justify-content-center">
-        <div class="col-lg-9 col-md-10">
+      <div class="row justify-content-center col-lg-6">
+        <div class="col-lg-12 col-md-12">
           <div class="card">
             <!--div class="card-header bg-primary">
               <div class="app-brand">
@@ -49,24 +49,40 @@
               <h4 class="text-dark mb-5">Enter a new password</h4>
               
               <form id="forgot-pwd-form">
-                <div class="d-flex my-2 justify-content-between">
-                  <p>Enter your registered email ID to reset your password</p>
+                <!--div class="d-flex my-2 justify-content-between">
+                  <p>Set your new password here:</p>
+                </div-->
+
+                <div class="row col-md-12">
+                  <div id="div-password" class="form-group mb-4 col-md-12">
+                    <label for="newPassword">New password:</label>
+                    <input type="password" class="form-control input-lg" id="newPassword">
+                  </div>
                 </div>
-                <div class="row py-5">
-                  <div id="div-email" class="form-group col-md-12 mb-4">
-                    <input type="email" class="form-control input-lg" id="email" name="email" aria-describedby="emailHelp" placeholder="Email">
+
+                <div class="row col-md-12">
+                  <div id="div-cpassword" class="form-group mb-4 col-md-12">
+                    <label for="conPassword">Confirm new password:</label>
+                    <input type="password" class="form-control input-lg" id="conPassword">
                   </div>
 
+                  <!--div id="div-submit" class="d-flex justify-content-end mt-5">
+                    <button id="new-pwd-button" type="submit" class="btn btn-primary mb-2 btn-pill">Set new password</button>
+                  </div-->
+
+                  <!--div id="div-email" class="form-group col-md-12 mb-4">
+                    <input type="email" class="form-control input-lg" id="email" name="email" aria-describedby="emailHelp" placeholder="Email">
+                  </div-->
+                </div>
+
+                <div class="row py-4">
                   <div class="col-md-12">
                     <div id="div-submit">
-                      <button type="submit" id="forgot-password-button" class="btn btn-lg btn-primary btn-block mb-4">Reset Password</button>
+                      <button type="submit" id="new-pwd-button" class="btn btn-lg btn-primary btn-block mb-4">Set new password</button>
                     </div>
-
-                    <!--p>Don't have an account yet ?
-                      <a class="text-blue" href="sign-up.html">Sign Up</a>
-                    </p-->
                   </div>
                 </div>
+
               </form>
             </div>
           </div>

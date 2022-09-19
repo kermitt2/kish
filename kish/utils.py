@@ -66,10 +66,13 @@ def send_pwd_reset_email(email_dest: str, token: str):
         print("abording reset...")
         return
     else:
-        new_pwd_link = global_config["smtp"]["app_domain"] + "/new-pwd.html?token="+token
+        domain = global_config["smtp"]["app_domain"]
+        if domain.endswith("/"):
+            domain = domain[:-1]
+        new_pwd_link = domain + "/new-pwd.html?token="+token
         msg_content = msg_content.replace("{{NEW_PWD_LINK}}", new_pwd_link)
         msg_content = msg_content.replace("{{LIFETIME}}", str(global_config["api"]["lifetime"]))
-        reset_link = global_config["smtp"]["app_domain"] + "/reset-pwd.html"
+        reset_link = domain + "/reset-pwd.html"
         msg_content = msg_content.replace("{{RESET_LINK}}", reset_link)
 
     msg.set_content(msg_content);
