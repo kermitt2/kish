@@ -16,6 +16,11 @@ var base = (function($) {
             event.preventDefault();
             signin();
         });
+
+        $('#forgot-password-button').click(function() {
+            event.preventDefault();
+            forgotPassword();
+        });
     })
 
     function defineBaseURL(ext) {
@@ -26,6 +31,9 @@ var base = (function($) {
         } 
         if ( localBase.indexOf("/sign-in.html") != -1) {
              localBase = localBase.replace("/sign-in.html", "");
+        } 
+        if ( localBase.indexOf("/reset-pwd.html") != -1) {
+             localBase = localBase.replace("/reset-pwd.html", "");
         } 
         if ( localBase.indexOf("app") != -1) {
              localBase = localBase.replace("app", "");
@@ -233,6 +241,31 @@ var base = (function($) {
         return validation;
     }   
 
+    function validate_email(email) {
+        var validation = true;
+
+        const feedback = document.querySelectorAll('.invalid-feedback');
+        feedback.forEach(feedb => {
+            feedb.remove();
+        });
+
+        $("#email").removeClass("is-invalid");
+        $("#email").removeClass("is-valid");
+        if (email === "") {
+            $("#email").addClass("is-invalid");
+            $("#div-email").append("<div class=\"invalid-feedback\">Please enter an email</div>");
+            validation = false;
+        } else if (email.indexOf("@") == -1) {
+            $("#email").addClass("is-invalid");
+            $("#div-email").append("<div class=\"invalid-feedback\">It does not look like an email</div>");
+            validation = false;
+        } else {
+            $("#email").addClass("is-valid");
+        }
+
+        return validation;
+    }
+
     function logout() {
         var url = defineBaseURL("auth/jwt/logout");
 
@@ -249,6 +282,36 @@ var base = (function($) {
             }
         };
         xhr.send(null);
+    }
+
+    function forgotPassword() {
+        var email = $("#email").val();
+        console.log(email);
+
+        if (validate_email(email)) {
+            var url = defineBaseURL("auth/forgot-password");
+
+            var data = {};
+            data["email"] = email;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", url, true); 
+            xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+            xhr.onloadend = function () {
+                // status
+                if (xhr.status != 200 && xhr.status != 201 && xhr.status != 202) {
+                    // display server level error
+                    var response = JSON.parse(xhr.responseText);
+                    console.log(response["detail"]);
+                    $('#div-submit').append("<div class=\"invalid-feedback\" style=\"color:red; display:inline;\">Error user email: <br/>"+
+                        response["detail"]+"</div>");
+                } else {
+                    $('#div-submit').append("<div class=\"valid-feedback\" style=\"color:green; display:inline;\">Password reset: Check your email !<br/> &nbsp;</div>");
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        }
     }
 
 })(jQuery);

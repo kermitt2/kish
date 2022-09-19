@@ -16,6 +16,9 @@
     <!-- SLEEK CSS -->
     <link id="sleek-css" rel="stylesheet" href="assets/css/sleek-dark.css" />
 
+    <script src="assets/plugins/jquery/jquery.min.js"></script>
+    <script src="js/base.js"></script>
+    <script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/plugins/nprogress/nprogress.js"></script>
   </head>
 
@@ -45,17 +48,20 @@
             <div class="card-body p-5">
               <h4 class="text-dark mb-5">Forgot Password?</h4>
               
-              <form action="/index.html">
+              <form id="forgot-pwd-form">
                 <div class="d-flex my-2 justify-content-between">
                   <p>Enter your registered email ID to reset your password</p>
                 </div>
                 <div class="row py-5">
-                  <div class="form-group col-md-12 mb-4">
-                    <input type="email" class="form-control input-lg" id="email" aria-describedby="emailHelp" placeholder="Email">
+                  <div id="div-email" class="form-group col-md-12 mb-4">
+                    <input type="email" class="form-control input-lg" id="email" name="email" aria-describedby="emailHelp" placeholder="Email">
                   </div>
 
                   <div class="col-md-12">
-                    <button type="submit" class="btn btn-lg btn-primary btn-block mb-4">Reset Password</button>
+                    <div id="div-submit">
+                      <button type="submit" id="forgot-password-button" class="btn btn-lg btn-primary btn-block mb-4">Reset Password</button>
+                    </div>
+
                     <p>Don't have an account yet ?
                       <a class="text-blue" href="sign-up.html">Sign Up</a>
                     </p>

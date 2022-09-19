@@ -47,9 +47,12 @@ def shuffle(paths: list, output_path: str):
     # shuffle list of documents
     random.shuffle(documents)
 
+    new_corpus = {}
+    new_corpus["documents"] = documents
+
     # create a single json output with the shuffled document entries
     with open(output_path, 'w') as outfile:
-        json.dump(documents, outfile, indent=4)
+        json.dump(new_corpus, outfile, indent=4)
 
 
 if __name__ == "__main__":
