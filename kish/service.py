@@ -20,6 +20,10 @@ from kish.db import User, create_db_and_tables
 from kish.schemas import UserCreate, UserRead, UserUpdate
 from kish.utils import _load_config
 
+from httpx_oauth.clients.google import GoogleOAuth2
+from httpx_oauth.clients.github import GitHubOAuth2
+from httpx_oauth.clients.linkedin import LinkedInOAuth2
+
 '''
     The web API uses the FastAPI framework. 
 '''
@@ -85,6 +89,31 @@ def get_app(server_config) -> FastAPI:
         prefix="/users",
         tags=["users"],
     )
+
+    if "oauth" in server_config:
+        if "google_private_key" in server_config["oauth"]:
+            google_oauth_client = GoogleOAuth2(server_config["oauth"]["google_client_id"], server_config["oauth"]["google_private_key"])
+            server.include_router(
+                fastapi_users.get_oauth_router(google_oauth_client, auth_backend, server_config["oauth"]["google_private_key"]),
+                prefix="/auth/google",
+                tags=["auth"],
+            )
+
+        if "linkedin_private_key" in server_config["oauth"]:
+            linkedin_oauth_client = LinkedInOAuth2(server_config["oauth"]["linkedin_client_id"], server_config["oauth"]["linkedin_private_key"])
+            server.include_router(
+                fastapi_users.get_oauth_router(linkedin_oauth_client, auth_backend, server_config["oauth"]["linkedin_private_key"]),
+                prefix="/auth/linkedin",
+                tags=["auth"],
+            )
+
+        if "github_private_key" in server_config["oauth"]:
+            github_oauth_client = GitHubOAuth2(server_config["oauth"]["github_client_id"], server_config["oauth"]["github_private_key"])
+            server.include_router(
+                fastapi_users.get_oauth_router(github_oauth_client, auth_backend, server_config["oauth"]["github_private_key"]),
+                prefix="/auth/github",
+                tags=["auth"],
+            )
 
     origins = ["*"]
 
