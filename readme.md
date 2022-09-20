@@ -2,17 +2,19 @@
 
 __Keep It Simple and Hard__
 
-##
+__Early unstable work in progress !__
 
-KISH a dataset annotation web application. One of the main goal is to facilitate and improve the quality of annotation of PDF documents (the current scholar publishing standard), by synchronizing PDF and structured extracted content. Annotation of PDF can go beyond bounding boxes or text selection directly on the PDF text layer, which are both imprecise and subject to multiple layout and text quality issues.
+## Introduction
 
-The technical approach is kept volontary very simple, with minimal dependencies and without any additional database or server to run. The tool uses an embedded SQLite dataset. It is a single page web application without server-side templating, the server only provides data via a web API, used by the application running in the browser. 
+KISH a dataset annotation web application. The main goal is to facilitate and improve the quality of manual annotation of PDF documents (the current scholar publishing standard), by synchronizing PDF and structured extracted content. Annotation of PDF can go beyond bounding boxes or text selection directly on the PDF text layer, which are both imprecise and subject to multiple layout and text quality issues.
+
+The technical approach is kept volontary very simple, with minimal dependencies and without any additional database or server to run. The tool uses an embedded SQLite database. It is a single page web application without server-side templating, the server only provides data, authentication, etc. via a web API. 
 
 **Back-end:** python 3.7+, fastapi, fastapi-users (for secure authentication), SQLITE, sqlalchemy (that's it!)
 
 **Front-end:** jquery, PDF.js, Bootstrap 5 
 
-Data import/export format is JSON only. 
+Secure authentication requires to indicate SMTP settings (for email after password reset) and OAuth2 log-in requires client credentials depending on the OAuth service where to redirect the user. Data import/export format is JSON only. Annotation guidelines should be written in markdown and put under `resources/data/markdown/`. 
 
 The Bootstrap front-end components are derived from the Sleek theme https://github.com/themefisher/sleek (MIT license).
 
@@ -53,7 +55,7 @@ The KISH Web application and API service is implemented with [FastAPI](https://f
 python3 kish/service.py --config my_config.yml
 ```
 
-The application is then available for sign-in at http://localhost:8050/app/sign-in.html
+The application is then available for sign-in at `http://localhost:8050/app/sign-in.html`
 
 By default, at first launch, an admin account is created with login `admin@admin.com` and password `admin`. You should set a proper admin account in the `config.yml` file:
 
@@ -65,9 +67,13 @@ By default, at first launch, an admin account is created with login `admin@admin
 
 The admin has then the rights to manage users and extra fonctionalities in the web application. 
 
-### Use the service
+### Use the web services
 
-Once the service is started as described in the previous sections, the web service API documnetation is available at `http(s)://*host*:*port*/docs`, e.g. for instance `http://localhost:8050/docs`, based on Swagger, and `http://localhost:8050/redoc` for ReDoc documentation style. These documentations offer interactive support to support test queries. 
+Once the service is started as described in the previous sections, the web service API documentations are available at `http(s)://*host*:*port*/docs`, e.g. for instance `http://localhost:8050/docs`, based on Swagger, and `http://localhost:8050/redoc` for ReDoc documentation style. These documentations offer interactive support to support test queries. 
+
+### Configure the service
+
+A default configuration is set in `config.yml`, but it has to be completed for setting new host/port for the services and other deployment options. Sensitive/secret information are managed currently in the configuration file. 
 
 ## License
 

@@ -54,11 +54,22 @@ api:
 
   # default admin super-user when not existing, admin_email must be an email and password must be kept secret 
   admin: "admin@admin.com"
-  admin_password: "admin"
+  admin_password: "administrator"
   # pass phrase for signing reset and verification password token (choose something strong and keep it secret)
   passphrase: ""
   # lifetime in seconds of reset and verification token
   lifetime: 3600
+
+  # this must be kept secured
+  oauth:
+    github_client_id: 
+    github_private_key: 
+
+    linkedin_client_id: 
+    linkedin_private_key: 
+
+    google_client_id: 
+    google_private_key:
 
 ## information for sending password reset email, assuming TTL secured SMTP server, keep it secret
 smtp:
