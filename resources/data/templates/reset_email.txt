@@ -1,0 +1,14 @@
+Yo ! 
+
+This is KISH and you requested a password reset. 
+
+Please set your new password at the following link:
+
+{{NEW_PWD_LINK}}
+
+You have {{LIFETIME}} seconds to reset your password with this above link before expiration, or you will need to reset again your password from this link:
+{{RESET_LINK}}
+
+Good luck,
+
+KISH, you annotation cooking app
