@@ -208,7 +208,7 @@ async def get_task_excerpts(identifier: str):
             i += 1
 
         result["records"] = all_records
-        
+
     result['runtime'] = round(time.time() - start_time, 3)
     return result   
 
@@ -294,11 +294,14 @@ async def get_dataset(identifier: str):
 
 @router.get("/datasets/{identifier}/labels", tags=["datasets"], 
     description="Return the labels used in the dataset for a task type.")
-async def get_dataset_labels(identifier: str, type: str):
+async def get_dataset_labels(identifier: str, type: str = None):
     start_time = time.time()
     result = {}
     from utils_db import get_items
-    items = await get_items("label", {"dataset_id": identifier, "type": type}, full=True)
+    if type == None or len(type) == 0:
+        items = await get_items("label", {"dataset_id": identifier}, full=True)
+    else:
+        items = await get_items("label", {"dataset_id": identifier, "type": type}, full=True)
     if items == None or len(items)==0:
         raise HTTPException(status_code=404, detail="Labels not found")
     else:

@@ -279,7 +279,8 @@ async def get_task_attributes(task_id, user_id):
     # number of completed excerpts in the task
     statement = text("SELECT count(DISTINCT annotation.excerpt_id)" + 
         " FROM annotation" + 
-        " WHERE annotation.task_id = '"+task_id+"' AND annotation.user_id = '" + user_id +"'")
+        #" WHERE annotation.task_id = '"+task_id+"' AND annotation.user_id = '" + user_id +"'")
+        " WHERE annotation.task_id = '"+task_id+"' AND annotation.user_id IS NOT NULL")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)

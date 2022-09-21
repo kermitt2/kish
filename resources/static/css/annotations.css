@@ -16,10 +16,10 @@ body {
   color:#70695C; 
 }*/
 
-.content {
+/*.content {
   background-color: #fff;
   padding: 20px;
-  margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
+  margin: 0 -20px; 
   -webkit-border-radius: 0 0 6px 6px;
      -moz-border-radius: 0 0 6px 6px;
           border-radius: 0 0 6px 6px;
@@ -28,14 +28,15 @@ body {
           box-shadow: 0 1px 2px rgba(0,0,0,.15);
   font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
   word-break:normal;
-}
+}*/
 
 .label {
-    padding: 1px 3px 2px;
-    font-size: 10px;
-    font-weight: bold;
+    /*padding: 1px 3px 2px;*/
+    padding: 1px 1px 0px;
+    /*font-size: 10px;*/
+    /*font-weight: bold;*/
     color: #ffffff;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     text-decoration: none;
     white-space: nowrap;
     background-color: #87A1A8;
@@ -122,23 +123,23 @@ body {
 }
 
 .label.software {
-    /*background-color: #800080;*/
-    background-color: #D42C2C;
+    background-color: #6d2400;
+    /*background-color: #D42C2C;*/
 }
 .label.version {
-    background-color: #3366cc;
+    background-color: #062eaa;
 }
 .label.version-date {
-    background-color: #3366cc;
+    background-color: #062eaa;
 }
 .label.version-number {
-    background-color: #0066ff;
+    background-color: #062eaa;
 }
 .label.url {
-    background-color: #ff3399;
+    background-color: #003509;
 }
 .label.publisher {
-    background-color: #993300;
+    background-color: #44005a; 
 }
 .label.reference {
     background-color: #009933;
@@ -149,15 +150,23 @@ body {
     font-size: 8px;
 }
 
-/* specific additions for the example index page */
-.nav-logo img {
-    margin-top: 4px;
+.label .tooltiptext {
+  visibility: hidden;
+  width: 60px;
+  background-color: black;
+  /* color of the tooltip text */
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
 }
 
-h4 {
-    line-height: 28px;
-    margin-bottom: 10px;
+.label:hover .tooltiptext {
+  visibility: visible;
 }
+
 
 /*  For Code Snippets
         ============================================ */
