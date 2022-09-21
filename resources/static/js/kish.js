@@ -1078,11 +1078,6 @@ var kish = (function($) {
             }
         }
 
-        console.log("otherLabels:");
-        console.log(otherLabels);
-        console.log("inlineLabels:");
-        console.log(inlineLabels);
-
         xhr.onloadend = function () {
             // list of inline annotations in case of classification excerpt to be visually enriched
             var inlineLabeling = [];
@@ -1092,10 +1087,7 @@ var kish = (function($) {
                 records = response["records"];
                 for(var recordPos in records) {
                     let record = records[recordPos];
-
-                    console.log(record);
                     const localLabelId = record["label_id"];
-
                     if (inlineLabels != null && inlineLabels.indexOf(localLabelId) != -1) {
                         inlineLabeling.push(record);
                     }
@@ -1132,7 +1124,6 @@ var kish = (function($) {
     }
 
     function applyInlineAnnotations(context, inlineLabeling, otherLabels) {
-        console.log("applyInlineAnnotations");
 
         if (inlineLabeling == null || inlineLabeling.length == 0) 
             return context;
@@ -1174,7 +1165,7 @@ var kish = (function($) {
             if (start < pos) {
                 // we have a problem in the initial sort of the entities
                 // the server response is not compatible with the present client 
-                console.log("Sorting of entities as present in the server's response not valid for this client.");
+                console.log("Sorting of inline entities as present in the server's response not valid for this client.");
                 // note: this should never happen
             } else {
                 newString += he.encode(context.substring(pos, start))
