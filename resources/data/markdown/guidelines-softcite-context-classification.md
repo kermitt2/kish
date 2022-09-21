@@ -8,6 +8,15 @@ The goal of the classification task is to characterize a software or dataset men
 
 Setting the value of a label for an highlighted software/dataset mention context must be done **considering the displayed context, not the full article**. You should therefore analyze only the provided context to see if there are enough evidence or not to set a label.  
 
+The main sentence to be characterized might be annotated by mention tags (software, dataset) and attribute tags (url, version, publisher) to focus the classification to this particular research product. For example in case we have a dataset and a software in the same sentence, the usage/creation/sharing to be determined is relative to this highlighted research product. Similarly, in case we have several software mentioned in the same sentence, only one will be tagged, and only this one should be characterize. 
+
+#### Example
+
+Below, an example of a target sentence with two software mentions (`ImageJ` and `scripts in MATLAB`). Only the first one marked in focus `ImageJ` should be considered when characterizing the context.
+
+![](images/markdown/screen01.png) 
+
+
 ### Used
 
 `used`: boolean value
