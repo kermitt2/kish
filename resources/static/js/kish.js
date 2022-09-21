@@ -1136,9 +1136,16 @@ var kish = (function($) {
             otherLabelMap[otherLabels[labelPos]["id"]] = otherLabels[labelPos]["name"];
         }
 
+        var subTypeSeen = [];
         for (var labelingPos in inlineLabeling) {
             var annotation = inlineLabeling[labelingPos];
             var labelName = otherLabelMap[annotation["label_id"]];
+
+            if (subTypeSeen.indexOf(labelName) != -1)
+                break;
+            else
+                subTypeSeen.push(labelName);
+
             annotation['subtype'] = labelName;
             pieces.push(annotation);
         }
@@ -1633,6 +1640,16 @@ var kish = (function($) {
                     for(var pos in response["records"]) {
                         displayUser(pos, response["records"][pos]);
                     }
+
+                    $("#add-new-user").click(function() {
+                        event.preventDefault();
+                        var addRow = "<input id=\"password-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"></input>";
+                        $(this).html(addRow);
+                        $("#update-user-"+pos).css("color", "orange");
+                        $("#update-user-"+pos).addClass("active");
+                        $("#password-user-"+pos).off('click');
+                        return true;
+                    });
                 }
             }
         };
@@ -1661,13 +1678,13 @@ var kish = (function($) {
                 var response = JSON.parse(xhr.responseText);
                 var userContent = "<td><i class=\"mdi mdi-account-box\"></td><td>"+response["email"]+"</td>";
                 if (response["first_name"])
-                    userContent += "<td>"+response["first_name"]+"</td>";
+                    userContent += "<td id=\"first-name-user-"+pos+"\">"+response["first_name"]+"</td>";
                 else
-                    userContent += "<td></td>";
-                if (response["first_name"])
-                    userContent += "<td>"+response["last_name"]+"</td>";
+                    userContent += "<td id=\"first-name-user-"+pos+"\"></td>";
+                if (response["last_name"])
+                    userContent += "<td id=\"last-name-user-"+pos+"\">"+response["last_name"]+"</td>";
                 else
-                    userContent += "<td></td>";
+                    userContent += "<td id=\"last-name-user-"+pos+"\"></td>";
 
                 userContent += "<td id=\"password-user-"+pos+"\"><a href=\"#\">********</a></td>";
 
@@ -1694,12 +1711,31 @@ var kish = (function($) {
 
                 $("#password-user-"+pos).click(function() {
                     event.preventDefault();
-                    console.log(pos);
-                    var addField = "<input type=\"text\" style=\"width: 100%;\"></>"
+                    var addField = "<input id=\"password-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"></input>";
                     $(this).html(addField);
                     $("#update-user-"+pos).css("color", "orange");
                     $("#update-user-"+pos).addClass("active");
                     $("#password-user-"+pos).off('click');
+                    return true;
+                });
+
+                $("#first-name-user-"+pos).click(function() {
+                    event.preventDefault();
+                    var addField = "<input id=\"first-name-input-"+pos+"\" type=\"text\" style=\"width: 100%;\" value=\""+$(this).text()+"\"></input>";
+                    $(this).html(addField);
+                    $("#update-user-"+pos).css("color", "orange");
+                    $("#update-user-"+pos).addClass("active");
+                    $("#first-name-user-"+pos).off('click');
+                    return true;
+                });
+
+                $("#last-name-user-"+pos).click(function() {
+                    event.preventDefault();
+                    var addField = "<input id=\"last-name-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"  value=\""+$(this).text()+"\"></input>";
+                    $(this).html(addField);
+                    $("#update-user-"+pos).css("color", "orange");
+                    $("#update-user-"+pos).addClass("active");
+                    $("#last-name-user-"+pos).off('click');
                     return true;
                 });
 
@@ -1749,11 +1785,26 @@ var kish = (function($) {
         event.preventDefault();
         
         // role 
-        const role = $("#role-"+pos+" option:selected").text();
+        const role = $("#role-"+pos+" option:selected").val();
+
+        // first name 
+        const firstName = $("#first-name-input-"+pos).val();
+
+        // first name 
+        const lastName = $("#last-name-input-"+pos).val();
+
+        // password 
+        const password = $("#password-input-"+pos).val();
 
         var url = defineBaseURL("users/"+userIdentifier);
         data = {};
         data["role"] = role;
+        if (firstName && firstName.length > 0)
+            data["first_name"] = firstName;
+        if (lastName && lastName.length > 0)
+            data["last_name"] = lastName;
+        if (password && password.length > 0)
+            data["password"] = password;
         
         // retrieve the existing task information
         var xhr = new XMLHttpRequest();
