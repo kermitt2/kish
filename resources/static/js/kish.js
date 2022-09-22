@@ -1320,7 +1320,7 @@ var kish = (function($) {
             // validation/paging area
             var localWidth = $("#annotation-val-view").width();
             var pagingHtmlContent = "";
-            if (localWidth < 400) {
+            if (localWidth < 500) {
                 // we will need to place the navigation buttons under the valid/ignore buttons
                 pagingHtmlContent += "<div class=\"row w-100 justify-content-center \" style=\"width: 100%;\">";
                 if (isIgnoredExcerpt) {
