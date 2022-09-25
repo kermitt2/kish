@@ -76,6 +76,21 @@ async def put_user_preferences(request: Request, user: User = Depends(current_us
     result['runtime'] = round(time.time() - start_time, 3)
     return result    
 
+'''
+@router.put("/users/user", tags=["users"],
+    description="Create a new user, restricted to admin.")
+async def put_user_preferences(request: Request, user: User = Depends(current_superuser)):
+    start_time = time.time()
+    result = {}
+    user_dict = await request.json()
+
+    record = await create_user(user_dict["email"], user_dict["password"], role=user_dict["role"], is_superuser=False)
+
+    result['record'] = record
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result    
+'''
+
 @router.get("/tasks", tags=["tasks"],
     description="Return the list of available tasks.")
 async def get_tasks():

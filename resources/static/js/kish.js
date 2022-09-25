@@ -158,7 +158,6 @@ var kish = (function($) {
                     $("#users-home").show();
                 }
                 initTaskState();
-                initAllLabels();
             } else {
                 // not authorized, redirect to login page (note it should not happen 
                 // as the page would be served under a protected route)
@@ -205,10 +204,6 @@ var kish = (function($) {
         };
 
         xhr.send(null);
-    }
-
-    function initAllLabels() {
-
     }
 
     function setPreferencesUserInfo() {
@@ -610,7 +605,7 @@ var kish = (function($) {
                     $("#dataset-"+pos+"-task-view-table").html("<tr><td>No tasks available</td></tr>");
                 } else {
 
-                    var tableContent = initTaskTableHeader();
+                    var tableContent = templateTaskTableHeader;
                     tableContent = tableContent.replace("{{first_col_width}}", "3");
                     tableContent = tableContent.replace("{{status}}", "");
                     for(var pos2 in response["records"]) {
@@ -657,7 +652,7 @@ var kish = (function($) {
                     $("#assigned-task-view-table").html("<tr><td>No tasks available</td></tr>");
                     $("#completed-task-view-table").html("<tr><td>No tasks available</td></tr>");
                 } else {
-                    var tableContent = initTaskTableHeader();
+                    var tableContent = templateTaskTableHeader;
                     tableContent = tableContent.replace("{{first_col_width}}", "0");
                     var tableContentCompleted = tableContent.replace("{{status}}", "");
                     var tableContentInProgress = tableContent.replace("{{status}}", "");
@@ -714,22 +709,18 @@ var kish = (function($) {
         xhr.send(null);
     }
 
-    function initTaskTableHeader() {
-        var tableContent = 
-            "<thead><tr>" + 
-            "<td style=\"width:{{first_col_width}}%;\"></td>"+
-            "<td style=\"width:15%; font-weight: bold;\">{{status}} Task</td>"+
-            "<td style=\"width:10%;\">Type</td>"+
-            "<td style=\"width:10%;\">Dataset</td>"+
-            "<td style=\"width:10%;\"># documents</td>"+
-            "<td style=\"width:10%;\"># excerpts</td>"+
-            "<td style=\"width:10%;\"># completed</td>"+
-            "<td style=\"width:10%;\">Status</td>"+
-            "<td style=\"width:15%;\">Assigned to</td>"+
-            "<td style=\"width:10%;text-align: right;\">Action</td>"+
-            "</tr></thead><tbody>";
-        return tableContent
-    }
+    const templateTaskTableHeader = "<thead><tr> \
+            <td style=\"width:{{first_col_width}}%;\"></td> \
+            <td style=\"width:15%; font-weight: bold;\">{{status}} Task</td> \
+            <td style=\"width:10%;\">Type</td> \
+            <td style=\"width:10%;\">Dataset</td> \
+            <td style=\"width:10%;\"># documents</td> \
+            <td style=\"width:10%;\"># excerpts</td> \
+            <td style=\"width:10%;\"># completed</td> \
+            <td style=\"width:10%;\">Status</td> \
+            <td style=\"width:15%;\">Assigned to</td> \
+            <td style=\"width:10%;text-align: right;\">Action</td> \
+            </tr></thead><tbody>";
 
     function displayTask(table, pos, taskIdentifier) {
         var url = defineBaseURL("tasks/"+taskIdentifier);
@@ -1218,31 +1209,32 @@ var kish = (function($) {
         xhr.send(null);
     }
 
+    const taskInfoTemplate = "<table style=\"width:100%;\"><tr> \
+                            <td style=\"width:40%;font-size:150%;\"><span style=\"color:grey\">Progress:</span> \
+                            <span id=\"progress-done\">{{nb_completed_excerpts}}</span> / \
+                             {{nb_excerpts}} <span id=\"progress-complete\"></span> </td> \
+                            <td style=\"width:15%;\"><span style=\"color:grey\">Task:</span> {{name}} </td> \
+                            <td style=\"width:15%;\"><span style=\"color:grey\">Type:</span> {{type}} </td> \
+                            <td style=\"width:15%;\"><span style=\"color:grey\">Dataset:</span> {{dataset_name}} </td> \
+                            <td style=\"width:15%;\"><span style=\"color:grey\">Task doc.:</span> {{nb_documents}} </td> \
+                            </tr></table>";
+
     function setTaskInfo(taskInfo) {
-        var response = taskInfo;
-        if (response == null) {
+        if (taskInfo == null) {
             $("#annotation-task-info").html("The task is not available");
         } else {
-            //response = response["record"];
-            var taskContent = "<table style=\"width:100%;\"><tr>";
-        
-            taskContent += "<td style=\"width:40%;font-size:150%;\"><span style=\"color:grey\">Progress:</span> "+
-                "<span id=\"progress-done\">"+taskInfo["nb_completed_excerpts"]+"</span> / " + 
-                response["nb_excerpts"] + " <span id=\"progress-complete\"></span> </td>"
-
-            if (response["name"])
-                taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Task:</span> "+response["name"]+"</td>";
-
-            if (response["type"])
-                taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Type:</span> "+response["type"]+"</td>";
-
-            if (response["dataset_name"])
-                taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Dataset:</span> "+response["dataset_name"]+"</td>";
-
-            if (response["nb_documents"])
-                taskContent += "<td style=\"width:15%;\"><span style=\"color:grey\">Task doc.:</span> "+response["nb_documents"]+"</td>";
-
-            taskContent += "</tr></table>\n";
+            var taskContent = taskInfoTemplate
+                        .replace("{{nb_completed_excerpts}}", taskInfo["nb_completed_excerpts"])
+                        .replace("{{nb_excerpts}}", taskInfo["nb_excerpts"]);
+            
+            if (taskInfo["name"])
+                taskContent = taskContent.replace("{{name}}", taskInfo["name"]);
+            if (taskInfo["type"])
+                taskContent = taskContent.replace("{{type}}", taskInfo["type"]);
+            if (taskInfo["dataset_name"])
+                taskContent = taskContent.replace("{{dataset_name}}", taskInfo["dataset_name"]);
+            if (taskInfo["nb_documents"])
+                taskContent = taskContent.replace("{{nb_documents}}", taskInfo["nb_documents"]);
             
             $("#annotation-task-info").html(taskContent);
         }
@@ -1601,6 +1593,24 @@ var kish = (function($) {
         xhr.send(JSON.stringify(data));
     }
 
+    const userRowTemplate = "<td><i class=\"mdi mdi-account-box\"></td><td>{{email}}</td> \
+                <td id=\"first-name-user-{{pos}}\">{{first_name}}</td> \
+                <td id=\"last-name-user-{{pos}}\">{{last_name}}</td> \
+                <td id=\"password-user-{{pos}}\"><a href=\"#\">********</a></td> \
+                <td><select class=\"form-control\" id=\"role-{{pos}}\" style=\"background-color:#0d1117; color:#8a909d; border:0; padding-left:0;width: auto;\"> \
+                <option>annotator</option><option>curator</option><option>admin</option> \
+                </select></td> \
+                <td><a href=\"#\"><span id=\"update-user-{{pos}}\" style=\"color:{{color_edit}};\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; \
+                <a href=\"#\"><span id=\"delete-user-{{pos}}\" style=\"color:{{color_delete}};\"><i class=\"mdi mdi-delete\"/></span></a></td>";
+
+    const userHeaderRow = "<thead><tr><td style=\"width:5%;\"></td> \
+                        <td style=\"width:30%;\">email</td><td style=\"width:10%;\">first name</td><td style=\"width:10%;\"> \
+                        last name</td><td style=\"width:10%;\">password</td><td style=\"width:10%;\">role</td> \
+                        <td style=\"width:10%;\">action</td></tr></thead>";
+
+    const addNewUserRow = "<tr><td><a href=\"#\"><span id=\"add-new-user\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a></td>"+
+                          "<td>Add new user</td><td></td><td></td><td></td><td></td><td></td></tr>";
+
     function displayUsers() {
         $("#user-view").show();
         var url = defineBaseURL("users");
@@ -1626,15 +1636,12 @@ var kish = (function($) {
                 if (response["records"].length == 0) {
                     $("#user-view-table").html("<tr><td>No Users available</td></tr>");
                 } else {
-                    var tableContent = 
-                        "<thead><tr><td style=\"width:5%;\"></td>" + 
-                        "<td style=\"width:30%;\">email</td><td style=\"width:10%;\">first name</td><td style=\"width:10%;\">" + 
-                        "last name</td><td style=\"width:10%;\">password</td><td style=\"width:10%;\">role</td><td style=\"width:10%;\">action</td></tr></thead><tbody>";
+                    
+                    var tableContent = userHeaderRow + "<tbody>";
                     for(var pos in response["records"]) {
                         tableContent += "<tr id=\"user-"+pos+"\"></tr>";
                     }
-                    tableContent += "<tr><td><a href=\"#\"><span id=\"add-new-user\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a></td>"+
-                        "<td>Add new user</td><td></td><td></td><td></td><td></td><td></td></tr>";
+                    tableContent += addNewUserRow;
                     tableContent += "</tbody>";
                     $("#user-view-table").html(tableContent);
                     for(var pos in response["records"]) {
@@ -1643,11 +1650,9 @@ var kish = (function($) {
 
                     $("#add-new-user").click(function() {
                         event.preventDefault();
-                        var addRow = "<input id=\"password-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"></input>";
-                        $(this).html(addRow);
-                        $("#update-user-"+pos).css("color", "orange");
-                        $("#update-user-"+pos).addClass("active");
-                        $("#password-user-"+pos).off('click');
+                        const newLocation = $(this).parent().parent().parent();
+                        addNewUser(newLocation);                        
+
                         return true;
                     });
                 }
@@ -1655,6 +1660,89 @@ var kish = (function($) {
         };
         xhr.send(null);
     }
+
+    function addNewUser(newLocation) {
+        // get the position of the new user
+        var pos = $("#user-view-table tr").length - 2;
+        var addRow = userRowTemplate
+            .replaceAll("{{pos}}", pos)
+            .replace("{{email}}", "<span id=\"email-user-"+pos+"\" style=\"font-style: italic;\"> email </span>")
+            .replace("{{first_name}}", "")
+            .replace("{{last_name}}", "")
+            .replace(">annotator", " selected>annotator")
+            .replace("{{color_edit}}", "grey")
+            .replace("{{color_delete}}", "red");
+
+        newLocation.attr("id", "user-"+pos);
+        newLocation.html(addRow);
+        newLocation.parent().append(addNewUserRow);
+
+        // new user mini form is a bit different from the normal one because we need minimal values
+        $("#delete-user-"+pos).click(function() {
+            // we simply delete the row locally
+            var rowToDelete = $(this).parent().parent().parent();
+            rowToDelete.remove();
+
+            // re-activate new user button
+            $("#add-new-user").click(function() {
+                event.preventDefault();
+                const newLocation = $(this).parent().parent().parent();
+                addNewUser(newLocation);                        
+
+                return true;
+            });
+            return true;
+        });
+
+        $("#email-user-"+pos).click(function() {
+            event.preventDefault();
+            var addField = "<input id=\"email-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"></input>";
+            $(this).html(addField);
+            $("#update-user-"+pos).css("color", "orange");
+            $("#update-user-"+pos).addClass("active");
+            $("#email-user-"+pos).off('click');
+            return true;
+        });
+
+        $("#password-user-"+pos).click(function() {
+            event.preventDefault();
+            var addField = "<input id=\"password-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"></input>";
+            $(this).html(addField);
+            $("#update-user-"+pos).css("color", "orange");
+            $("#update-user-"+pos).addClass("active");
+            $("#password-user-"+pos).off('click');
+            return true;
+        });
+
+        $("#first-name-user-"+pos).click(function() {
+            event.preventDefault();
+            var addField = "<input id=\"first-name-input-"+pos+"\" type=\"text\" style=\"width: 100%;\" value=\""+$(this).text()+"\"></input>";
+            $(this).html(addField);
+            $("#update-user-"+pos).css("color", "orange");
+            $("#update-user-"+pos).addClass("active");
+            $("#first-name-user-"+pos).off('click');
+            return true;
+        });
+
+        $("#last-name-user-"+pos).click(function() {
+            event.preventDefault();
+            var addField = "<input id=\"last-name-input-"+pos+"\" type=\"text\" style=\"width: 100%;\"  value=\""+$(this).text()+"\"></input>";
+            $(this).html(addField);
+            $("#update-user-"+pos).css("color", "orange");
+            $("#update-user-"+pos).addClass("active");
+            $("#last-name-user-"+pos).off('click');
+            return true;
+        });
+
+        $("#update-user-"+pos).click(function() {
+            //event.preventDefault();
+            if ($(this).hasClass("active")) {
+                updateUser(null, pos);
+            }
+            return true;
+        });
+    }
+
 
     function displayUser(pos, userIdentifier) {
         var url = defineBaseURL("users/"+userIdentifier);
@@ -1676,27 +1764,26 @@ var kish = (function($) {
             } else {
                 // otherwise display the user information
                 var response = JSON.parse(xhr.responseText);
-                var userContent = "<td><i class=\"mdi mdi-account-box\"></td><td>"+response["email"]+"</td>";
+
+                var addRow = userRowTemplate
+                            .replaceAll("{{pos}}", pos)
+                            .replace("{{email}}", response["email"])                            
+                            .replace(">annotator", " selected>annotator")
+                            .replace(">"+response["role"], " selected>"+response["role"])
+                            .replace("{{color_edit}}", "grey")
+                            .replace("{{color_delete}}", "red");
+
                 if (response["first_name"])
-                    userContent += "<td id=\"first-name-user-"+pos+"\">"+response["first_name"]+"</td>";
+                    addRow = addRow.replace("{{first_name}}", response["first_name"]);
                 else
-                    userContent += "<td id=\"first-name-user-"+pos+"\"></td>";
+                    addRow = addRow.replace("{{first_name}}", "");
+    
                 if (response["last_name"])
-                    userContent += "<td id=\"last-name-user-"+pos+"\">"+response["last_name"]+"</td>";
+                    addRow = addRow.replace("{{last_name}}", response["last_name"]);
                 else
-                    userContent += "<td id=\"last-name-user-"+pos+"\"></td>";
+                    addRow = addRow.replace("{{last_name}}", "");
 
-                userContent += "<td id=\"password-user-"+pos+"\"><a href=\"#\">********</a></td>";
-
-                userContent += '<td><select class="form-control" id="role-'+pos+
-                    '" style="background-color:#0d1117; color:#8a909d; border:0; padding-left:0;width: auto;">';
-                var optionBlock = '<option>annotator</option><option>curator</option><option>admin</option>';
-                userContent += optionBlock.replace(">"+response["role"], " selected>"+response["role"]);
-                userContent += '</select></td>';
-
-                userContent += "<td><a href=\"#\"><span id=\"update-user-"+pos+"\" style=\"color:grey;\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; ";
-                userContent += "<a href=\"#\"><span id=\"delete-user-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
-                $("#user-"+pos).html(userContent);
+                $("#user-"+pos).html(addRow);
                 $("#delete-user-"+pos).click(function() {
                     deleteUser(userIdentifier);
                     return true;
@@ -1783,7 +1870,17 @@ var kish = (function($) {
 
     function updateUser(userIdentifier, pos) {
         event.preventDefault();
-        
+
+        var newUser = false;
+        if (userIdentifier == null)
+            newUser = true;
+
+        var email;
+        if (newUser) {
+            // email
+            email = $("#email-input-"+pos).val();
+        }
+
         // role 
         const role = $("#role-"+pos+" option:selected").val();
 
@@ -1796,19 +1893,29 @@ var kish = (function($) {
         // password 
         const password = $("#password-input-"+pos).val();
 
-        var url = defineBaseURL("users/"+userIdentifier);
-        data = {};
+        var data = {};
         data["role"] = role;
+        if (newUser && email && email.length > 0)
+            data["email"] = email;
         if (firstName && firstName.length > 0)
             data["first_name"] = firstName;
         if (lastName && lastName.length > 0)
             data["last_name"] = lastName;
         if (password && password.length > 0)
             data["password"] = password;
-        
+
         // retrieve the existing task information
         var xhr = new XMLHttpRequest();
-        xhr.open("PATCH", url, true);
+
+        var url = null;
+        if (newUser) {
+            // it's like registering
+            url = defineBaseURL("auth/register");
+            xhr.open("POST", url, true);
+        } else {
+            url = defineBaseURL("users/"+userIdentifier);
+            xhr.open("PATCH", url, true);
+        }
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
         xhr.onloadend = function () {
@@ -1819,11 +1926,26 @@ var kish = (function($) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
-                callToaster("toast-top-center", "error", response["detail"], "Damn, updating user didn't work!");
+
+                var erroMsg;
+                if (newUser)
+                    erroMsg = "Damn, creating user didn't work!";
+                else 
+                    erroMsg = "Damn, updating user didn't work!";
+
+                callToaster("toast-top-center", "error", response["detail"], erroMsg);
+                if (!newUser) 
+                    displayUsers();
             } else {
-                callToaster("toast-top-center", "success", "", "User has been updated!");
+                var successMsg;
+                if (newUser)
+                    successMsg = "User has been created!";
+                else
+                    successMsg = "User has been updated!";
+
+                callToaster("toast-top-center", "success", "", successMsg);
+                displayUsers();
             }
-            displayUsers()
         };
 
         // send the collected data as JSON
