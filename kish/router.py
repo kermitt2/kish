@@ -170,7 +170,7 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
 
         # number of documents, excerpts and annotations
         from utils_db import get_task_attributes
-        task_attributes = await get_task_attributes(identifier, str(user.id))
+        task_attributes = await get_task_attributes(item, str(user.id))
         if "nb_documents" in task_attributes:
             item["nb_documents"] = task_attributes["nb_documents"]
         if "nb_excerpts" in task_attributes:
@@ -181,6 +181,8 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
             item["nb_pre_annotations"] = task_attributes["nb_pre_annotations"]
         if "nb_completed_excerpts" in task_attributes:
             item["nb_completed_excerpts"] = task_attributes["nb_completed_excerpts"]
+        if "subtype" in task_attributes:
+            item["subtype"] = task_attributes["subtype"]
 
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
@@ -466,12 +468,21 @@ async def put_update_assigned_task(identifier: str, request: Request, user: User
     task_assign_dict = await request.json()
 
     # some validation here...
-    print(task_assign_dict)
+    #print(task_assign_dict)
 
     from utils_db import update_task_assignment_progress
     update_result = await update_task_assignment_progress(identifier, str(user.id), task_assign_dict)
     if update_result != None and "error" in update_result:
         raise HTTPException(status_code=500, detail="Task assigment progress update failed: "+update_result["error"])
+
+    # if task is complete, check completeness of all redundant tasks
+    if "is_completed" in task_assign_dict and task_assign_dict["is_completed"] == 1:
+        from tasks import check_completed_tasks, open_reconciliation_task, has_reconciliation_task
+        already_reconciliation = await has_reconciliation_task(identifier)
+        if not already_reconciliation:
+            allComplete = await check_completed_tasks(identifier)
+            if allComplete:
+                await open_reconciliation_task(identifier)
 
     result['runtime'] = round(time.time() - start_time, 3)
     return result
@@ -574,14 +585,18 @@ async def get_excerpt_annotation(identifier: str, type: str, user: User = Depend
     start_time = time.time()
     result = {}
     from utils_db import get_items
-    items1 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": str(user.id)}, full=True)
-    items2 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": None}, full=True)
 
-    if items1 == None and items2 == None:
-        raise HTTPException(status_code=404, detail="Annotation not found")
+    if user.role == "annotator":
+        items1 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": str(user.id)}, full=True)
+        items2 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": None}, full=True)
+        if items1 == None and items2 == None:
+            raise HTTPException(status_code=404, detail="Annotation not found")
+        else:
+            items = items1+items2
     else:
-        items = items1+items2
-        result['records'] = items
+        items = await get_items("annotation", {"excerpt_id": identifier, "type": type}, full=True)
+
+    result['records'] = items
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
@@ -595,12 +610,13 @@ async def add_annotation(request: Request, user: User = Depends(current_user)):
 
     # some validation here...
     annotation_dict["user_id"] = str(user.id)
-    print(annotation_dict)
+    #print("annotation to be added/updated:", annotation_dict)
 
     # check if an annotation exists for this user, excerpt and task
     from utils_db import get_first_item
 
     dict_annot = {"user_id": annotation_dict["user_id"], "task_id": annotation_dict["task_id"], "excerpt_id": annotation_dict["excerpt_id"]}
+    dict_annot["label_id"] = annotation_dict["label_id"]
     item = await get_first_item("annotation", dict_annot)
     if item == None:
         # we insert the new annotation

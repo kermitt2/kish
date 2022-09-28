@@ -42,7 +42,7 @@ var kish = (function($) {
 
         $('#update-settings-button').click(function() {
             event.preventDefault();
-            update_settings();
+            updateSettings();
         });
 
         $('#update-preferences-button').click(function() {
@@ -169,6 +169,7 @@ var kish = (function($) {
     }
 
     function initTaskState() {
+        // store information about primary and redundant tasks, to avoid further server calls
         var url = defineBaseURL("tasks/redundant/me");
 
         var xhr = new XMLHttpRequest();
@@ -316,7 +317,7 @@ var kish = (function($) {
         }
     }
     
-    function update_settings() {
+    function updateSettings() {
         var email = $("#email").val();
         var forname = $("#firstName").val();
         var lastname = $("#lastName").val();
@@ -806,7 +807,10 @@ var kish = (function($) {
                     }
                 } else {
                     // is this task redundant with one already assigned to the user ? 
-                    if (userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1) {
+                    // or is it a reconciliation task that can't be assigned given user's role? 
+                    if ((userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1 && response["type"] !== "reconciliation")||
+                        (userInfo["role"] === "annotator" && response["type"] === "reconciliation")
+                        ) {
                         taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
                         "\" style=\"color:grey;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
                         "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
@@ -838,12 +842,13 @@ var kish = (function($) {
                         });
                     }
                 } else {
-                    if (userInfo["redundant_tasks"].indexOf(taskIdentifier) == -1) {
+                    if (userInfo["redundant_tasks"].indexOf(taskIdentifier) == -1 || 
+                        (response["type"] === "reconciliation" && userInfo["role"] !== "annotator")) {
                         $("#self-assign" + origin + "-task-"+pos).click(function() {
                             selfAssignTask(taskIdentifier);
                             return true;
                         });
-                    }
+                    } 
                 }
             }
         };
@@ -1000,7 +1005,8 @@ var kish = (function($) {
                 var otherLabels = []
                 for (var labelPos in response["records"]) {
                     var localLabelItem = response["records"][labelPos];
-                    if (taskInfo["type"] == localLabelItem["type"])
+                    if (taskInfo["type"] == localLabelItem["type"] || 
+                        (taskInfo["subtype"] && (taskInfo["subtype"] == localLabelItem["type"])))
                         labels.push(localLabelItem);
                     else
                         otherLabels.push(localLabelItem);
@@ -1041,7 +1047,6 @@ var kish = (function($) {
                 response = response["record"];
 
                 displayExcerptArea(taskInfo, labels, otherLabels, rank, response);
-                displayExcerptArea(taskInfo, labels, otherLabels, rank, response);
                 displayLabelArea(taskInfo, labels, otherLabels, rank, response["id"]); 
             }
         }
@@ -1059,7 +1064,7 @@ var kish = (function($) {
 
         // only relevant for classification: we can display in the excerpt inline tags
         var inlineLabels = null;
-        if (taskInfo["type"] == "classification") {
+        if (taskInfo["type"] === "classification" || taskInfo["type"] === "reconciliation") {
             inlineLabels = [];
             for(var labelPos in otherLabels) {
                 const localLabel = otherLabels[labelPos];
@@ -1067,7 +1072,7 @@ var kish = (function($) {
                     inlineLabels.push(localLabel["id"]);
                 }
             }
-        }
+        } 
 
         xhr.onloadend = function () {
             // list of inline annotations in case of classification excerpt to be visually enriched
@@ -1242,9 +1247,18 @@ var kish = (function($) {
 
     function displayLabelArea(taskInfo, labels, otherLabels, rank, excerptIdentifier) {    
         // get task-specific annotations
-        var url = defineBaseURL("annotations/excerpt/"+excerptIdentifier+"?type="+taskInfo["type"]);
+        var url;
 
-        // retrieve the existing task information
+        if (taskInfo["type"] === "reconciliation") {
+            // use original task type, this is an added field subtype, only available for reconciliation task
+            // (see the data model)
+            const primaryType = taskInfo["subtype"];
+            url = defineBaseURL("annotations/excerpt/"+excerptIdentifier+"?type="+primaryType);
+        } else {
+            url = defineBaseURL("annotations/excerpt/"+excerptIdentifier+"?type="+taskInfo["type"]);
+        } 
+
+        // retrieve the existing annotation information
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -1253,18 +1267,25 @@ var kish = (function($) {
         $("#annotation-val-area").css("min-height", localHeight);
 
         xhr.onloadend = function () {
+            // general case for storing relevant label annotation
             var prelabeling = {}
+
+            // for storing relevant label annotation in case of reconciliation task
+            var prelabelingReconciliation = {}
+
             var userAnnotation = false;
             var isIgnoredExcerpt = false;
+
             // status
             if (xhr.status == 200) {
-                // store pre-labeling weights in the map 
                 var response = JSON.parse(xhr.responseText);
                 records = response["records"];
+
+                // store pre-labeling weights and user label in the map 
                 for(var recordPos in records) {
                     let record = records[recordPos];
 
-                    if (record["user_id"] == userInfo["id"]) {
+                    if (record["user_id"] == userInfo["id"] && record["task_id"] == taskInfo["id"]) {
                         userAnnotation = true;
                         if (record["ignored"]) {
                             isIgnoredExcerpt = true;
@@ -1277,12 +1298,83 @@ var kish = (function($) {
                         prelabeling[record["label_id"]] = record;
                     }
                 }
+
+                if (!userAnnotation && taskInfo["type"] === "reconciliation") {
+                    // case reconciliation to be performed
+                    for(var recordPos in records) {
+                        let record = records[recordPos];
+
+                        // we need to store all annotations from other users/task
+                        if (record["user_id"] != null && record["task_id"] != taskInfo["id"]) {
+
+                            if (!prelabelingReconciliation[record["label_id"]]) {
+                                prelabelingReconciliation[record["label_id"]] = []
+                            }
+                            prelabelingReconciliation[record["label_id"]].push(record);
+                        }
+                    }
+                }
             } 
+
+            console.log(prelabeling);
+            console.log(prelabelingReconciliation);
+
             var labelHtmlContent = "";
             for(var labelPos in labels) {
                 let label = labels[labelPos];
-                
-                if (prelabeling[label["id"]]) {
+
+                if (!userAnnotation && taskInfo["type"] === "reconciliation") {
+                    var disagreement = false;
+                    if (prelabelingReconciliation[label["id"]]) {
+                        // do we have a disagreement for this label ? 
+                        var localRecords = prelabelingReconciliation[label["id"]];
+                        var values = [];
+                        for(var localRecordPos in localRecords) {
+                            var localRecord = localRecords[localRecordPos];
+                            const localVal = localRecord["value"];
+
+                            if (values.length > 0 && !values.includes(localVal)) {
+                                // disgreement for the label
+                                disagreement = true;
+                            } 
+
+                            values.push(localVal);
+                        }
+                    }
+
+                    if (disagreement) {
+                        labelHtmlContent += 
+                            "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
+                                "<label class=\"control control-checkbox checkbox-danger\" style=\"color:red;\">"+label["name"];
+
+                            labelHtmlContent += " <span style=\"color:red;\">(disagreement)</span>";
+                            labelHtmlContent += "<input id=\"checkbox-"+label["name"]+"\" type=\"checkbox\">";
+
+                    } else {
+                        labelHtmlContent += 
+                            "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
+                                "<label class=\"control control-checkbox checkbox-primary\" >"+label["name"];
+
+                        if (prelabelingReconciliation[label["id"]] && prelabelingReconciliation[label["id"]].length > 0) {
+                            let prelabel = prelabelingReconciliation[label["id"]][0];
+                            if (prelabel["value"] == 1) {
+                                labelHtmlContent += "<input id=\"checkbox-"+label["name"]+"\" type=\"checkbox\" checked=\"checked\">";
+                            } else {
+                                labelHtmlContent += "<input id=\"checkbox-"+label["name"]+"\" type=\"checkbox\">";
+                            }
+                        } else {
+                            let prelabel = prelabeling[label["id"]];
+                            if (prelabel["value"] == 1) {
+                                labelHtmlContent += "<input id=\"checkbox-"+label["name"]+"\" type=\"checkbox\" checked=\"checked\">";
+                            } else {
+                                labelHtmlContent += "<input id=\"checkbox-"+label["name"]+"\" type=\"checkbox\">";
+                            }
+                        }
+                    }
+
+                    labelHtmlContent += "<div class=\"control-indicator\"></div></label></div>";
+
+                } else if (prelabeling[label["id"]]) {
                     let prelabel = prelabeling[label["id"]];
                     labelHtmlContent += 
                             "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
@@ -1922,7 +2014,7 @@ var kish = (function($) {
             // status
             if (xhr.status == 401) {
                 window.location.href = "sign-in.html";
-            } else if (xhr.status != 200 && xhr.status != 204) {
+            } else if (xhr.status != 200 && xhr.status != 201 && xhr.status != 204) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);

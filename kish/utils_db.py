@@ -174,8 +174,8 @@ async def update_record(table, record_id, record_dict):
         statement += " WHERE user_id = '" + record_id + "'";
     else:
         statement += " WHERE id = '" + record_id + "'";
+    #print(statement)
     statement = text(statement)
-
     try:
         async with engine.connect() as conn:
             await conn.execute(statement)
@@ -223,11 +223,12 @@ async def get_assigned_user(task_id):
         print("Fail to access record in assign table: " + error)
     return item
 
-async def get_task_attributes(task_id, user_id):
+async def get_task_attributes(task_item, user_id):
     '''
     Attributes here for a given task are its number of documents, number of excerpts and number of 
     pre-annotations and user annotations    
     '''
+    task_id = task_item["id"]
     attributes = {}
 
     # number of excerpts
@@ -289,6 +290,11 @@ async def get_task_attributes(task_id, user_id):
         error=str(e.__dict__['orig'])
         print("Fail to access record in intask table: " + error)
 
+    # for reconciliation tasks only, add the primary task type in field subtype
+    if task_item["type"] == "reconciliation" and "redundant" in task_item and task_item["redundant"] != None:
+        primary_task = await get_first_item("task", { "id": task_item["redundant"] })
+        attributes["subtype"] = primary_task["type"]
+
     return attributes
 
 async def delete_items(table, record_dict):
@@ -325,6 +331,19 @@ async def test_init():
     # check if dataset is already present
     dataset = await get_first_item("dataset", {"id": "811b64f1-323f-4a78-bdb8-ebaab44b023a"})
     if dataset is not None:
+        # check if reconciliation tasks are already present
+
+        # get the tasks for this dataset
+        task_ids = await get_items("task", {"dataset_id": dataset["id"]})
+
+        for task_id in task_ids:
+            # if task is complete, check completeness of all redundant tasks
+            from tasks import check_completed_tasks, open_reconciliation_task, has_reconciliation_task
+            already_reconciliation = await has_reconciliation_task(task_id)
+            if not already_reconciliation:
+                allComplete = await check_completed_tasks(task_id)
+                if allComplete:
+                    await open_reconciliation_task(task_id)
         return
 
     await insert_item("dataset", dataset_data)
@@ -332,6 +351,7 @@ async def test_init():
     # insert data for the dataset
     sofcite_dataset_sources = ["tests/resources/combined.classification.filtered.json.gz"]
 
+    '''
     from loader import import_dataset_json
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
@@ -340,18 +360,18 @@ async def test_init():
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"])
-    
+    '''
 
     # insert smaller data for dedicated tests
-    '''
+    
     from loader import import_dataset_json
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
-        "tests/resources/dummy.classification.json")
+        ["tests/resources/dummy.classification.json"])
 
     from kish.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=1, redundancy=2, labels=["created", "used", "shared"])
-    '''
+    
 
 async def test_export():
     # test export dataset
