@@ -1325,14 +1325,14 @@ var kish = (function($) {
 
                 if (!userAnnotation && taskInfo["type"] === "reconciliation") {
                     var disagreement = false;
+                    var values = [];
                     if (prelabelingReconciliation[label["id"]]) {
                         // do we have a disagreement for this label ? 
                         var localRecords = prelabelingReconciliation[label["id"]];
-                        var values = [];
+                        
                         for(var localRecordPos in localRecords) {
                             var localRecord = localRecords[localRecordPos];
                             const localVal = localRecord["value"];
-
                             if (values.length > 0 && !values.includes(localVal)) {
                                 // disgreement for the label
                                 disagreement = true;
@@ -1345,9 +1345,20 @@ var kish = (function($) {
                     if (disagreement) {
                         labelHtmlContent += 
                             "<div class=\"w-100\" style=\"margin-top: auto; margin-bottom: auto;\">"+
-                                "<label class=\"control control-checkbox checkbox-danger\" style=\"color:red;\">"+label["name"];
+                                "<label class=\"control control-checkbox checkbox-danger\" style=\"color:#fe5461;\">"+label["name"];
 
-                            labelHtmlContent += " <span style=\"color:red;\">(disagreement)</span>";
+                            labelHtmlContent += " <span style=\"color:grey;\">(disagreement ";
+                            for (var valuePos in values) {
+                                if (valuePos != 0) 
+                                    labelHtmlContent += " / ";
+                                if (values[valuePos] == 0)
+                                    labelHtmlContent += "false";
+                                else if (values[valuePos] == 1)
+                                    labelHtmlContent += "true";
+                                else  
+                                    labelHtmlContent += values[valuePos];
+                            }
+                            labelHtmlContent +=  ")</span>";
                             labelHtmlContent += "<input id=\"checkbox-"+label["name"]+"\" type=\"checkbox\">";
 
                     } else {
@@ -1621,10 +1632,34 @@ var kish = (function($) {
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
                 callToaster("toast-top-center", "error", response["detail"], "Damn, updating task assigment progress didn't work!");
+            } else {
+                if (data["is_completed"]) {
+                    checkReconciliation(taskIdentifier);
+                }
             }
         }
         xhr.send(JSON.stringify(data));
     }
+
+    function checkReconciliation(taskIdentifier) {
+        var url = defineBaseURL("tasks/"+taskIdentifier+"/reconciliation");
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.onloadend = function () {
+            if (xhr.status == 401) { 
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, updating task assigment completeness didn't work!");
+            } 
+        }
+
+        xhr.send(null);
+    } 
 
     function ignoreExcerpt(taskInfo, labels, otherLabels, rank, excerptIdentifier) {
         var url = defineBaseURL("annotations/annotation");

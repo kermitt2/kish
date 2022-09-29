@@ -1,4 +1,6 @@
-from utils_db import insert_item, get_first_item, update_record, get_items
+from utils_db import insert_item, get_first_item, update_record, get_items, row2dict
+import subprocess
+import json 
 
 async def generate_tasks(dataset_id, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, labels=["created", "used", "shared"]):
     """
@@ -180,6 +182,10 @@ async def open_reconciliation_task(task_id):
     # retrieve task info
     task_item = await get_first_item("task", { "id": task_id} )
 
+    # if the task is itself a reconciliation task, nothing to do
+    if task_item["type"] == "reconciliation":
+        return False
+
     if "redundant" not in task_item or task_item["redundant"] == None:
         primary_task_id = task_id
     else:
@@ -189,6 +195,8 @@ async def open_reconciliation_task(task_id):
     task_items = await get_items("task", { "redundant": primary_task_id} )
     if task_id not in task_items:
         task_items.append(task_id)
+    if primary_task_id not in task_items:
+        task_items.append(primary_task_id)
 
     # retrieve dataset info
     dataset_item = await get_first_item("dataset", { "id": task_item["dataset_id"]} )
@@ -211,6 +219,7 @@ async def open_reconciliation_task(task_id):
     # for each excerpt, get all annotation for the redundant tasks, check for disagreement
     for intask_excerpt in intask_excerpts:
         excerpt_id = intask_excerpt["excerpt_id"]
+
         excepts_annotation_items = await get_items("annotation", { "excerpt_id": excerpt_id }, full=True)
 
         # map a label to its values, to identify easily disagrement across excerpt annotations
@@ -254,4 +263,4 @@ async def open_reconciliation_task(task_id):
                 intask_dict = { "task_id": reconciliation_task_id, "excerpt_id": excerpt_id }
                 await insert_item("intask", intask_dict, add_id=False)
                 break
-
+    return True

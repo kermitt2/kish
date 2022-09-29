@@ -97,7 +97,7 @@ var base = (function($) {
                     $('#div-submit').append("<div class=\"invalid-feedback\" style=\"color:red; display:inline;\">Error user sign-in: <br/>"+
                         response["detail"]+"</div>");
                 } else {
-                    console.log(xhr.responseText);
+                    //console.log(xhr.responseText);
                     // cookie is set, start the application with a redirect
                     window.location.href = "index.html";
                 }

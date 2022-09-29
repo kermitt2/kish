@@ -475,14 +475,25 @@ async def put_update_assigned_task(identifier: str, request: Request, user: User
     if update_result != None and "error" in update_result:
         raise HTTPException(status_code=500, detail="Task assigment progress update failed: "+update_result["error"])
 
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.post("/tasks/{identifier}/reconciliation", tags=["tasks"], 
+    description="Open a reconciliation task if all the redundant tasks for the given task are completed.")
+async def post_reconciliation_task(identifier: str):
+    start_time = time.time()
+    result = {}
+    is_open = False
+
     # if task is complete, check completeness of all redundant tasks
-    if "is_completed" in task_assign_dict and task_assign_dict["is_completed"] == 1:
-        from tasks import check_completed_tasks, open_reconciliation_task, has_reconciliation_task
-        already_reconciliation = await has_reconciliation_task(identifier)
-        if not already_reconciliation:
-            allComplete = await check_completed_tasks(identifier)
-            if allComplete:
-                await open_reconciliation_task(identifier)
+    from tasks import check_completed_tasks, open_reconciliation_task, has_reconciliation_task
+    already_reconciliation = await has_reconciliation_task(identifier)
+    if not already_reconciliation:
+        allComplete = await check_completed_tasks(identifier)
+        if allComplete:
+            is_open = await open_reconciliation_task(identifier)
+
+    result['reconciliation_open'] = is_open
 
     result['runtime'] = round(time.time() - start_time, 3)
     return result
