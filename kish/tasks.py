@@ -153,7 +153,7 @@ async def check_completed_tasks(task_id):
         primary_task_item = task_item
     else:
         primary_task_item = await get_first_item("task", { "id": primary_task_id} )
-    assignment_item = await get_first_item("assign", { "task_id": task_id} )
+    assignment_item = await get_first_item("assign", { "task_id": primary_task_id} )
     if assignment_item == None or not assignment_item["is_completed"]:
         return False
 
