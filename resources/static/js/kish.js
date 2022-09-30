@@ -67,6 +67,11 @@ var kish = (function($) {
         $("#datasets-home").click(function() {
             clearMainContent();
             activateMenuChoice($(this));
+            $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "admin") {
+                $("#dataset-create-side-bar").show();
+                $("#dataset-result-side-bar").show();
+            }
             displayDatasets();
             return true;
         });
@@ -88,6 +93,42 @@ var kish = (function($) {
             $("#guidelines-side-bar").show();
             $("#annotate-side-bar").show();
             $("#guidelines-view").show();
+            return true;
+        });
+
+        $("#dataset-tasks-side-bar").click(function() {
+            clearMainContent();
+            activateMenuChoice($("#datasets-home"));
+            $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "admin") {
+                $("#dataset-create-side-bar").show();
+                $("#dataset-result-side-bar").show();
+            }
+            displayDatasets();
+            return true;
+        });
+
+        $("#dataset-create-side-bar").click(function() {
+            clearMainContent();
+            activateMenuChoice($("#datasets-home"));
+            $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "admin") {
+                $("#dataset-create-side-bar").show();
+                $("#dataset-result-side-bar").show();
+                //
+            }
+            return true;
+        });
+
+        $("#dataset-result-side-bar").click(function() {
+            clearMainContent();
+            activateMenuChoice($("#datasets-home"));
+            $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "admin") {
+                $("#dataset-create-side-bar").show();
+                $("#dataset-result-side-bar").show();
+                //
+            }
             return true;
         });
 
@@ -118,6 +159,9 @@ var kish = (function($) {
         $("#guidelines-view").hide();
         $("#annotate-side-bar").hide();
         $("#guidelines-side-bar").hide();
+        $("#dataset-tasks-side-bar").hide();
+        $("#dataset-create-side-bar").hide();
+        $("#dataset-result-side-bar").hide();
     }
 
     function defineBaseURL(ext) {

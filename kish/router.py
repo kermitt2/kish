@@ -110,8 +110,16 @@ async def get_dataset_tasks(identifier: str):
     result = {}
     result['count'] = 1
     from utils_db import get_items
-    records = await get_items("task", { "dataset_id": identifier})
-    result['records'] = records
+    records = await get_items("task", { "dataset_id": identifier}, full=True)
+
+    # custom functions to get task name info
+    def get_name(record):
+        return record.get("name")
+
+    records.sort(key=get_name)
+    final_records = [record["id"] for record in records]
+
+    result['records'] = final_records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
