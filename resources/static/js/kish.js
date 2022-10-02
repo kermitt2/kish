@@ -68,9 +68,12 @@ var kish = (function($) {
             clearMainContent();
             activateMenuChoice($(this));
             $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "admin" || userInfo["role"] === "curator") {
+                $("#dataset-metrics-side-bar").show();
+            }
             if (userInfo["role"] === "admin") {
                 $("#dataset-create-side-bar").show();
-                $("#dataset-result-side-bar").show();
+                $("#dataset-export-side-bar").show();
             }
             displayDatasets();
             return true;
@@ -100,9 +103,12 @@ var kish = (function($) {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
             $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
+                $("#dataset-metrics-side-bar").show();
+            }
             if (userInfo["role"] === "admin") {
                 $("#dataset-create-side-bar").show();
-                $("#dataset-result-side-bar").show();
+                $("#dataset-export-side-bar").show();
             }
             displayDatasets();
             return true;
@@ -112,23 +118,44 @@ var kish = (function($) {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
             $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
+                $("#dataset-metrics-side-bar").show();
+            }
             if (userInfo["role"] === "admin") {
                 $("#dataset-create-side-bar").show();
-                $("#dataset-result-side-bar").show();
-                //
+                $("#dataset-export-side-bar").show();
+                displayDatasetCreation();
             }
             return true;
         });
 
-        $("#dataset-result-side-bar").click(function() {
+        $("#dataset-metrics-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
             $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
+                $("#dataset-metrics-side-bar").show();
+                displayDatasetMetrics();
+            }
             if (userInfo["role"] === "admin") {
                 $("#dataset-create-side-bar").show();
-                $("#dataset-result-side-bar").show();
-                //
+                $("#dataset-export-side-bar").show();
             }
+            return true;
+        });
+
+        $("#dataset-export-side-bar").click(function() {
+            clearMainContent();
+            activateMenuChoice($("#datasets-home"));
+            $("#dataset-tasks-side-bar").show();
+            if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
+                $("#dataset-metrics-side-bar").show();
+            }
+            if (userInfo["role"] === "admin") {
+                $("#dataset-create-side-bar").show();
+                $("#dataset-export-side-bar").show();
+                displayDatasetExport();
+            }            
             return true;
         });
 
@@ -161,7 +188,11 @@ var kish = (function($) {
         $("#guidelines-side-bar").hide();
         $("#dataset-tasks-side-bar").hide();
         $("#dataset-create-side-bar").hide();
-        $("#dataset-result-side-bar").hide();
+        $("#dataset-metrics-side-bar").hide();
+        $("#dataset-export-side-bar").hide();
+        $("#dataset-create-view").hide();
+        $("#dataset-metrics-view").hide();
+        $("#dataset-export-view").hide();
     }
 
     function defineBaseURL(ext) {
@@ -668,6 +699,21 @@ var kish = (function($) {
         xhr.send(null);
     }
 
+    function displayDatasetCreation() {
+        $("#dataset-create-view").show();
+        $("#dataset-create-view").html("Dataset creation - Work in progress");
+    }
+
+    function displayDatasetMetrics() {
+        $("#dataset-metrics-view").show();
+        $("#dataset-metrics-view").html("Dataset metrics - Work in progress");
+    }
+
+    function displayDatasetExport() {
+        $("#dataset-export-view").show();
+        $("#dataset-export-view").html("Dataset export - Work in progress");
+    }
+
     function displayTasks() {
         $("#my-task-view").show();
         var url = defineBaseURL("tasks/user");
@@ -767,6 +813,10 @@ var kish = (function($) {
             <td style=\"width:10%;text-align: right;\">Action</td> \
             </tr></thead><tbody>";
 
+    const templateTaskRow = "<td></td><td>{{name}}</td><td>{{type}}</td><td>{{dataset_name}}</td><td>{{nb_documents}}</td> \
+                            <td>{{nb_excerpts}}</td><td>{{nb_completed_excerpts}}</td><td>{{status}}</td> \
+                            <td>{{assigned}}</td>";
+
     function displayTask(table, pos, taskIdentifier) {
         var url = defineBaseURL("tasks/"+taskIdentifier);
 
@@ -786,52 +836,52 @@ var kish = (function($) {
                 // otherwise display the task information
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
-                var taskContent = "";
-                taskContent += "<td></td>";
+                var taskContent = templateTaskRow;
+
                 if (response["name"])
-                    taskContent += "<td>"+response["name"]+"</td>";
-                else
-                    taskContent += "<td></td>";
-                
+                    taskContent = taskContent.replace("{{name}}", response["name"]);
+                else 
+                    taskContent = taskContent.replace("{{name}}", "");
+
                 if (response["type"])
-                    taskContent += "<td>"+response["type"]+"</td>";
+                    taskContent = taskContent.replace("{{type}}", response["type"]);
                 else
-                    taskContent += "<td></td>";
-                
+                    taskContent = taskContent.replace("{{type}}", "");
+
                 if (response["dataset_name"])
-                    taskContent += "<td>"+response["dataset_name"]+"</td>";
+                    taskContent = taskContent.replace("{{dataset_name}}", response["dataset_name"]);
                 else
-                    taskContent += "<td></td>";
-                
+                    taskContent = taskContent.replace("{{dataset_name}}", "");
+
                 if (response["nb_documents"])
-                    taskContent += "<td>"+response["nb_documents"]+"</td>";
+                    taskContent = taskContent.replace("{{nb_documents}}", response["nb_documents"]);
                 else
-                    taskContent += "<td>0</td>";
-                
+                    taskContent = taskContent.replace("{{nb_documents}}", "0");
+
                 if (response["nb_excerpts"])
-                    taskContent += "<td>"+response["nb_excerpts"]+"</td>";
+                    taskContent = taskContent.replace("{{nb_excerpts}}", response["nb_excerpts"]);
                 else
-                    taskContent += "<td>0</td>";
-                
+                    taskContent = taskContent.replace("{{nb_excerpts}}", "0");
+
                 if (response["nb_completed_excerpts"])
-                    taskContent += "<td>"+response["nb_completed_excerpts"]+"</td>";
+                    taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_excerpts"]);
                 else
-                    taskContent += "<td>0</td>";
-                
+                    taskContent = taskContent.replace("{{nb_completed_excerpts}}", "0");
+
                 if (response["status"]) {
                     if (response["status"] == "completed") {
-                        taskContent += "<td><span style=\"color: green;\">completed</span></td>";
+                        taskContent = taskContent.replace("{{status}}", "<span style=\"color: green;\">completed</span>");
                     } else {
-                        taskContent += "<td>"+response["status"]+"</td>";
+                        taskContent = taskContent.replace("{{status}}", response["status"]);
                     }
                 }
                 else
-                    taskContent += "<td>unknown</td>";
-                
+                    taskContent = taskContent.replace("{{status}}", "unknown");
+
                 if (response["assigned"])
-                    taskContent += "<td>"+response["assigned"]+"</td>";
+                    taskContent = taskContent.replace("{{assigned}}", response["assigned"]);
                 else
-                    taskContent += "<td></td>";
+                    taskContent = taskContent.replace("{{assigned}}", "");
 
                 var origin = "-dataset";
                 if ($("#tasks-home").hasClass("active")) 
@@ -980,8 +1030,6 @@ var kish = (function($) {
 
         xhr.send(null);
     }
-
-    //var classColorBootstrapMapping = { "blue": "primary", "grey": "default", "green" : "success", "orange": "warning", "red": "danger", "cyan": "info"};
 
     function annotationTask(taskInfo) {
         event.preventDefault();

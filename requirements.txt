@@ -11,3 +11,4 @@ fastapi-users[sqlalchemy,oauth]==10.1
 httpx
 httpx-oauth
 ijson
+nltk

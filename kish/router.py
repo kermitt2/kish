@@ -76,21 +76,6 @@ async def put_user_preferences(request: Request, user: User = Depends(current_us
     result['runtime'] = round(time.time() - start_time, 3)
     return result    
 
-'''
-@router.put("/users/user", tags=["users"],
-    description="Create a new user, restricted to admin.")
-async def put_user_preferences(request: Request, user: User = Depends(current_superuser)):
-    start_time = time.time()
-    result = {}
-    user_dict = await request.json()
-
-    record = await create_user(user_dict["email"], user_dict["password"], role=user_dict["role"], is_superuser=False)
-
-    result['record'] = record
-    result['runtime'] = round(time.time() - start_time, 3)
-    return result    
-'''
-
 @router.get("/tasks", tags=["tasks"],
     description="Return the list of available tasks.")
 async def get_tasks():
@@ -102,6 +87,32 @@ async def get_tasks():
     result['records'] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
+
+@router.get("/dataset/{identifier}/metrics", tags=["tasks"],
+    description="Return advancement and IAA metrics for the tasks of a given dataset.")
+async def get_dataset_metrics(identifier: str, type: str):
+    start_time = time.time()
+    result = {}
+
+    from metrics import compute_overall_metrics
+    metrics_dict = compute_overall_metrics(identifier, type)
+    result["metrics"] = metrics_dict
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/tasks/dataset/export", tags=["tasks"],
+    description="Return the resulting JSON export file for the tasks in a given dataset and a type of tasks.")
+async def export_dataset(identifier: str, type: str):
+    start_time = time.time()
+    result = {}
+
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+
+
 
 @router.get("/tasks/dataset/{identifier}", tags=["tasks"],
     description="Return the list of tasks for a given dataset.")
@@ -178,7 +189,10 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
 
         # number of documents, excerpts and annotations
         from utils_db import get_task_attributes
-        task_attributes = await get_task_attributes(item, str(user.id))
+        task_attributes = await get_task_attributes(item)
+        for key in task_attributes:
+            item[key] = task_attributes[key]
+        """    
         if "nb_documents" in task_attributes:
             item["nb_documents"] = task_attributes["nb_documents"]
         if "nb_excerpts" in task_attributes:
@@ -191,7 +205,7 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
             item["nb_completed_excerpts"] = task_attributes["nb_completed_excerpts"]
         if "subtype" in task_attributes:
             item["subtype"] = task_attributes["subtype"]
-
+        """
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result

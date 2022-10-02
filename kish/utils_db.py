@@ -223,7 +223,7 @@ async def get_assigned_user(task_id):
         print("Fail to access record in assign table: " + error)
     return item
 
-async def get_task_attributes(task_item, user_id):
+async def get_task_attributes(task_item):
     '''
     Attributes here for a given task are its number of documents, number of excerpts and number of 
     pre-annotations and user annotations    

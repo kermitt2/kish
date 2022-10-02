@@ -72,6 +72,7 @@
               <!-- sidebar menu -->
               <ul class="nav sidebar-inner" id="sidebar-menu">
 
+                <!-- annotation view side bar menu -->
                 <li id="annotate-side-bar" class="" style="display:none;">
                   <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#dashboard"
                     aria-expanded="false" aria-controls="dashboard">
@@ -88,6 +89,7 @@
                   </a>
                 </li>
 
+                <!-- dataset view side bar menu -->
                 <li id="dataset-tasks-side-bar" class="" style="display:none;">
                   <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#dashboard"
                     aria-expanded="false" aria-controls="dashboard">
@@ -100,73 +102,28 @@
                   <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#app"
                     aria-expanded="false" aria-controls="app">
                     <i class="mdi mdi-database-import"></i>
-                    <span class="nav-text">Create</span> <span id="guidelines-task-id" style="display:none;"></span></b>
+                    <span class="nav-text">Create/Import</span> </span></b>
                   </a>
                 </li>
 
-                <li id="dataset-result-side-bar" class="" style="display:none;">
+                <li id="dataset-metrics-side-bar" class="" style="display:none;">
+                  <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#app"
+                    aria-expanded="false" aria-controls="app">
+                    <i class="mdi mdi-chart-bar"></i>
+                    <span class="nav-text">Metrics</span> </span></b>
+                  </a>
+                </li>
+
+                <li id="dataset-export-side-bar" class="" style="display:none;">
                   <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#app"
                     aria-expanded="false" aria-controls="app">
                     <i class="mdi mdi-database-export"></i>
-                    <span class="nav-text">Results</span> <span id="guidelines-task-id" style="display:none;"></span></b>
+                    <span class="nav-text">Exports</span> </span></b>
                   </a>
                 </li>
-
-                <!--li class="has-sub ">
-                  <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#components"
-                    aria-expanded="false" aria-controls="components">
-                    <i class="mdi mdi-folder-multiple-outline"></i>
-                    <span class="nav-text">Components</span> <b class="caret"></b>
-                  </a>
-
-                  <ul class="collapse " id="components" data-parent="#sidebar-menu">
-                    <div class="sub-menu">
-                      <li class="">
-                        <a class="sidenav-item-link" href="alert.html">
-                          <span class="nav-text">Alert</span>
-                        </a>
-                      </li>
-
-                      <li class="">
-                        <a class="sidenav-item-link" href="badge.html">
-                          <span class="nav-text">Badge</span>
-                        </a>
-                      </li>
-
-                      <li class="">
-                        <a class="sidenav-item-link" href="breadcrumb.html">
-                          <span class="nav-text">Breadcrumb</span>
-
-                        </a>
-                      </li>
-
-                    </div>
-                  </ul>
-                </li-->
                 
               </ul>
             </div>
-
-            <!--div class="sidebar-footer">
-              <hr class="separator mb-0" />
-              <div class="sidebar-footer-content">
-                <h6 class="text-uppercase">
-                  Cpu Uses <span class="float-right">40%</span>
-                </h6>
-
-                <div class="progress progress-xs">
-                  <div class="progress-bar active" style="width: 40%;" role="progressbar"></div>
-                </div>
-
-                <h6 class="text-uppercase">
-                  Memory Uses <span class="float-right">65%</span>
-                </h6>
-
-                <div class="progress progress-xs">
-                  <div class="progress-bar progress-bar-warning" style="width: 65%;" role="progressbar"></div>
-                </div>
-              </div>
-            </div-->
           </div>
         </aside>
 
@@ -308,7 +265,7 @@
             <div id="main-content" class="content d-flex justify-content-center">
 
               <!-- ====================================
-              ——— List of user tasks
+              ——— List of user tasks (my task home view)
               ===================================== --> 
               <div id="my-task-view" class="col-lg-10 col-xl-11" style="display:none;">
                 <div class="row border">
@@ -327,14 +284,31 @@
 
 
               <!-- ====================================
-              ——— List of datasets
+              ——— List of datasets (and associated tasks)
               ===================================== -->
               <div id="dataset-view" class="col-lg-10 col-xl-11" style="display:none;">
               </div>
-              
 
               <!-- ====================================
-              ——— List of users
+              ——— Create a dataset (for admin/curator)
+              ===================================== -->
+              <div id="dataset-create-view" class="col-lg-10 col-xl-11" style="display:none;">
+              </div>
+              
+              <!-- ====================================
+              ——— View metrics for dataset tasks 
+              ===================================== -->
+              <div id="dataset-metrics-view" class="col-lg-10 col-xl-11" style="display:none;">
+              </div>
+
+              <!-- ====================================
+              ——— Export dataset tasks (for admin/curator)
+              ===================================== -->
+              <div id="dataset-export-view" class="col-lg-10 col-xl-11" style="display:none;">
+              </div>
+
+              <!-- ====================================
+              ——— List of users (for admin only)
               ===================================== -->
               <div id="user-view" class="col-lg-8 col-xl-9" style="display:none;">
                 <table id="user-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
@@ -366,7 +340,7 @@
               </div>
 
               <!-- ====================================
-              ——— Display task guidelines
+              ——— Display task guidelines (from annotation view)
               ===================================== -->
               <div id="guidelines-view" class="col-lg-10 col-xl-11 markdown-body" style="display:none;">
               </div>
