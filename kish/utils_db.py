@@ -57,7 +57,7 @@ async def get_first_item(table, item_dict):
                     if item_dict[key] == None:
                         statement +=  key + " is NULL"
                     else:
-                        statement +=  key + " = '" + item_dict[key] + "'"
+                        statement +=  key + " = '" + str(item_dict[key]) + "'"
                     #print(item_dict[key])
             #print(statement)
             statement = text(statement)

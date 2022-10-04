@@ -645,11 +645,16 @@ async def add_annotation(request: Request, user: User = Depends(current_user)):
     annotation_dict["user_id"] = str(user.id)
     #print("annotation to be added/updated:", annotation_dict)
 
+    print(annotation_dict)
+
     # check if an annotation exists for this user, excerpt and task
     from utils_db import get_first_item
 
     dict_annot = {"user_id": annotation_dict["user_id"], "task_id": annotation_dict["task_id"], "excerpt_id": annotation_dict["excerpt_id"]}
-    dict_annot["label_id"] = annotation_dict["label_id"]
+    if "label_id" in annotation_dict:
+        dict_annot["label_id"] = annotation_dict["label_id"]
+    if "ignored" in annotation_dict:
+        dict_annot["ignored"] = annotation_dict["ignored"]
     item = await get_first_item("annotation", dict_annot)
     if item == None:
         # we insert the new annotation
