@@ -88,14 +88,18 @@ async def get_tasks():
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
-@router.get("/dataset/{identifier}/metrics", tags=["tasks"],
+@router.get("/datasets/{identifier}/metrics", tags=["datasets"],
     description="Return advancement and IAA metrics for the tasks of a given dataset.")
 async def get_dataset_metrics(identifier: str, type: str):
     start_time = time.time()
     result = {}
 
+    print(identifier, type)
+
     from metrics import compute_overall_metrics
-    metrics_dict = compute_overall_metrics(identifier, type)
+    metrics_dict = await compute_overall_metrics(identifier, type)
+    print(metrics_dict)
+
     result["metrics"] = metrics_dict
 
     result['runtime'] = round(time.time() - start_time, 3)

@@ -90,11 +90,12 @@ def prepare_iaa_classification(cumulated_object):
 
     return annotation_tasks
 
-def compute_metrics(task_items):
+async def compute_metrics(task_items):
     result = {}
 
     # percentage disagreement
     nb_cases = 0
+    nb_completed_cases = 0
     nb_disagreements = 0
     nb_max_disagreements = 0
     nb_min_disagreements = 1000000
@@ -107,7 +108,9 @@ def compute_metrics(task_items):
     result["progress"] = nb_completed_cases / nb_cases
     
     for task_item in task_items:
-        if task_item["type"] != reconciliation:
+        print(task_item)
+
+        if task_item["type"] != "reconciliation":
             continue
     
         excerpt_ids = await get_items("intask", { "task_id": task_item["id"] } )
@@ -123,15 +126,18 @@ def compute_metrics(task_items):
 
     result["nb_disagreements"] = nb_disagreements
     result["nb_max_disagreements"] = nb_max_disagreements
-    result["nb_min_disagreements"] = nb_min_disagreements
-
+    if nb_min_disagreements != 1000000:
+        result["nb_min_disagreements"] = nb_min_disagreements
+    else 
+        result["nb_min_disagreements"] = 0
+    
     # Kohen's kappa coefficient
 
     # Krippendorf's alpha coefficient
 
     return result
 
-def compute_overall_metrics(dataset_id: str, task_type: str):
+async def compute_overall_metrics(dataset_id: str, task_type: str):
     # note: progress is calculated based on every tasks
     # IAA iscalculated based on completed tasks only
 
@@ -140,13 +146,23 @@ def compute_overall_metrics(dataset_id: str, task_type: str):
 
     # get all tasks for the task type
     task_items = await get_items("task", {"dataset_id": dataset_id, "type": task_type}, full=True)
+    task_items_reconciliation = await get_items("task", {"dataset_id": dataset_id, "type": "reconciliation"}, full=True)
+
+    for task_item_reconciliation in task_items_reconciliation:
+        # only keep reconciliation tasks corresponding to the given type task
+        if task_item_reconciliation["type"] == "reconciliation" and "redundant" in task_item_reconciliation and task_item_reconciliation["redundant"] != None:
+            primary_task = await get_first_item("task", { "id": task_item_reconciliation["redundant"] })
+            if primary_task["type"] == task_type:
+                task_items.append(task_item_reconciliation)
+
+    print("total tasks", str(len(task_items)))
 
     # number of documents, excerpts and annotations
     for task_item in task_items:
         task_attributes = await get_task_attributes(task_item)
         for key in task_attributes:
             task_item[key] = task_attributes[key]
-    result_dict = compute_metrics(task_items)
+    result_dict = await compute_metrics(task_items)
 
     # TBD: report IAA on labels individualy too
 
