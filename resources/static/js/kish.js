@@ -10,7 +10,7 @@ var kish = (function($) {
     // current logged user information
     var userInfo = null;
 
-    // clea view
+    // clean view
     clearMainContent();
     
     setAuthenticatedUserInfo();
@@ -67,6 +67,7 @@ var kish = (function($) {
         $("#datasets-home").click(function() {
             clearMainContent();
             activateMenuChoice($(this));
+            activateSideBarMenuChoice($("#dataset-tasks-side-bar"));
             $("#dataset-tasks-side-bar").show();
             if (userInfo["role"] === "admin" || userInfo["role"] === "curator") {
                 $("#dataset-metrics-side-bar").show();
@@ -82,6 +83,7 @@ var kish = (function($) {
         $("#annotate-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#tasks-home"));
+            activateSideBarMenuChoice($("#annotate-side-bar"));
             $("#guidelines-side-bar").show();
             $("#annotate-side-bar").show();
             $("#annotation-view").show();
@@ -91,6 +93,7 @@ var kish = (function($) {
         $("#guidelines-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#tasks-home"));
+            activateSideBarMenuChoice($("#guidelines-side-bar"));
             var taskIdentifier = $("#guidelines-task-id").text();
             showGuidelines(taskIdentifier);
             $("#guidelines-side-bar").show();
@@ -102,6 +105,7 @@ var kish = (function($) {
         $("#dataset-tasks-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
+            activateSideBarMenuChoice($("#dataset-tasks-side-bar"));
             $("#dataset-tasks-side-bar").show();
             if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
                 $("#dataset-metrics-side-bar").show();
@@ -117,6 +121,7 @@ var kish = (function($) {
         $("#dataset-create-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
+            activateSideBarMenuChoice($("#dataset-create-side-bar"));
             $("#dataset-tasks-side-bar").show();
             if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
                 $("#dataset-metrics-side-bar").show();
@@ -132,10 +137,11 @@ var kish = (function($) {
         $("#dataset-metrics-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
+            activateSideBarMenuChoice($("#dataset-metrics-side-bar"));
             $("#dataset-tasks-side-bar").show();
             if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
                 $("#dataset-metrics-side-bar").show();
-                displayDatasetMetrics();
+                displayDatasetsMetrics();
             }
             if (userInfo["role"] === "admin") {
                 $("#dataset-create-side-bar").show();
@@ -147,6 +153,7 @@ var kish = (function($) {
         $("#dataset-export-side-bar").click(function() {
             clearMainContent();
             activateMenuChoice($("#datasets-home"));
+            activateSideBarMenuChoice($("#dataset-export-side-bar"));
             $("#dataset-tasks-side-bar").show();
             if (userInfo["role"] === "curator" || userInfo["role"] === "admin") {
                 $("#dataset-metrics-side-bar").show();
@@ -172,6 +179,23 @@ var kish = (function($) {
         $("#datasets-home").removeClass("active");
         $("#user-menu-home").find('span').css("color", "");
         $("#user-menu-home").removeClass("active");
+        element.find('span').css("color", "#7DBCFF");
+        element.addClass("active");
+    }
+
+    function activateSideBarMenuChoice(element) {
+        $("#dataset-tasks-side-bar").find('span').css("color", "");
+        $("#dataset-tasks-side-bar").removeClass("active");
+        $("#dataset-create-side-bar").find('span').css("color", "");
+        $("#dataset-create-side-bar").removeClass("active");
+        $("#dataset-metrics-side-bar").find('span').css("color", "");
+        $("#dataset-metrics-side-bar").removeClass("active");
+        $("#dataset-export-side-bar").find('span').css("color", "");
+        $("#dataset-export-side-bar").removeClass("active");
+        $("#annotate-side-bar").find('span').css("color", "");
+        $("#annotate-side-bar").removeClass("active");
+        $("#guidelines-side-bar").find('span').css("color", "");
+        $("#guidelines-side-bar").removeClass("active");
         element.find('span').css("color", "#7DBCFF");
         element.addClass("active");
     }
@@ -704,9 +728,96 @@ var kish = (function($) {
         $("#dataset-create-view").html("Dataset creation - Work in progress");
     }
 
-    function displayDatasetMetrics() {
+    function displayDatasetsMetrics() {
+        //display metrics for every available datasets
         $("#dataset-metrics-view").show();
-        $("#dataset-metrics-view").html("Dataset metrics - Work in progress");
+        var url = defineBaseURL("datasets");
+
+        // retrieve the existing task information
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status == 401) {
+                // unauthorized, move to login screen
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing datasets didn't work!");
+                $("#dataset-metrics-view").html("<p>No dataset available</p>");
+            } else {
+                // otherwise go through the datasets
+                var response = JSON.parse(xhr.responseText);
+                if (response["records"].length == 0) {
+                    $("#dataset-metrics-view").html("<p>No dataset available</p>");
+                } else {
+                    var divContent = ""
+                    for(var pos in response["records"]) {
+                        divContent += "<div class=\"row border\"><span id=\"dataset-metrics-"+pos+"\"></span>";
+                        divContent += "</div>";
+                    }
+
+                    $("#dataset-metrics-view").html(divContent);
+
+                    for(var pos in response["records"]) {
+                        displayDatasetMetrics(pos, response["records"][pos]);
+                    }
+                }
+            }
+        };
+
+        xhr.send(null);
+
+    }
+
+    function displayDatasetMetrics(pos, dataset_id) {
+        // display the metrics for one given dataset
+        //$("#dataset-metrics-view").html("Dataset metrics - Work in progress");
+
+        var url = defineBaseURL("datasets/"+dataset_id+"/metrics?type=classification");
+        // retrieve the existing task information assigned to the current user 
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+        xhr.onloadend = function () {
+            // status
+            if (xhr.status == 401) {
+                // unauthorized, move to login screen
+                window.location.href = "sign-in.html";
+            } else if (xhr.status != 200) {
+                // display server level error
+                var response = JSON.parse(xhr.responseText);
+                console.log(response["detail"]);
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing dataset didn't work!");
+                $("#dataset-metrics-"+pos).html("metrics not available");
+            } else {
+                var response = JSON.parse(xhr.responseText);
+                if (response["metrics"]) {
+                    response = response["metrics"];
+                    console.log(response);
+
+                    var spanContent = "";
+
+                    if (response["progress"])
+                        spanContent += "progress: " + (response["progress"] * 100).toFixed(2) + " %";
+
+                    
+
+
+                    $("#dataset-metrics-"+pos).html(spanContent);
+                } else {
+                    $("#dataset-metrics-"+pos).html("metrics not available");
+                }
+            }
+
+        }
+
+        xhr.send(null);
     }
 
     function displayDatasetExport() {
@@ -1039,6 +1150,8 @@ var kish = (function($) {
         $("#annotate-side-bar").show();
         $("#guidelines-task-id").html(taskInfo["id"]);
         $("#guidelines-side-bar").show();
+
+        activateSideBarMenuChoice($("#annotate-side-bar"));
 
         setTaskInfo(taskInfo);
 

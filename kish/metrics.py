@@ -108,11 +108,12 @@ async def compute_metrics(task_items):
     result["progress"] = nb_completed_cases / nb_cases
     
     for task_item in task_items:
-        print(task_item)
-
         if task_item["type"] != "reconciliation":
             continue
     
+        if not "redundant" in task_item or task_item["redundant"] == None:
+            nb_distinct_tasks += 1
+
         excerpt_ids = await get_items("intask", { "task_id": task_item["id"] } )
         nb_local_disagreements = len(excerpt_ids)
 
@@ -128,9 +129,10 @@ async def compute_metrics(task_items):
     result["nb_max_disagreements"] = nb_max_disagreements
     if nb_min_disagreements != 1000000:
         result["nb_min_disagreements"] = nb_min_disagreements
-    else 
+    else:
         result["nb_min_disagreements"] = 0
-    
+    result["nb_distinct_tasks"] = nb_distinct_tasks
+
     # Kohen's kappa coefficient
 
     # Krippendorf's alpha coefficient
@@ -165,5 +167,9 @@ async def compute_overall_metrics(dataset_id: str, task_type: str):
     result_dict = await compute_metrics(task_items)
 
     # TBD: report IAA on labels individualy too
+
+    # add dataset general information for practicality
+    for key in dataset_item:
+        result_dict[key] = dataset_item[key]
 
     return result_dict
