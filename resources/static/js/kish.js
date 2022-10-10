@@ -543,11 +543,6 @@ var kish = (function($) {
 
         $("#newPassword").removeClass("is-invalid");
         $("#newPassword").removeClass("is-valid");
-        /*if (password === "") {
-            $("#newPassword").addClass("is-invalid");
-            $("#div-newPassword").append("<div class=\"invalid-feedback\">Please enter a new password</div>");
-            validation = false;
-        } else*/ 
         if (password !== "" && password.length < 8) {
             $("#newPassword").addClass("is-invalid");
             $("#div-newPassword").append("<div class=\"invalid-feedback\">Password must have at least 8 characters</div>");
@@ -612,7 +607,6 @@ var kish = (function($) {
                         divContent += "<table id=\"dataset-"+pos+"-task-view-table\" class=\"table table-borderless\" style=\"width:90%;table-layout:fixed;border-top: 1px solid #8a909d;\"></table>";
                         divContent += "</div>";
                     }
-
                     $("#dataset-view").html(divContent);
 
                     for(var pos in response["records"]) {
@@ -625,6 +619,13 @@ var kish = (function($) {
 
         xhr.send(null);
     }
+
+    var datasetHeaderTemplate = "<table class=\"table table-borderless\"><tr><td><img src=\"{{image_url}}\" width=\"50\" height=\"50\"/></td> \
+                <td style=\"text-align: top; max-width: 400px\"><p><span style=\"color:white; font-weight: bold;\">{{name}}</span></p> \
+                <p>{{description}}</p></td><td><p>&nbsp;</p></td> \
+                <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_documents}} documents </p></td> \
+                <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_excerpts}} excertps </p></td> \
+                <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_tasks}} tasks </p></td>";
 
     function displayDataset(pos, datasetIdentifier) {
         var url = defineBaseURL("datasets/"+datasetIdentifier);
@@ -648,23 +649,20 @@ var kish = (function($) {
                 // otherwise display the dataset information
                 var response = JSON.parse(xhr.responseText);
                 response = response["record"]
-
-                var divContent = "<table class=\"table table-borderless\"><tr><td><img src=\""+response["image_url"]+"\" width=\"50\" height=\"50\"/></td>";
-
-                divContent += "<td style=\"text-align: top; max-width: 400px\"><p><span style=\"color:white; font-weight: bold;\">"+response["name"]+"</span></p><p>"+ 
-                response["description"] + "</p></td><td><p>&nbsp;</p></td>";
-
-                divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_documents"]+" documents </p></td>";
-                divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_excerpts"]+" excertps </p></td>";
-                divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><p>" + response["nb_tasks"]+" tasks </p></td>";
+                var divContent = datasetHeaderTemplate
+                                .replace("{{image_url}}", response["image_url"])
+                                .replace("{{name}}", response["name"])
+                                .replace("{{description}}", response["description"])
+                                .replace("{{nb_documents}}", response["nb_documents"])
+                                .replace("{{nb_excerpts}}", response["nb_excerpts"])
+                                .replace("{{nb_tasks}}", response["nb_tasks"]);
 
                 if (userInfo["is_superuser"]) {
                     divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><span style=\"color:orange;\"><i class=\"mdi mdi-database-edit\"/></span> &nbsp; " + 
                     "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
                 } else {
                     divContent += "<td></td>";
-                }
-                
+                }                
                 divContent += "</tr></table>";
 
                 $("#dataset-"+pos).html(divContent);
@@ -762,7 +760,6 @@ var kish = (function($) {
                     }
 
                     $("#dataset-metrics-view").html(divContent);
-
                     for(var pos in response["records"]) {
                         displayDatasetMetrics(pos, response["records"][pos]);
                     }
@@ -776,10 +773,9 @@ var kish = (function($) {
 
     function displayDatasetMetrics(pos, dataset_id) {
         // display the metrics for one given dataset
-        //$("#dataset-metrics-view").html("Dataset metrics - Work in progress");
-
         var url = defineBaseURL("datasets/"+dataset_id+"/metrics?type=classification");
-        // retrieve the existing task information assigned to the current user 
+        
+        // retrieve dataset metrics
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -793,23 +789,33 @@ var kish = (function($) {
                 // display server level error
                 var response = JSON.parse(xhr.responseText);
                 console.log(response["detail"]);
-                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing dataset didn't work!");
+                callToaster("toast-top-center", "error", response["detail"], "Damn, accessing dataset metrics didn't work!");
                 $("#dataset-metrics-"+pos).html("metrics not available");
             } else {
                 var response = JSON.parse(xhr.responseText);
                 if (response["metrics"]) {
                     response = response["metrics"];
-                    console.log(response);
+                    var divContent = datasetHeaderTemplate
+                                .replace("{{image_url}}", response["image_url"])
+                                .replace("{{name}}", response["name"])
+                                .replace("{{description}}", response["description"])
+                                .replace("{{nb_documents}}", response["nb_documents"])
+                                .replace("{{nb_excerpts}}", response["nb_excerpts"])
+                                .replace("{{nb_tasks}}", response["nb_tasks"]);
+                    divContent += "</tr></table><div class=\"row pb-2\">";
 
-                    var spanContent = "";
+                    divContent += "<div class=\"col\"><h2 class=\"mb-1\">" + 
+                                    (response["progress"] * 100).toFixed(2) + "&nbsp;%</h2><p style=\"color:#8a909d;\">progress</p></div>";
 
-                    if (response["progress"])
-                        spanContent += "progress: " + (response["progress"] * 100).toFixed(2) + " %";
+                                    //response["nb_completed_cases"] + " total completed excerpt cases"
+                                    //response["nb_total_cases"] + " total excerpt cases"
 
-                    
+                    divContent += "<div class=\"col\"><h2 class=\"mb-1\">" + 
+                                    (response["percentage_agreement"] * 100).toFixed(2) + "&nbsp;%</h2><p style=\"color:#8a909d;\">percentage agreement</p></div>";
 
+                    divContent += "</div>";
 
-                    $("#dataset-metrics-"+pos).html(spanContent);
+                    $("#dataset-metrics-"+pos).html(divContent);
                 } else {
                     $("#dataset-metrics-"+pos).html("metrics not available");
                 }
@@ -1146,7 +1152,6 @@ var kish = (function($) {
         event.preventDefault();
         clearMainContent();
         $("#annotation-view").show();
-
         $("#annotate-side-bar").show();
         $("#guidelines-task-id").html(taskInfo["id"]);
         $("#guidelines-side-bar").show();
