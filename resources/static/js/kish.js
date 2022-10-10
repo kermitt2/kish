@@ -2101,7 +2101,7 @@ var kish = (function($) {
             } else {
                 // otherwise display the user information
                 var response = JSON.parse(xhr.responseText);
-
+                console.log(response);
                 var addRow = userRowTemplate
                             .replaceAll("{{pos}}", pos)
                             .replace("{{email}}", response["email"])                            
