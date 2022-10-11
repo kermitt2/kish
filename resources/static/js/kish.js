@@ -1799,7 +1799,10 @@ var kish = (function($) {
         const timeElapsed = Date.now();
         const date = new Date(timeElapsed);
         data["date"] = date.toISOString()
-        data["type"] = taskInfo["type"];
+        if (taskInfo["type"] === "reconciliation")
+            data["type"] = taskInfo["subtype"];
+        else
+            data["type"] = taskInfo["type"];
         data["ignored"] = 0;
 
         // retrieve the existing task information
