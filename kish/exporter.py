@@ -37,10 +37,21 @@ async def export_dataset_json(dataset_id: str, export_path: str, curator_mode: b
 
     for document_id in document_ids:
         document_item = await get_first_item("document", { "id": document_id["document_id"]})
+        if "tei_uri" in document_item and document_item["tei_uri"] == None:
+            del document_item['tei_uri']
+        if "doi" in document_item and document_item["doi"] == None:
+            del document_item['doi']
+        if "pmid" in document_item and document_item["pmid"] == None:
+            del document_item['pmid']
+        if "pmc" in document_item and document_item["pmc"] == None:
+            del document_item['pmc']
         document_item["texts"] = []
         
         # get all excerpts of the document
         excepts_ids = await get_items("excerpt", { "document_id": document_id["document_id"]})
+
+        # a cache for the tasks to avoid one access for each annotation
+        local_tasks = {}
 
         for excerpt_id in excepts_ids:
             excerpt_item = await get_first_item("excerpt", { "id": excerpt_id } )
@@ -64,17 +75,38 @@ async def export_dataset_json(dataset_id: str, export_path: str, curator_mode: b
                 if "ignored" in annotation_item and (annotation_item["ignored"] or annotation_item["ignored"] == 1):
                     continue
 
+                # do we have an annotation from a reconciliation task?
+                is_curated = False
+                if "curated" in annotation_item and annotation_item["curated"] == 1:
+                    is_curated = True
+                if not is_curated and "task_id" in annotation_item and annotation_item["task_id"] != None:
+                    if annotation_item["task_id"] in local_tasks:
+                        task_item = local_tasks[annotation_item["task_id"]]
+                    else:
+                        task_item = await get_first_item("task", { "id": annotation_item["task_id"]})
+                        local_tasks[annotation_item["task_id"]]= task_item
+
+                    if task_item != None:
+                        if "type" in task_item and task_item["type"] == "reconciliation":
+                            is_curated = True
+
                 if annotation_item["type"] == "classification":
                     label_item = labels[annotation_item["label_id"]]
                     if label_item == None:
                         continue
 
                     classif_item = {}
-                    classif_item["value"] = annotation_item["value"]
+                    if annotation_item["value"] == 0:
+                        classif_item["value"] = False
+                    elif annotation_item["value"] == 1:
+                        classif_item["value"] = True
+                    else:
+                        classif_item["value"] = annotation_item["value"]
                     classif_item["score"] = annotation_item["score"]
                     classif_item["user"] = annotation_item["user_id"]
 
-                    excerpt_json["class_attributes"]["classification"][label_item["name"]] = classif_item
+                    if not label_item["name"] in excerpt_json["class_attributes"]["classification"] or is_curated:
+                        excerpt_json["class_attributes"]["classification"][label_item["name"]] = classif_item
                     nb_classification += 1
 
                 elif annotation_item["type"] == "labeling":
@@ -93,16 +125,6 @@ async def export_dataset_json(dataset_id: str, export_path: str, curator_mode: b
 
                     excerpt_json["entity_spans"].append(labeling)
                     nb_labeling += 1
-
-                """
-                if not curator_mode:
-
-                    # only keep annotation with a user 
-
-                else:
-                    # only keep curator validated annotation, or excerpt annotations without 
-                    # any user disagreement
-                """
 
             document_item["texts"].append(excerpt_json)
             nb_excepts += 1
