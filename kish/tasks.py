@@ -126,7 +126,7 @@ async def has_reconciliation_task(task_id):
 
     ind = task_item["name"].rindex("-")
     reconciliation_task_name = task_item["name"][:ind]
-    reconciliation_task_item = await get_first_item("task", { "id": reconciliation_task_name} )
+    reconciliation_task_item = await get_first_item("task", { "name": reconciliation_task_name} )
     if reconciliation_task_item != None:
         return True
     else:
