@@ -45,6 +45,8 @@ async def export_dataset_json(dataset_id: str, export_path: str, curator_mode: b
             del document_item['pmid']
         if "pmc" in document_item and document_item["pmc"] == None:
             del document_item['pmc']
+        if "pdf_uri" in document_item and document_item["pdf_uri"] == None:
+            del document_item['pdf_uri']
         document_item["texts"] = []
         
         # get all excerpts of the document
