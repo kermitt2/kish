@@ -358,7 +358,9 @@ async def test_init():
 
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks
-    await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=5, redundancy=2, labels=["created", "used", "shared"])
+    await generate_tasks(dataset_data["id"], "contexts", task_type="classification", target_annotators=5, redundancy=2, 
+        labels=["created", "used", "shared"],
+        guidelines="guidelines-softcite-context-classification.md")
 
     # insert smaller data for dedicated tests
     """
@@ -377,3 +379,19 @@ async def test_export():
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await export_dataset_json(
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", "tests/resources/exported_dataset.json")
 
+async def test_labeling_init():
+    # create two redundant labeling tasks for test
+    '''
+    labeling_task_dict = { "name": "Softcite-task10-0", "dataset_id": "811b64f1-323f-4a78-bdb8-ebaab44b023a", "type": "labeling", "guidelines": "guidelines-softcite-labeling.md" }
+
+    primary_task_id = insert_item("task", labeling_task_dict, add_id=True)
+    labeling_task_dict["redundant"] = primary_task_id
+    labeling_task_dict["name"] = "Softcite-task10-2"
+
+    insert_item("task", labeling_task_dict, add_id=True)
+    '''
+
+    from kish.tasks import generate_tasks
+    await generate_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023a", "mentions", task_type="labeling", target_annotators=2, redundancy=2, 
+        labels=["software", "url", "publisher", "version", "language", "environment"], 
+        guidelines="guidelines-softcite-labeling.md")

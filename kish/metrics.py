@@ -6,90 +6,6 @@ from utils_db import get_items, get_first_item, get_task_attributes
 def _round(value, decimals):
     return str(round(value, decimals))
 
-def prepare_iaa_sequence_labeling(cumulated_object):
-    from nltk import AnnotationTask
-    annotators = sorted(cumulated_object['annotators'])
-    formatted_blocks = []
-    for block in cumulated_object['blocks']:
-        continuum = block['paragraph']
-        formatted_output = {'continuum': continuum, 'studies': {}}
-        for annotator in annotators:
-            annotations = block['annotations'][annotator]
-            annotation_id = 0
-            # if continuum == continuum[annot['start']:annot['end']]:
-            # else:
-            #
-            out = ['o' for i in continuum]
-            for i, c in enumerate(continuum):
-                annot = annotations[annotation_id]
-                if annot['start'] <= i < annot['end']:
-                    if annot['start'] == i:
-                        out[i] = 'Bs'
-                    else:
-                        out[i] = 's'
-                elif i == annot['end']:
-                    if annotation_id < len(annotations) - 1:
-                        annotation_id += 1
-            formatted_output['studies'][annotator] = out
-        formatted_blocks.append(formatted_output)
-
-    # Formatting as triples with (coder, item, label)
-
-    annotation_tasks = []
-    for block in formatted_blocks:
-        continuum = block['continuum']
-        output = []
-        for i in range(0, len(continuum)):
-            for annotator in annotators:
-                output.append((annotator, i, block['studies'][annotator][i]))
-
-        a = AnnotationTask(data=output)
-        annotation_tasks.append(a)
-
-    return annotation_tasks
-
-def prepare_iaa_classification(cumulated_object):
-    from nltk import AnnotationTask
-    annotators = sorted(cumulated_object['annotators'])
-    formatted_blocks = []
-    for block in cumulated_object['blocks']:
-        continuum = block['paragraph']
-        formatted_output = {'continuum': continuum, 'studies': {}}
-        for annotator in annotators:
-            annotations = block['annotations'][annotator]
-            annotation_id = 0
-            # if continuum == continuum[annot['start']:annot['end']]:
-            # else:
-            #
-            out = ['o' for i in continuum]
-            for i, c in enumerate(continuum):
-                annot = annotations[annotation_id]
-                if annot['start'] <= i < annot['end']:
-                    if annot['start'] == i:
-                        out[i] = 'Bs'
-                    else:
-                        out[i] = 's'
-                elif i == annot['end']:
-                    if annotation_id < len(annotations) - 1:
-                        annotation_id += 1
-            formatted_output['studies'][annotator] = out
-        formatted_blocks.append(formatted_output)
-
-    # Formatting as triples with (coder, item, label)
-
-    annotation_tasks = []
-    for block in formatted_blocks:
-        continuum = block['continuum']
-        output = []
-        for i in range(0, len(continuum)):
-            for annotator in annotators:
-                output.append((annotator, i, block['studies'][annotator][i]))
-
-        a = AnnotationTask(data=output)
-        annotation_tasks.append(a)
-
-    return annotation_tasks
-
 async def compute_metrics(task_items):
     result = {}
 
@@ -150,9 +66,9 @@ async def compute_metrics(task_items):
     result['nb_total_cases'] = nb_cases
     result['nb_completed_cases'] = nb_completed_cases
 
-    # Kohen's kappa coefficient
+    # Kohen's kappa coefficient (via NLTK)
 
-    # Krippendorf's alpha coefficient
+    # Krippendorf's alpha coefficient (via NLTK)
 
     return result
 

@@ -133,10 +133,11 @@ def get_app(server_config) -> FastAPI:
         ascii_banner = pyfiglet.figlet_format("KISH")
         print(ascii_banner)
         await create_db_and_tables()
-        from kish.utils_db import create_user, test_init, create_preferences, test_export
+        from kish.utils_db import create_user, test_init, create_preferences, test_export, test_labeling_init
         import asyncio
         record = await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
         await test_init()
+        await test_labeling_init()
         #await test_export()
 
     @server.on_event("shutdown")

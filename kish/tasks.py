@@ -2,7 +2,7 @@ from utils_db import insert_item, get_first_item, update_record, get_items, row2
 import subprocess
 import json 
 
-async def generate_tasks(dataset_id, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, labels=["created", "used", "shared"]):
+async def generate_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, labels=None, guidelines=None):
     """
     For a given dataset and some specifications, create a list of tasks to be assigned or selected by users.
     Task can be of type "classification" or "labeling".
@@ -45,7 +45,7 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
             # create task
             task_dict = { "type": task_type, 
                           "dataset_id": dataset_id, 
-                          "name": dataset["name"]+"-task"+str(i)+"-"+str(j),
+                          "name": dataset["name"]+"-"+task_group_name+"-task"+str(i)+"-"+str(j),
                           "guidelines": "guidelines-softcite-context-classification.md" }
             if j != 0 and primary_task_id != -1:
                 task_dict["redundant"] = primary_task_id
@@ -79,16 +79,6 @@ async def generate_tasks(dataset_id, task_type="classification", target_annotato
                 intask_dict = { "task_id": task_id, "excerpt_id": local_excerpt["id"] }
                 await insert_item("intask", intask_dict, add_id=False)
 
-        # add possible reconciliation task if redundancy > 1
-        '''
-        if redundancy > 1:
-            task_dict = { "type": "reconciliation", 
-                          "dataset_id": dataset_id, 
-                          "name": dataset["name"]+"-task"+str(i),
-                          "redundant": primary_task_id,
-                          "guidelines": "guidelines-softcite-context-classification.md" }
-            task_item = await insert_item("task", task_dict)
-        '''
     return nb_tasks
 
 
