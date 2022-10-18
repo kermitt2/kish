@@ -28,6 +28,16 @@ def get_version():
     api_settings = scorer.config['api']
     return api_settings['version']
 
+# to redirect the static root to app/index.html
+@router.get("/", response_class=RedirectResponse, include_in_schema=False)
+def static_root1_():
+    return RedirectResponse(url="app/index.html")
+
+# to redirect the static root app/ to app/index.html
+@router.get("/app", response_class=RedirectResponse, include_in_schema=False)
+def static_root2_():
+    return RedirectResponse(url="app/index.html")
+
 from kish.users_manager import fastapi_users
 from kish.db import User
 current_superuser = fastapi_users.current_user(active=True, superuser=True)

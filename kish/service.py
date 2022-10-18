@@ -137,7 +137,7 @@ def get_app(server_config) -> FastAPI:
         import asyncio
         record = await create_user(server_config["admin"], server_config["admin_password"], role="admin", is_superuser=True)
         await test_init()
-        await test_labeling_init()
+        #await test_labeling_init()
         #await test_export()
 
     @server.on_event("shutdown")
