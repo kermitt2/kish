@@ -624,7 +624,7 @@ var kish = (function($) {
                 <td style=\"text-align: top; max-width: 400px\"><p><span style=\"color:white; font-weight: bold;\">{{name}}</span></p> \
                 <p>{{description}}</p></td><td><p>&nbsp;</p></td> \
                 <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_documents}} documents </p></td> \
-                <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_excerpts}} excertps </p></td> \
+                <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_excerpts}} excerpts  </p></td> \
                 <td style=\"text-align: top;\"><p>&nbsp;</p><p>{{nb_tasks}} tasks </p></td>";
 
     function displayDataset(pos, datasetIdentifier) {
