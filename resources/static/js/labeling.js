@@ -1,6 +1,8 @@
 /**
  * functions related to a field labeling task
  **/
+
+var recognito;
   
 function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank, excerptItem) {
     // get inline tag annotations, if any
@@ -28,7 +30,7 @@ function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, ran
             }
         }
 
-        // now display the possibly enriched excerpt
+        // now display the excerpt
         var docInfoText = "<div class=\"pb-2\"><p>Task excerpt " + (rank+1) + " / " + taskInfo["nb_excerpts"] + " - " + "<span id=\"doc_url\"></span></p></div>"
 
         var fullContext = excerptItem["full_context"];
@@ -41,15 +43,33 @@ function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, ran
             context = he.encode(context);
         }
 
-        if (ind != -1) {
+        $("#annotation-doc-view").html(docInfoText + "<p id=\"content-annotation\">"+fullContext+"</p>");
+
+        recognito = Recogito.init({
+            content: document.getElementById('content-annotation'), 
+            //disableEditor: true,
+            mode: "html",
+            formatter: formatter,
+            widgets: [
+                { widget: 'TAG', vocabulary: [ 'software', 'publisher', 'version', 'url', 'language'] }
+            ] 
+        });
+
+        // labeling event handler  
+        recognito.on('createAnnotation', function(annotation, overrideId) {
+            // POST to the server and receive a new ID
+            console.log(annotation);
+        });
+
+        /*if (ind != -1) {
             var excerptText = "<span style=\"color: grey;\">" + he.encode(fullContext.substring(0, ind)) + "</span>" + 
                 context + 
                 "<span style=\"color: grey;\">" + he.encode(fullContext.substring(ind+context.length)) + "</span>";
 
-            $("#annotation-doc-view").html(docInfoText + "<p>"+excerptText+"</p>");
+            $("#annotation-doc-view").html(docInfoText + "<pre>"+excerptText+"</pre>");
         } else {
-            ("#annotation-doc-view").html(docInfoText + "<p>"+context+"</p>");
-        }
+            $("#annotation-doc-view").html(docInfoText + "<pre>"+context+"</pre>");
+        }*/
 
         setDocumentInfo(excerptItem["document_id"]);
     }
@@ -57,8 +77,23 @@ function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, ran
     xhr.send(null);
 }    
 
-function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier) {    
+var formatter = function(annotation) {
+    return "label " + annotation.bodies[0].value;
+}
 
+function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier) {    
+    var labelHtmlContent = "<div class=\"w-100 text-center d-flex justify-content-around\" style=\"margin-top: auto; margin-bottom: auto;\">";
+    const localHeight = 40*labels.length;
+    $("#annotation-val-area").css("min-height", localHeight);
+    for(var labelPos in labels) {
+        let label = labels[labelPos];
+        if (!label["color"])
+            label["color"] = getRandomLightColor();
+        labelHtmlContent += "<button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn  \" style=\"background-color: "+label["color"]+";color:black;\">"+
+                            label["name"]+"</button>";
+    }
+    labelHtmlContent += "</div>"
+    $("#annotation-val-area").html(labelHtmlContent);
 }
 
 function applyInlineAnnotations(context, inlineLabeling, otherLabels) {

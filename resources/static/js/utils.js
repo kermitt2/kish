@@ -320,3 +320,8 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, rank, excer
     // update task assignment information to keep track of the progress more easily
     updateTaskAssignment(taskInfo["id"], completed, currentCount);
 }
+
+function getRandomLightColor() {
+    color = "hsl(" + Math.random() * 360 + ", 100%, 75%)";
+    return color;
+}
