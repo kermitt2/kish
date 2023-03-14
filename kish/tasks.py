@@ -5,13 +5,19 @@ import json
 async def generate_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, labels=None, guidelines=None):
     """
     For a given dataset and some specifications, create a list of tasks to be assigned or selected by users.
+    
     Task can be of type "classification" or "labeling".
+    
     The number of annotators is used to create a certain number of tasks, dividing the full dataset into
     smaller sets to be annotated.
+    
     The maximum size of a task is bounded by a parameter too. 
+    
     The redundancy parameter indicates by how many users the same task should be performed in order to allow 
     reconcialiation step/correction for disagreements and/or to produce Inter Annotator Agreement scores.
-    A set of labels should also be provided (already existing in the dataset or no). 
+    
+    A set of labels should also be preferably provided (already existing in the dataset or no), as an array 
+    of dict with attributes information such as name, color, description. 
     """
     nb_tasks = 0
 

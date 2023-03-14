@@ -3,6 +3,84 @@
  **/
 
 var recognito;
+
+/**
+ * Label editor plugin
+ **/
+var LabelSelectorWidget = function(args) {
+
+    // get task label infos
+    var labels = args.labels ? args.labels : [];
+
+    var currentAnnotation = args.annotation;
+    console.log(currentAnnotation);
+    console.log(currentAnnotation.id);
+
+    var activeLabel = function(evt) { 
+        console.log(evt)
+        if (evt.target.classList.contains('selected')) {
+            // if label already selected, remove annotation
+            
+            console.log("contain selected");
+
+            if (currentAnnotation && currentAnnotation.bodies && currentAnnotation.bodies.length>0 && currentAnnotation.bodies[0].value === evt.target.textContent) {
+                console.log(currentAnnotation.id);
+                args.onRemoveBody(currentAnnotation.bodies[0]);
+            }
+            /*args.onRemoveBody({
+                type: 'TextualBody',
+                purpose: 'tagging',
+                value: evt.target.textContent
+            }); */
+
+            // and deselect label
+            evt.target.classList.remove("selected");
+        } else {
+            // if label not yet selected
+            args.onAppendBody({
+                type: 'TextualBody',
+                purpose: 'tagging',
+                value: evt.target.textContent
+            });
+            evt.target.classList.add("selected");
+        }
+    }
+
+    var createButton = function(label) {
+        var button = document.createElement('button');
+        button.className = 'btn-sm btn';
+        button.setAttribute('type', 'button');
+        button.textContent = label["name"];
+        if (label["color"]) {
+            button.style.backgroundColor = label["color"];
+            button.style.color = "white";
+        } else {
+            button.style.backgroundColor = getRandomLightColor();
+            button.style.color = "black";
+        }
+        button.addEventListener('click', activeLabel); 
+        return button;
+    }
+
+    var container = document.createElement('div');
+    //container.className = 'r6o-widget r6o-tag';
+    //container.className = 'r6o-widget';
+    
+    for (var labelPos in labels) {
+        var button = createButton(labels[labelPos]);
+        button.style["margin-right"] = "5px";
+        button.style["margin-top"] = "5px";
+        if (currentAnnotation && currentAnnotation.bodies && currentAnnotation.bodies.length>0 && currentAnnotation.bodies[0].value === labels[labelPos]["name"]) {
+            button.classList.add("selected");
+        } else {
+            button.classList.add("disabled");
+        }
+
+        container.appendChild(button);
+    }
+
+    return container;
+}
   
 function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank, excerptItem) {
     // get inline tag annotations, if any
@@ -51,7 +129,7 @@ function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, ran
             mode: "html",
             formatter: formatter,
             widgets: [
-                { widget: 'TAG', vocabulary: [ 'software', 'publisher', 'version', 'url', 'language'] }
+                { widget: LabelSelectorWidget, labels: labels }
             ] 
         });
 
@@ -89,7 +167,7 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank,
         let label = labels[labelPos];
         if (!label["color"])
             label["color"] = getRandomLightColor();
-        labelHtmlContent += "<button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn  \" style=\"background-color: "+label["color"]+";color:black;\">"+
+        labelHtmlContent += "<button id=\"button-ignore\" type=\"button\" class=\"sb-1 btn  \" style=\"background-color: "+label["color"]+";color:white;\">"+
                             label["name"]+"</button>";
     }
     labelHtmlContent += "</div>"
