@@ -254,5 +254,4 @@ var kish = (function($) {
         };
         xhr.send(null);
     }
-    
 })(jQuery);
