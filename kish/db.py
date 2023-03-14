@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, Float, DateTime, Boolean
+from sqlalchemy.orm import DeclarativeBase, Mapped, relationship
 
 import contextlib
 
@@ -23,7 +24,10 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     first_name = Column(String(255), nullable=True)
     last_name = Column(String(255), nullable=True)
     role = Column(String(255), nullable=True)
-    oauth_accounts: List[OAuthAccount] = relationship("OAuthAccount", lazy="joined")
+    #oauth_accounts: List[OAuthAccount] = relationship("OAuthAccount", lazy="joined")
+    oauth_accounts: Mapped[List[OAuthAccount]] = relationship(
+        "OAuthAccount", lazy="joined"
+    )
 
 class UserPreferences(Base):
     '''
