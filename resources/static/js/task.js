@@ -440,9 +440,9 @@ function selfAssignTask(userInfo, taskIdentifier) {
             }
             callToaster("toast-top-center", "success", "Success!", "Self-assignment to task");
             if ($("#tasks-home").hasClass("active"))
-                displayTasks();
+                displayTasks(userInfo);
             else
-                displayDatasets();
+                displayDatasets(userInfo);
         }
     }
 
@@ -481,9 +481,9 @@ function selfUnassignTask(userInfo, taskIdentifier) {
 
             callToaster("toast-top-center", "success", "Success!", "Self-unassignment from the task");
             if ($("#tasks-home").hasClass("active"))
-                displayTasks();
+                displayTasks(userInfo);
             else                
-                displayDatasets();
+                displayDatasets(userInfo);
         }
     }
 
