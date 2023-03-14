@@ -2,7 +2,7 @@ from utils_db import insert_item, get_first_item, update_record, get_items, row2
 import subprocess
 import json 
 
-async def generate_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, labels=None, guidelines=None):
+async def generate_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, guidelines=None):
     """
     For a given dataset and some specifications, create a list of tasks to be assigned or selected by users.
     
@@ -16,8 +16,8 @@ async def generate_tasks(dataset_id, task_group_name, task_type="classification"
     The redundancy parameter indicates by how many users the same task should be performed in order to allow 
     reconcialiation step/correction for disagreements and/or to produce Inter Annotator Agreement scores.
     
-    A set of labels should also be preferably provided (already existing in the dataset or no), as an array 
-    of dict with attributes information such as name, color, description. 
+    The path to the annotation guidelines associated to the generated tasks can also be specified here as
+    additional argument.
     """
     nb_tasks = 0
 

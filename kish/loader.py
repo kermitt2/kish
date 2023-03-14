@@ -140,3 +140,4 @@ async def import_dataset_json(dataset_id: str, paths: list):
     print("nb labeling: ", str(nb_labeling))
 
     return "success", nb_documents, nb_excepts, nb_classification, nb_labeling
+

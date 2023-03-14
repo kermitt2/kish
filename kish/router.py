@@ -362,6 +362,40 @@ async def get_dataset_labels(identifier: str, type: str = None):
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+@router.post("/datasets/{identifier}/label", tags=["datasets"], 
+    description="Add or update, if already present, a label used in the dataset for a task type.")
+async def add_dataset_labels(identifier: str, request: Request, type: str = None, user: User = Depends(current_user)):
+    start_time = time.time()
+    
+    label_dict = await request.json()
+
+    result = {}
+    from utils_db import get_first_item
+    # label already present?
+    if type == None or len(type) == 0:
+        item = await get_first_item("label", {"dataset_id": identifier, "name": label_dict["name"]}, full=True)
+    else:
+        item = await get_first_item("label", {"dataset_id": identifier, "type": type, "name": label_dict["name"]}, full=True)
+
+    if item == None:
+        # not present, we add the label and return its full structure with generated id
+        from utils_db import insert_item
+        record = await insert_item("label", label_dict, add_id=True)
+        result['record'] = record
+    else:
+        # label is already defined, we update the fields
+        for field in label_dict:
+            if field == 'id': 
+                continue
+            if field in label_dict and len(label_dict[field])>0:
+                item[field] = label_dict[field]
+        from utils_db import update_record
+        record = await update_record("label", str(item.id), item)
+        result['record'] = record
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
 @router.get("/documents/{identifier}", tags=["datasets"], 
     description="Return information about a document.")
 async def get_document_metadata(identifier: str):

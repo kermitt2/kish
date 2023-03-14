@@ -107,7 +107,7 @@ async def get_items(table, item_dict, offset_from=-1, offset_to=-1, full=False):
                 else:
                     item_row_dict = row2dict(item_row)
                     if "id" in item_row_dict:
-                        items.append(item_row["id"])
+                        items.append(item_row_dict["id"])
                     else:
                         items.append(item_row_dict)
     except SQLAlchemyError as e:
@@ -356,10 +356,12 @@ async def test_init():
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
         sofcite_dataset_sources)
 
+    # extra specifications for labels associated to the dataset
+    
+
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks
     await generate_tasks(dataset_data["id"], "contexts", task_type="classification", target_annotators=5, redundancy=2, 
-        labels=["created", "used", "shared"],
         guidelines="guidelines-softcite-context-classification.md")
 
     # insert smaller data for dedicated tests
