@@ -357,7 +357,7 @@ async def test_init():
         sofcite_dataset_sources)
 
     # extra specifications for labels associated to the dataset
-    
+
 
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks
@@ -372,7 +372,7 @@ async def test_init():
         ["tests/resources/dummy.classification.json"])
 
     from kish.tasks import generate_tasks
-    await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=1, redundancy=2, labels=["created", "used", "shared"])
+    await generate_tasks(dataset_data["id"], task_type="classification", target_annotators=1, redundancy=2)
     """
 
 async def test_export():
@@ -395,5 +395,4 @@ async def test_labeling_init():
 
     from kish.tasks import generate_tasks
     await generate_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023a", "mentions", task_type="labeling", target_annotators=2, redundancy=2, 
-        labels=["software", "url", "publisher", "version", "language", "environment"], 
         guidelines="guidelines-softcite-labeling.md")
