@@ -1,6 +1,6 @@
 # KISH
 
-__Keep It Simple and Hard__
+__Keeping It Simple is Hard__
 
 __Early unstable work in progress !__
 
@@ -12,7 +12,7 @@ The technical approach is kept volontary very simple, with minimal dependencies 
 
 **Back-end:** python 3.7+, fastapi, fastapi-users (for secure authentication), SQLITE, sqlalchemy
 
-**Front-end:** jquery, PDF.js, Bootstrap 5 
+**Front-end:** jquery, PDF.js, Bootstrap 5, recogito-js 
 
 Secure authentication requires to indicate SMTP settings (for email after password reset) and OAuth2 log-in requires client credentials depending on the OAuth service where to redirect the user. Data import/export format is JSON only. Annotation guidelines should be written in markdown and put under `resources/data/markdown/`. 
 
@@ -44,7 +44,7 @@ python3 -m pip install -r requirements.txt
 Finally install the project in editable state
 
 ```console
-pip3 install -e .
+python3 -m pip install -e .
 ```
 
 ### Start the service
@@ -67,7 +67,7 @@ By default, at first launch, an admin account is created with login `admin@admin
 
 The admin has then the rights to manage users and extra fonctionalities in the web application. 
 
-### Use the web services
+### Use the web API services
 
 Once the service is started as described in the previous sections, the web service API documentations are available at `http(s)://*host*:*port*/docs`, e.g. for instance `http://localhost:8050/docs`, based on Swagger, and `http://localhost:8050/redoc` for ReDoc documentation style. These documentations offer interactive support to support test queries. 
 

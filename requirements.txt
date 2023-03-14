@@ -1,13 +1,13 @@
 fastapi==0.79.1
 uvicorn
-python-multipart
+python-multipart==0.0.5
 regex==2021.11.10
 pyfiglet
 pyyaml
 aiofiles
 pytest==6.2.5
 aiosqlite==0.17.0 
-fastapi-users[sqlalchemy,oauth]==10.1
+fastapi-users[sqlalchemy,oauth]==10.4
 httpx
 httpx-oauth
 ijson
