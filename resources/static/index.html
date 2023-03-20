@@ -17,6 +17,10 @@
     <link href="assets/plugins/simplebar/simplebar.css" rel="stylesheet" />
     <link href="assets/plugins/nprogress/nprogress.css" rel="stylesheet" />
 
+    <!-- recogito-js lib -->
+    <link href="lib/recogito-js/recogito.min.css" rel="stylesheet">
+    <script src="lib/recogito-js/recogito.min.js"></script>
+
     <!-- No Extra plugin used -->
     <link href='assets/plugins/jvectormap/jquery-jvectormap-2.0.3.css' rel='stylesheet'>
     <link href='assets/plugins/daterangepicker/daterangepicker.css' rel='stylesheet'>
@@ -325,11 +329,11 @@
                   <div id="annotation-panel" style="width:100%;">
                     <div class="row">
                       <div id="annotation-doc-view" class="col-8 border pt-3 pb-3"></div>
-                      <div id="annotation-val-view" class="col-4 border align-items-top" style="position:relative;">
-                        <div class="row w-100 align-items-top" style="width: 100%; min-height: 100px;">
+                      <div id="annotation-val-view" class="col-4 border d-flex flex-column" style="position:relative;">
+                        <div class="p-2 align-items-top" style="width: 100%; min-height: 100px;">
                           <div id="annotation-val-area" class="pl-4 pt-2 w-100"></div>
                         </div>
-                        <div class="row w-100" style="width: 100%;">
+                        <div class="p-2" style="width: 100%;">
                           <div id="annotation-paging" class="justify-content-center pb-2 w-100" style="width:100%; align-items: center; justify-content: center;"></div>
                         </div>
                       </div>
@@ -494,10 +498,6 @@
     <script src='assets/plugins/toastr/toastr.min.js'></script>
 
     <script src="assets/js/sleek.js"></script>
-
-    <!-- recogito-js lib -->
-    <link href="lib/recogito-js/recogito.min.css" rel="stylesheet">
-    <script src="lib/recogito-js/recogito.min.js"></script>
 
     <!--- load kish functions -->
     <script src="js/utils.js"></script>

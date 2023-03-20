@@ -1,4 +1,5 @@
 import ijson
+import json
 import gzip
 import kish.db
 from utils_db import insert_item, get_items, get_first_item, update_record
@@ -13,7 +14,7 @@ async def import_dataset_json(dataset_id: str, paths: list):
     Note: there is no shuffle of the documents or excerpts on the dataset right noe, so a shuffle needs 
     to be done on the JSON files prior loading.
     '''
-    print("import..." + str(paths) + " in dataset " + dataset_id)
+    print("import... " + str(paths) + " in dataset " + dataset_id)
 
     nb_documents = 0
     nb_excepts = 0
@@ -141,3 +142,70 @@ async def import_dataset_json(dataset_id: str, paths: list):
 
     return "success", nb_documents, nb_excepts, nb_classification, nb_labeling
 
+async def import_labels_json(dataset_id: str, paths: list):
+    '''
+    Import a set of label/class definitions to be associated to a given dataset. The labels have a JSON structure
+    giving the name of the label, a description, a html color and a type (classification or labeling).
+    If a label is already associated to the dataset for the same type, the label is updated with the new information
+    coming from this JSON file. 
+    If a label is not associated to the dataset, it is added. 
+    '''
+    print("import... " + str(paths) + " in dataset " + dataset_id)
+
+    nb_added_labels = 0
+    nb_updated_labels = 0
+
+    if paths == None or len(paths) == 0:
+        return "path list is empty", -1, -1, -1, -1
+
+    for path in paths:
+        if path == None or len(path) == 0:
+            print("path is empty, move to next one...")
+
+        if not path.endswith(".json") and not path.endswith(".json.gz"):
+            print("path has invalid file extension: " + path + ", move to next one...")
+
+        if path.endswith(".gz"):
+            f = gzip.open(path,'rt') 
+        else:
+            f = open(path, "rt")
+
+        json_labels = f.read()
+        try:
+            jsonObject = json.loads(json_labels)
+        except Exception as e:
+            print("the json parsing of the following label definition file failed: ", path)
+            print(e)
+            continue
+
+        if "labels" in jsonObject:
+            for label in jsonObject["labels"]:
+                if "type" not in label or label["type"] == None or len(label["type"]) == 0:
+                    item = await get_first_item("label", {"dataset_id": dataset_id, "name": label_dict["name"]})
+                else:
+                    item = await get_first_item("label", {"dataset_id": dataset_id, "type": label["type"], "name": label["name"]})
+
+                if item == None:
+                    # not present, we add the label
+                    from utils_db import insert_item
+                    label["dataset_id"] = dataset_id
+                    await insert_item("label", label, add_id=True)
+                    nb_added_labels += 1
+                else:
+                    # label is already defined in the dataset, we update the fields 
+                    to_update = False
+                    for field in label:
+                        if field == 'id': 
+                            continue
+                        if len(label[field])>0 and item[field] != label[field]:
+                            item[field] = label[field]
+                            to_update = True
+                    if to_update:
+                        record = await update_record("label", str(item["id"]), item)
+                        nb_updated_labels += 1
+
+    print("nb labels added: ", str(nb_added_labels))
+    print("nb labels updates: ", str(nb_updated_labels))
+
+    dataset_labels = await get_items("label", {})
+    print("nb total labels in dataset:", str(len(dataset_labels)))

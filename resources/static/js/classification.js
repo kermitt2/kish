@@ -2,7 +2,7 @@
  * functions related to a classification task
  **/
 
-function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabels, rank, excerptItem) {
+function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {
     // get inline tag annotations, if any
     var url = defineBaseURL("annotations/excerpt/"+excerptItem["id"]+"?type=labeling");
 
@@ -21,7 +21,7 @@ function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabel
                 inlineLabels.push(localLabel["id"]);
             }
         }
-    } 
+    }
 
     xhr.onloadend = function () {
         // list of inline annotations in case of classification excerpt to be visually enriched
@@ -47,7 +47,7 @@ function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabel
         var ind = fullContext.indexOf(context);
 
         if (inlineLabeling != null && inlineLabeling.length > 0) {
-            context = applyInlineAnnotations(context, inlineLabeling, otherLabels);
+            context = applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColorMap);
         } else {
             context = he.encode(context);
         }
@@ -68,7 +68,7 @@ function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabel
     xhr.send(null);
 }
 
-function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier) {    
+function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier) {    
     // get task-specific annotations
     var url;
 
@@ -96,7 +96,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         // for storing relevant label annotation in case of reconciliation task
         var prelabelingReconciliation = {}
 
-        var userAnnotation = false;
+        var isUserAnnotation = false;
         var isIgnoredExcerpt = false;
 
         // status
@@ -109,7 +109,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
                 let record = records[recordPos];
 
                 if (record["user_id"] == userInfo["id"] && record["task_id"] == taskInfo["id"]) {
-                    userAnnotation = true;
+                    isUserAnnotation = true;
                     if (record["ignored"]) {
                         isIgnoredExcerpt = true;
                     } else {
@@ -122,7 +122,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
                 }
             }
 
-            if (!userAnnotation && taskInfo["type"] === "reconciliation") {
+            if (!isUserAnnotation && taskInfo["type"] === "reconciliation") {
                 // case reconciliation to be performed
                 for(var recordPos in records) {
                     let record = records[recordPos];
@@ -146,7 +146,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         for(var labelPos in labels) {
             let label = labels[labelPos];
 
-            if (!userAnnotation && taskInfo["type"] === "reconciliation") {
+            if (!isUserAnnotation && taskInfo["type"] === "reconciliation") {
                 var disagreement = false;
                 var values = [];
                 if (prelabelingReconciliation[label["id"]]) {
@@ -244,7 +244,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
             if (isIgnoredExcerpt) {
                 pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
-            } else if (userAnnotation) {
+            } else if (isUserAnnotation) {
                 pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
             } else {
@@ -270,7 +270,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
             if (isIgnoredExcerpt) {
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
-            } else if (userAnnotation) {
+            } else if (isUserAnnotation) {
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
                 pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
             } else {
@@ -289,24 +289,24 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         } else {
             $("#button-start").click(function() {
                 //clearMainContent();
-                setExcerptView(userInfo, taskInfo, labels, otherLabels, 0);
+                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, 0);
                 return true;
             });
             $("#button-back").click(function() {
                 //clearMainContent();
-                setExcerptView(userInfo, taskInfo, labels, otherLabels, rank-1);
+                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1);
                 return true;
             });
         }
 
         $("#button-validate").click(function() {
-            validateAnnotation(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier, userAnnotation);
+            validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, isUserAnnotation, null);
             return true;
         });
         
         if (!isIgnoredExcerpt) {
             $("#button-ignore").click(function() {
-                ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier, userAnnotation);
+                ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, isUserAnnotation);
                 return true;
             });
         }
@@ -317,15 +317,73 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         } else {
             $("#button-next").click(function() {
                 //clearMainContent();
-                setExcerptView(userInfo, taskInfo, labels, otherLabels, rank+1);
+                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
                 return true;
             });
             $("#button-end").click(function() {
                 //clearMainContent();
-                setExcerptView(userInfo, taskInfo, labels, otherLabels, taskInfo["nb_excerpts"]-1);
+                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["nb_excerpts"]-1);
                 return true;
             });
         }
     }
     xhr.send(null);
+}
+
+function applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColorMap) {
+
+    if (inlineLabeling == null || inlineLabeling.length == 0) 
+        return context;
+
+    // return the text with inline annotation markups, properly encoded
+    var pieces = [];
+
+    var otherLabelMap = {};
+    for(var labelPos in otherLabels) {
+        otherLabelMap[otherLabels[labelPos]["id"]] = otherLabels[labelPos]["name"];
+    }
+
+    var subTypeSeen = [];
+    for (var labelingPos in inlineLabeling) {
+        var annotation = inlineLabeling[labelingPos];
+        var labelName = otherLabelMap[annotation["label_id"]];
+
+        if (subTypeSeen.indexOf(labelName) != -1)
+            break;
+        else
+            subTypeSeen.push(labelName);
+
+        annotation['subtype'] = labelName;
+        pieces.push(annotation);
+    }
+
+    pieces.sort(function(a, b) { 
+        var startA = parseInt(a.offset_start, 10);
+        var startB = parseInt(b.offset_start, 10);
+        return startA-startB; 
+    });
+
+    var pos = 0; // current position in the text
+    var newString = ""
+    for (var pi in pieces) {
+        piece = pieces[pi];
+
+        //var entityRawForm = piece.rawForm;
+        var start = parseInt(piece.offset_start, 10);
+        var end = parseInt(piece.offset_end, 10);
+
+        if (start < pos) {
+            // we have a problem in the initial sort of the entities
+            // the server response is not compatible with the present client 
+            console.log("Sorting of inline entities as present in the server's response not valid for this client.");
+            // note: this should never happen
+        } else {
+            newString += he.encode(context.substring(pos, start))
+                + '<span class="label ' + piece['subtype'] + '" style="background-color:' + labelColorMap[piece["label_id"]] + '; color:white;" >'
+                + he.encode(context.substring(start, end)) + '<span class="tooltiptext">'+piece['subtype']+'</span></span>';
+            pos = end;
+        }
+    }
+    newString += he.encode(context.substring(pos, context.length));
+    return newString;
 }

@@ -5,19 +5,19 @@
  */
 .label {
     /*padding: 1px 3px 2px;*/
-    padding: 1px 1px 0px;
+    /*padding: 1px 1px 0px;*/
     /*font-size: 10px;*/
     /*font-weight: bold;*/
-    color: #ffffff;
+    color: write;
     /*text-transform: uppercase;*/
     text-decoration: none;
-    white-space: nowrap;
-    background-color: #87A1A8;
+    /*white-space: nowrap;*/
+    /*background-color: #87A1A8;*/
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
 }
-.label.location {
+/*.label.location {
     background-color: #398739;
 }
 .label.person {
@@ -44,7 +44,6 @@
 .label.sense {
     background-color: #87A1A8;
 }
-
 .label.biology {
     background-color: #398739;
 }
@@ -93,10 +92,20 @@
 .label.environment {
     background-color: #31B404;
 }
+*/
 
+/** default label colors */
 .label.software {
     background-color: #6d2400;
-    /*background-color: #D42C2C;*/
+}
+.label.software-environment {
+    background-color: #7d2400;
+}
+.label.software-component {
+    background-color: #5d2400;
+}
+.label.software-implicit {
+    background-color: #8d2400;
 }
 .label.version {
     background-color: #062eaa;
@@ -113,14 +122,20 @@
 .label.publisher {
     background-color: #44005a; 
 }
+.label.publisher-person {
+    background-color: #34005a; 
+}
 .label.reference {
     background-color: #009933;
 }
-
+.label.language {
+    background-color: #8018bb;
+}
 .label.pubtype {
     background-color: #d9534f;
     font-size: 8px;
 }
+
 
 .label .tooltiptext {
   visibility: hidden;
@@ -139,17 +154,92 @@
   visibility: visible;
 }
 
+
+/** Tune r6o styles and buttons
+        ============================================ */
+
 span.r6o-annotation {
     border-bottom: 0px;
+    color: white;
+}
+
+span.r6o-selection {
+    color: white;
+    background-color: grey;
+}
+
+.r6o-btn {
+    background-color: #1e8449;
+    color:white;
+    border: 0px;
+}
+
+.r6o-relation-editor .buttons .ok {
+    background-color: #1e8449;
+    color:white;
+    border: 0px;
+    padding-top: 3px;
+}
+
+.r6o-relation-editor .buttons .ok:hover {
+    background-color: #1e8449;
+}
+
+.r6o-relation-editor .buttons .delete {
+    color:red;
+    padding-top: 3px;
+}
+
+.r6o-relation-editor .buttons .delete:hover  {
+    color:white;
+    background-color:red;
+}
+
+.r6o-relation-editor .input-wrapper {
+    padding-top: 5px;
+    background-color: white;
+}
+
+.r6o-relation-editor select {
+    background-color: white;
+    border: 0px;
+}
+
+.r6o-autocomplete li {
+    color:darkgray;
+}
+
+.r6o-btn.outline {
+    background-color: #7DBCFF;
+    color:white;
+    border: 0px;
+}
+
+.r6o-editor .r6o-footer .r6o-btn.delete-annotation {
+    color: red !important;
+    margin-top: 7px !important;
+    margin-left: 7px !important;
+}
+
+.r6o-editor .r6o-footer .r6o-btn.delete-annotation:hover {
+    color: white !important;
+}
+
+.r6o-editor .r6o-editor-inner {
+    background-color: white;
+}
+
+.r6o-arrow {
+    visibility: hidden;
 }
 
 /*  For Code Snippets
         ============================================ */
 
-code, pre, pre.prettyprint {
+code, pre.prettyprint {
     background-color: #fee9cc;
 }
-pre, pre.prettyprint {
+pre.prettyprint {
     padding: 16px 20px;
     margin: 10px 0px;
     -webkit-border-radius: 6px; 
@@ -160,6 +250,35 @@ pre, pre.prettyprint {
 
 .alert pre {
     text-shadow: none;
+    border-left: 0px;
+    padding: 16px 20px;
+    margin: 10px 0px;
+    -webkit-border-radius: 6px; 
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    max-width: 100%;
+    word-wrap: normal;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+}
+
+pre {
+    background-color: #ffffff;
+    border-left: 0px;
+    -webkit-border-radius: 6px; 
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    max-width: 100%;
+    word-wrap: normal;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    line-height: 2.5em;
 }
 
 /* Pretty printing styles. Used with prettify.js. */
@@ -201,6 +320,8 @@ a.section-not-active { color: #848484; }
 a.section-active { color: #BC0E0E; }
 span.section-not-active { color: #848484; }
 span.section-active { color: #BC0E0E; }
+span.disabled { filter: opacity(50%); }
+/*span.label { font-weight: bold; }*/
 
 .index {
     color:#D42C2C;
@@ -216,6 +337,7 @@ span.section-active { color: #BC0E0E; }
     text-decoration:underline;
 }
 
+/*
 .info-sense-box,.details-list {
     margin:1px 1;padding:5px 2px 3px 2px;border:1px solid #87A1A8;background-color:#87A1A8;border-radius:5px;
     font-size:14px;
@@ -248,7 +370,7 @@ span.section-active { color: #BC0E0E; }
 .info-sense-box.sense {
     background-color: #87A1A8;
 }
-
+*/
 
 /* Mini layout previews
 -------------------------------------------------- */
@@ -299,6 +421,22 @@ span.section-active { color: #BC0E0E; }
 .btn-warning{background-color:#FE9A2E;background-image:-moz-linear-gradient(top, #FE9A2E, #FE9A2E);background-image:-ms-linear-gradient(top, #FE9A2E, #FE9A2E);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#FE9A2E), to(#FE9A2E));background-image:-webkit-linear-gradient(top, #FE9A2E, #FE9A2E);background-image:-o-linear-gradient(top, #FE9A2E, #FE9A2E);background-image:linear-gradient(top, #FE9A2E, #FE9A2E);background-repeat:repeat-x;filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#87A1A8', endColorstr='#87A1A8', GradientType=0);border-color:#FE9A2E #FE9A2E #1f6377;border-color:rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);filter:progid:DXImageTransform.Microsoft.gradient(enabled = false);}.btn-warning:hover,.btn-warning:active,.btn-warning.active,.btn-warning.disabled,.btn-warning[disabled]{background-color:#FE9A2E;border-color:firebrick;}
 .btn-warning:active,.btn-warning.active{background-color:#FE9A2E;}
 
+.btn-relation{
+    background-color:#873600;
+    color: white;
+    filter: opacity(50%);
+    font-weight: bold;
+}
+.btn-relation.selected{
+    background-color:#FE9A2E;
+    color: white;
+    filter: opacity(100%);
+}
+.btn-relation.disabled{
+    filter: opacity(50%);
+}
+
+/*
 .popover[data-color=location] .popover-title {
     background-color: #398739; color: white;
 }
@@ -330,6 +468,7 @@ span.section-active { color: #BC0E0E; }
 .popover[data-color=institution] .popover-title {
     background-color: #c43c35; color: white;
 }
+*/
 
 .popover-title {
     background-color: #585858; color: white;
@@ -345,6 +484,7 @@ span.section-active { color: #BC0E0E; }
 }
 
 /* DOMAINS */
+/*
 .info-sense-box.biology {
     background-color: #398739;
 }
@@ -393,8 +533,9 @@ span.section-active { color: #BC0E0E; }
 .info-sense-box.environment {
     background-color: #31B404;
 }
+*/
 
-/*a.software { border-color: #800080 !important; } */
+/*
 a.software { border-color: #D42C2C !important; } 
 a.version { border-color: #3366cc !important; } 
 a.version-date { border-color: #3366cc !important; } 
@@ -402,7 +543,9 @@ a.version-number { border-color: #0066ff !important; }
 a.url { border-color: #ff3399 !important; } 
 a.publisher { border-color: #993300 !important; } 
 a.reference { border-color: #009933 !important; } 
+*/
 
+/*
 table.statements {
   border-collapse: separate; 
   font-size: 12px;
@@ -433,20 +576,33 @@ table.concept td {
   padding:4px;
   border-top:1px solid #ddd;
 }
+*/
 
 div {
   font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
 }
+
 p {
   word-break:normal;
   font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
 }
+
 span {word-break:normal;}
 
+::-moz-selection { /* Code for Firefox */
+  color: white;
+  background-color: grey;
+}
+
+::selection {
+  color: white;
+  background-color: grey;
+}
+
+/*
 [rel=popover][data-color=software] + .popover .popover-title {
-    /*background-color: #800080; color: white;*/
     background-color: #D42C2C; color: white;
 }
 [rel=popover][data-color=version] + .popover .popover-title {
@@ -467,15 +623,18 @@ span {word-break:normal;}
 [rel=popover][data-color=reference] + .popover .popover-title {
     background-color: #009933; color: white;
 }
+*/
 
+/*
 .info-sense-box,.details-list {
     margin:1px 1;padding:5px 2px 3px 2px;border:1px solid #87A1A8;background-color:#87A1A8;border-radius:5px;
     font-size:14px;
 }
+*/
 
 /* entity */
+/*
 .info-sense-box.software {
-    /*background-color: #800080;*/
     background-color: #B92626;
 }
 .info-sense-box.version {
@@ -496,6 +655,7 @@ span {word-break:normal;}
 .info-sense-box.reference {
     background-color: #009933;
 }
+*/
 
 .panel {
     box-shadow: 0 0px 0px;

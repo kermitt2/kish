@@ -73,4 +73,5 @@ Thumbs.db
 resources/data/*
 !resources/data/markdown
 !resources/data/templates
+!resources/data/documents/.gitkeep
 my_config.yml

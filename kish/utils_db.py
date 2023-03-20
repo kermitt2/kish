@@ -329,8 +329,13 @@ async def test_init():
                      "image_url": "images/software.png" }
 
     # check if dataset is already present
-    dataset = await get_first_item("dataset", {"id": "811b64f1-323f-4a78-bdb8-ebaab44b023a"})
+    dataset = await get_first_item("dataset", {"id": dataset_data["id"]})
     if dataset is not None:
+
+        # extra specifications for labels associated to the dataset
+        from loader import import_labels_json
+        await import_labels_json(dataset["id"], ["tests/resources/softcite-labels.json"])
+
         # check if reconciliation tasks are already present
 
         # get the tasks for this dataset
@@ -346,18 +351,23 @@ async def test_init():
                     await open_reconciliation_task(task_id)
         return
 
+    # extra specifications for labels associated to the dataset
+    from loader import import_labels_json
+    await import_labels_json("811b64f1-323f-4a78-bdb8-ebaab44b023a", ["tests/resources/softcite-labels.json"])
+
     await insert_item("dataset", dataset_data)
 
     # insert data for the dataset
     sofcite_dataset_sources = ["tests/resources/combined.classification.filtered.json.gz"]
 
-    from loader import import_dataset_json
+    from loader import import_dataset_json, import_labels_json
     result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
         "811b64f1-323f-4a78-bdb8-ebaab44b023a", 
         sofcite_dataset_sources)
 
     # extra specifications for labels associated to the dataset
-
+    from loader import import_labels_json
+    await import_labels_json("811b64f1-323f-4a78-bdb8-ebaab44b023a", ["tests/resources/softcite-labels.json"])
 
     # generate classification tasks from the dataset for 5 users, double annotations
     from kish.tasks import generate_tasks

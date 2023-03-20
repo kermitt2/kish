@@ -103,7 +103,13 @@ function getTaskLabels(userInfo, taskInfo) {
                 else
                     otherLabels.push(localLabelItem);
             }
-            setExcerptView(userInfo, taskInfo, labels, otherLabels, taskInfo["first_non_complete"]);
+
+            // init color map to be used for annotation/classes view
+            var labelColorMap = {}
+            labelColorMap = initLabelColorMap(labelColorMap, labels);
+            labelColorMap = initLabelColorMap(labelColorMap, otherLabels);
+
+            setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["first_non_complete"]);
         }
     }
     xhr.send(null);
@@ -113,7 +119,7 @@ function getTaskLabels(userInfo, taskInfo) {
  *  Given a selected task, we display the excerpt of the task at the given rank,
  *  i.e. rank parameter is the index of the excerpt (to be annotated) in the task
  **/
-function setExcerptView(userInfo, taskInfo, labels, otherLabels, rank) {
+function setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank) {
     // get current task item
     urlString = "tasks/"+taskInfo["id"]+"/excerpt"
     if (rank != null)
@@ -138,34 +144,34 @@ function setExcerptView(userInfo, taskInfo, labels, otherLabels, rank) {
         } else {
             response = response["record"];
 
-            displayExcerptArea(userInfo, taskInfo, labels, otherLabels, rank, response);
-            displayLabelArea(userInfo, taskInfo, labels, otherLabels, rank, response["id"]); 
+            displayExcerptArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, response);
+            displayLabelArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, response["id"]); 
         }
     }
     xhr.send(null);
 }
 
-function displayExcerptArea(userInfo, taskInfo, labels, otherLabels, rank, excerptItem) {
+function displayExcerptArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {
     // here we branch wrt. the type of task, because the annotation components change
     if (taskInfo["type"] === "classification" || 
         (taskInfo["type"] === "reconciliation") && (taskInfo["subtype"] === "classification") ) {
         // document type branch: either text or PDF
-        displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabels, rank, excerptItem);
+        displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
     } else {
         // document type branch: either text or PDF
-        displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank, excerptItem);
+        displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
     } 
 }
 
-function displayLabelArea(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier) {  
+function displayLabelArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier) {  
     // here we branch wrt. the type of task, because the annotation components change
     if (taskInfo["type"] === "classification" || 
         (taskInfo["type"] === "reconciliation") && (taskInfo["subtype"] === "classification") ) {
         // document type branch: either text or PDF
-        displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier);
+        displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
     } else {
         // document type branch: either text or PDF
-        displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier);
+        displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
     }
 }
 

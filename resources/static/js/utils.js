@@ -71,7 +71,7 @@ function callToaster(positionClass, type, msg, greetings, duration) {
     }
 }
 
-function storeAnnotation(taskInfo, excerptIdentifier, label_id, value) {
+function storeAnnotation(taskInfo, excerptIdentifier, label_id, value, offsets) {
     var url = defineBaseURL("annotations/annotation");
     var data = {};
     data["label_id"] = label_id;
@@ -91,6 +91,10 @@ function storeAnnotation(taskInfo, excerptIdentifier, label_id, value) {
         data["curated"] = 0;
     }
     data["ignored"] = 0;
+    if (offsets && offsets.length == 2) {
+        data["offset_start"] = offsets[0];
+        data["offset_end"] = offsets[1];
+    }
 
     // retrieve the existing task information
     var xhr = new XMLHttpRequest();
@@ -113,7 +117,7 @@ function storeAnnotation(taskInfo, excerptIdentifier, label_id, value) {
     xhr.send(JSON.stringify(data));
 }
 
-function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier) {
+function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier) {
     var url = defineBaseURL("annotations/annotation");
     var data = {}
     data["excerpt_id"] = excerptIdentifier;
@@ -163,7 +167,7 @@ function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, rank, excerptIde
             $("#button-validate").off('click');
             $("#button-ignore").off('click');
             $("#button-validate").click(function() {
-                validateAnnotation(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier, true);
+                validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, true, recognito);
                 return true;
             });
         }
@@ -250,78 +254,222 @@ function setDocumentInfo(documentIdentifier) {
     xhr.send(null);
 }
 
-function validateAnnotation(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier, update) {
-    // grab class values in a map
+function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, update, recognito) {
     var classValueMap = {};
-    for (var labelPos in labels) {
-        var label = labels[labelPos];
+    var offsetValueMap = {};
+    if (recognito) {
+        // if labeling annotation, we grab annotations from the annotation layer
+        const annotations = recognito.getAnnotations();
+        for (var annotationPos in annotations) {
+            const annotation = annotations[annotationPos];
 
-        if ($("#checkbox-"+label["name"]).is(":checked")) {
-            classValueMap[label["id"]] = 1;
-        } else {
-            classValueMap[label["id"]] = 0;
-        }
-    }
+            console.log(annotation);
 
-    // store annotation
-    for(var key in classValueMap) {
-        storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key]);
-    }
-
-    // update progress info display
-    var completed = 0;
-    var currentcountStr = $("#progress-done").text();
-    var currentCount = parseInt(currentcountStr);
-    if (!update) {
-        if (currentCount != NaN) {
-            currentCount += 1;
-            if (currentCount >= taskInfo["nb_excerpts"]) {
-                $("#progress-done").html(currentCount);
-                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
-                completed = 1;
-                currentCount = taskInfo["nb_excerpts"];
-            } else if (currentCount < taskInfo["nb_excerpts"]) {
-                $("#progress-done").html(currentCount);
+            /* recogito data model for inline annotations is as follow:
+            {
+              "@context": "http://www.w3.org/ns/anno.jsonld",
+              "type": "Annotation",
+              "body": [
+                {
+                  "type": "TextualBody",
+                  "purpose": "tagging",
+                  "value": "url"
+                }
+              ],
+              "target": {
+                "selector": [
+                  {
+                    "type": "TextQuoteSelector",
+                    "exact": "http://brainsuite. usc.edu"
+                  },
+                  {
+                    "type": "TextPositionSelector",
+                    "start": 139,
+                    "end": 165
+                  }
+                ]
+              },
+              "id": "#3abf3e45-e004-4594-921b-e4bec93c7f74"
             }
+            */
+
+            // keep only "tagging purpose"
+            if (!annotation["body"][0]["purpose"] || annotation["body"][0]["purpose"] !== "tagging") {
+                // not a tagging annotation, we can move on
+                continue;
+            }
+
+            const labelName = annotation["body"][0]["value"];
+            const labelId = getLabelId(labels, labelName, "labeling");
+            if (!labelId) {
+                // label is not found, something not valid
+                console.log("no label id annotation found: " + labelName);
+                continue;
+            }
+
+            if (!annotation["target"] || !annotation["target"]["selector"]) {
+                // this annotation is incomple
+                console.log("no selector found");
+                continue;
+            }
+
+            for (var selectorPos in annotation["target"]["selector"]) {
+                const selector = annotation["target"]["selector"][selectorPos];
+                if (selector["type"] && selector["type"] === "TextQuoteSelector") {
+                    classValueMap[labelId] = selector["exact"];
+                } else if (selector["type"] && selector["type"] === "TextPositionSelector") {
+                    const offsetStart = selector["start"];
+                    const offsetEnd = selector["end"];
+                    offsetValueMap[labelId] = [offsetStart, offsetEnd];
+                }
+            }            
         }
     } else {
-        if (currentCount >= taskInfo["nb_excerpts"]) {
-            completed = 1;
-            currentCount = taskInfo["nb_excerpts"];
-            callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
+        // if classification grab class values in a map
+        for (var labelPos in labels) {
+            var label = labels[labelPos];
+
+            if ($("#checkbox-"+label["name"]).is(":checked")) {
+                classValueMap[label["id"]] = 1;
+            } else {
+                classValueMap[label["id"]] = 0;
+            }
+
+            offsetValueMap[label["id"]] = [];
         }
     }
 
-    // update button
-    $("#button-validate").css("background-color", "#fec400");
-    $("#button-validate").html("Update");
-    $("#button-validate").css("color", "black");
+    // first clear existing annotation
+    var url = defineBaseURL("tasks/" + taskInfo["id"] + "/excerpt/annotations");
+    var data = {}
+    data["excerpt_id"] = excerptIdentifier;
+    data["task_id"] = taskInfo["id"];
+    data["type"] = taskInfo["type"];
 
-    $("#button-ignore").css("background-color", "#8a909d");
-    $("#button-ignore").html("Ignore");
-    $("#button-ignore").css("color", "white");
-    
-    $("#button-validate").off('click');
-    $("#button-validate").click(function() {
-        validateAnnotation(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier, true);
-        return true;
-    });
-    $("#button-ignore").off('click');
-    $("#button-ignore").click(function() {
-        ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, rank, excerptIdentifier);
-        return true;
-    });
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
-    // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
-    if (userInfo["auto_move_on"] == 1 && completed == 0 && ((rank+1) != taskInfo["nb_excerpts"])) {
-        setExcerptView(userInfo, taskInfo, labels, otherLabels, rank+1);
+    xhr.onloadend = function () {
+        if (xhr.status == 401) { 
+            window.location.href = "sign-in.html";
+        } else if (xhr.status != 200) {
+            // display server level error
+            var response = JSON.parse(xhr.responseText);
+            console.log(response["detail"]);
+            callToaster("toast-top-center", "error", response["detail"], "Damn, saving annotations didn't work!");
+        } else {
+            // older annotations, if any, are cleaned for the new ones
+
+            // store annotations
+            for(var key in classValueMap) {
+                //console.log("store annotation:");
+                //console.log(key + " / " + classValueMap[key] + " / " + offsetValueMap[key]);
+                storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key], offsetValueMap[key]);
+            }
+            
+            // update progress info display
+            var completed = 0;
+            var currentcountStr = $("#progress-done").text();
+            var currentCount = parseInt(currentcountStr);
+            if (!update) {
+                if (currentCount != NaN) {
+                    currentCount += 1;
+                    if (currentCount >= taskInfo["nb_excerpts"]) {
+                        $("#progress-done").html(currentCount);
+                        $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+                        completed = 1;
+                        currentCount = taskInfo["nb_excerpts"];
+                    } else if (currentCount < taskInfo["nb_excerpts"]) {
+                        $("#progress-done").html(currentCount);
+                    }
+                }
+            } else {
+                if (currentCount >= taskInfo["nb_excerpts"]) {
+                    completed = 1;
+                    currentCount = taskInfo["nb_excerpts"];
+                    callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
+                }
+            }
+
+            // update button
+            $("#button-validate").css("background-color", "#fec400");
+            $("#button-validate").html("Update");
+            $("#button-validate").css("color", "black");
+
+            $("#button-ignore").css("background-color", "#8a909d");
+            $("#button-ignore").html("Ignore");
+            $("#button-ignore").css("color", "white");
+            
+            $("#button-validate").off('click');
+            $("#button-validate").click(function() {
+                validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, true, recognito);
+                return true;
+            });
+            $("#button-ignore").off('click');
+            $("#button-ignore").click(function() {
+                ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
+                return true;
+            });
+
+            // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
+            if (userInfo["auto_move_on"] == 1 && completed == 0 && ((rank+1) != taskInfo["nb_excerpts"])) {
+                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
+            }
+
+            // update task assignment information to keep track of the progress more easily
+            updateTaskAssignment(taskInfo["id"], completed, currentCount);
+        }
     }
 
-    // update task assignment information to keep track of the progress more easily
-    updateTaskAssignment(taskInfo["id"], completed, currentCount);
+    xhr.send(JSON.stringify(data));
 }
 
-function getRandomLightColor() {
-    color = "hsl(" + Math.random() * 360 + ", 100%, 75%)";
+function getRandomDarkColor() {
+    color = "hsl(" + Math.random() * 360 + ", 50%, 15%)";
     return color;
+}
+
+function initLabelColorMap(labelColorMap, labels) {
+    if (!labelColorMap)
+        labelColorMap = {};
+    for (var labelPos in labels) {
+        if (!labels[labelPos]["id"])
+            continue;
+        if (labels[labelPos]["color"]) {
+            labelColorMap[labels[labelPos]["id"]] = labels[labelPos]["color"]
+        }
+    }
+    return labelColorMap;
+}
+
+function getLabelId(labels, labelName, type) {
+    for (var labelPos in labels) {
+        const localLabel = labels[labelPos];
+        if (localLabel["name"] === labelName && localLabel["type"] === type) 
+            return localLabel["id"];
+    }
+    return null;
+}
+
+function createLabelMap(labels) {
+    var labelMap = {};
+    for(var labelPos in labels) {
+        labelMap[labels[labelPos]["id"]] = labels[labelPos]["name"];
+    }
+    return labelMap;
+}
+
+/**
+ *  Return true if we only have pre-annotations
+ **/
+function checkPreAnnotation(annotations) {
+    var preAnnotation = true;
+    for(var annotationPos in annotations) {
+        if (annotations[annotationPos]["source"] === "manual") {
+            preAnnotation = false;
+            break;
+        }
+    }
+    return preAnnotation;
 }

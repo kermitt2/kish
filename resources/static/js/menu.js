@@ -49,4 +49,7 @@ function clearMainContent() {
     $("#dataset-create-view").hide();
     $("#dataset-metrics-view").hide();
     $("#dataset-export-view").hide();
+    $("#annotation-doc-view").html("");
+    $("#annotation-val-area").html("");
+    $("#annotation-paging").html("");
 }

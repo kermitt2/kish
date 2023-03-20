@@ -373,9 +373,9 @@ async def add_dataset_labels(identifier: str, request: Request, type: str = None
     from utils_db import get_first_item
     # label already present?
     if type == None or len(type) == 0:
-        item = await get_first_item("label", {"dataset_id": identifier, "name": label_dict["name"]}, full=True)
+        item = await get_first_item("label", {"dataset_id": identifier, "name": label_dict["name"]})
     else:
-        item = await get_first_item("label", {"dataset_id": identifier, "type": type, "name": label_dict["name"]}, full=True)
+        item = await get_first_item("label", {"dataset_id": identifier, "type": type, "name": label_dict["name"]})
 
     if item == None:
         # not present, we add the label and return its full structure with generated id
@@ -724,5 +724,21 @@ async def add_annotation(request: Request, user: User = Depends(current_user)):
     else:
         result["record"] = None
 
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.delete("/tasks/{identifier}/excerpt/annotations", tags=["annotations"], 
+    description="Remove all the current annotations for an excerpt in a given task.")
+async def clear_annotations(identifier: str, request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    annotations_dict = await request.json()
+
+    # fetch annotations for the specified task and excerpt
+    from utils_db import delete_items
+    delete_result = await delete_items("annotation", {"excerpt_id": annotations_dict["excerpt_id"], "user_id": str(user.id), "task_id": identifier} )
+    if delete_result != None and "error" in delete_result:
+        raise HTTPException(status_code=500, detail="Annotation deletion failed: "+delete_result["error"])
     result['runtime'] = round(time.time() - start_time, 3)
     return result

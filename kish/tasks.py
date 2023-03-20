@@ -52,7 +52,7 @@ async def generate_tasks(dataset_id, task_group_name, task_type="classification"
             task_dict = { "type": task_type, 
                           "dataset_id": dataset_id, 
                           "name": dataset["name"]+"-"+task_group_name+"-task"+str(i)+"-"+str(j),
-                          "guidelines": "guidelines-softcite-context-classification.md" }
+                          "guidelines": guidelines }
             if j != 0 and primary_task_id != -1:
                 task_dict["redundant"] = primary_task_id
 
