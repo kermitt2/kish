@@ -6,7 +6,7 @@ The goal of the labeling task is to identify a mentioned software with its main 
 
 ### software-name
 
-The main label of a software mention is it `software-name`. A software mention must have one and only one software name. 
+The main label of a software mention is its software name noted `software`. A software mention must have one and only one software name. 
 
 ### version
 

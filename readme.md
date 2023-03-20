@@ -57,7 +57,7 @@ python3 kish/service.py --config my_config.yml
 
 The application is then available for sign-in at `http://localhost:8050/app/sign-in.html`
 
-By default, at first launch, an admin account is created with login `admin@admin.com` and password `administrator`. You should set a proper admin account in the `config.yml` file:
+`my_config.yml` is the configuration file for the application, you can start with the default `config.yml`, but setting at least an admin account is preferable. By default, at first launch, an admin account is created with login `admin@admin.com` and password `administrator`. You should set a proper admin account in the `config.yml` file:
 
 ```yaml
 # default admin super-user when not already existing, admin_email must be an email and password must be kept secret 
@@ -69,7 +69,13 @@ The admin has then the rights to manage users and extra fonctionalities in the w
 
 ### Use the web API services
 
-Once the service is started as described in the previous sections, the web service API documentations are available at `http(s)://*host*:*port*/docs`, e.g. for instance `http://localhost:8050/docs`, based on Swagger, and `http://localhost:8050/redoc` for ReDoc documentation style. These documentations offer interactive support to support test queries. 
+Once the service is started as described in the previous sections, the API root point is by default `http://localhost:8050`, so for instance:
+
+```console
+> wget http://localhost:8050/alive
+```
+
+The web service API documentations are available at `http(s)://*host*:*port*/docs`, e.g. for instance `http://localhost:8050/docs`, based on Swagger, and `http://localhost:8050/redoc` for ReDoc documentation style. These documentations offer interactive support to support test queries. 
 
 ### Configure the service
 

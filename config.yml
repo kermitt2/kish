@@ -49,7 +49,7 @@ api:
   # the following is used in the generated API documentation
   version: "0.1"
   name: "KISH web app and API"
-  description: "Keep It Simple and Painful"
+  description: "Keeping It Simple is Hard"
   api_route: ""
 
   # default admin super-user when not existing, admin_email must be an email and password must be kept secret 
