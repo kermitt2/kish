@@ -1,0 +1,64 @@
+{
+    "labels": [
+        {
+            "name": "dataset",
+            "color": "#8d2400",
+            "description": "dataset name",
+            "type": "labeling"
+        },
+        {
+            "name": "dataset/accession-number",
+            "color": "#7d2400",
+            "description": "software environment name",
+            "type": "labeling"
+        },
+        {
+            "name": "dataset/implicit",
+            "color": "#5d2400",
+            "description": "software component name",
+            "type": "labeling"
+        },
+        {
+            "name": "publisher",
+            "color": "#44005a",
+            "description": "publisher or creator of the software",
+            "type": "labeling"
+        },
+        {
+            "name": "version",
+            "color": "#062eaa",
+            "description": "version number of date of the software",
+            "type": "labeling"
+        },
+        {
+            "name": "url",
+            "color": "#003509",
+            "description": "url assicated to the software",
+            "type": "labeling"
+        },
+        {
+            "name": "reference",
+            "color": "#009933",
+            "description": "bibliographical reference marker/callout",
+            "type": "labeling"
+        },
+        {
+            "name": "used",
+            "color": "#000000",
+            "description": "the context indicates that the mentioned dataset or software is used in the described research work",
+            "type": "classification"
+        },
+        {
+            "name": "created",
+            "color": "#000000",
+            "description": "the context indicates that the mentioned dataset or software has been created in relation to the described research work",
+            "type": "classification"
+        },
+        {
+            "name": "shared",
+            "color": "#000000",
+            "description": "the context indicates that the mentioned dataset or software is shared with evidence of sharing (e.g. url, repo, doi)",
+            "type": "classification"
+        }
+    ]    
+}

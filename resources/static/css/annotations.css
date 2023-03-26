@@ -436,6 +436,101 @@ span.disabled { filter: opacity(50%); }
     filter: opacity(50%);
 }
 
+.btn-next-doc{
+    background-color:#7DBCFF;
+    color: #343a40;
+    filter: opacity(100%);
+    font-weight: bold;
+}
+.btn-next-doc.disabled{
+    filter: opacity(40%);
+}
+
+.btn-validate-doc{
+    background-color:#1e8449;
+    color: white;
+    font-weight: bold;
+    float: left;
+    margin-right:5px;
+}
+
+.btn-update-doc{
+    background-color:#FEC400;
+    color: white;
+    font-weight: bold;
+    float: left;
+    margin-right:5px;
+}
+
+.btn-ignore-doc{
+    background-color:#7DBCFF;
+    color: white;
+    font-weight: bold;
+    float: left;
+}
+.btn-ignore-doc.ignored {
+    background-color: red;
+    color:white;
+    font-weight: bold;
+    float: left;
+    content: "Ignored";
+}
+
+a.sentenceBox {
+    display:block; 
+    border: 0px;
+    position:absolute; 
+    color:black;
+}
+
+.btn.validate {
+    background-color: #1e8449;
+    color:white;
+    content: "Validate";
+}
+
+.btn.ignore {
+    background-color: #7DBCFF;
+    color:white;
+    content: "Ignore";
+}
+
+.btn.ignored {
+    background-color: red;
+    color:white;
+    content: "Ignored";
+}
+
+.btn.ignore-inactive {
+    background-color: #8A909D;
+    color:white;
+    content: "Ignore";
+}
+
+.btn.update {
+    background-color: #fec400;
+    color:black;
+    content: "Update";
+}
+
+.btn.update-inactive {
+    background-color: #8a909d;
+    color:white;
+    content: "Update";
+}
+
+a.sentenceBox:hover {
+    border: 1px solid;
+}
+
+a.sentenceBox.selected {
+    border: 1px solid;
+}
+
+a.sentenceBox.activated {
+    border: 2px solid;
+}
+
 /*
 .popover[data-color=location] .popover-title {
     background-color: #398739; color: white;
