@@ -198,8 +198,10 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
             assign_item = await get_first_item("assign", {"task_id": identifier, "user_id": local_user["user_id"]})
             if assign_item["is_completed"]:
                 item["status"] = "completed"
+                item["is_completed"] = 1
             else: 
                 item["status"] = "assigned"
+                item["is_completed"] = 0
 
         # number of documents, excerpts and annotations
         from utils_db import get_task_attributes

@@ -210,10 +210,16 @@ function setTaskInfo(taskInfo) {
             taskContent = taskInfoTemplate
                     .replace("{{nb_completed_excerpts}}", taskInfo["nb_completed_documents"])
                     .replace("{{nb_excerpts}}", taskInfo["nb_documents"]);
+            if (taskInfo["nb_completed_documents"] === taskInfo["nb_documents"]) {
+                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+            }
         } else {
             taskContent = taskInfoTemplate
                     .replace("{{nb_completed_excerpts}}", taskInfo["nb_completed_excerpts"])
                     .replace("{{nb_excerpts}}", taskInfo["nb_excerpts"]);
+            if (taskInfo["nb_completed_excerpts"] === taskInfo["nb_excerpts"]) {
+                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+            }
         }
         
         if (taskInfo["name"])
@@ -226,6 +232,16 @@ function setTaskInfo(taskInfo) {
             taskContent = taskContent.replace("{{nb_documents}}", taskInfo["nb_documents"]);
         
         $("#annotation-task-info").html(taskContent);
+
+        if (taskInfo["level"] === "document") {
+            if (taskInfo["nb_completed_documents"] === taskInfo["nb_documents"]) {
+                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+            }
+        } else {
+            if (taskInfo["nb_completed_excerpts"] === taskInfo["nb_excerpts"]) {
+                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+            }
+        }
     }
 }
 

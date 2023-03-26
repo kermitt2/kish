@@ -462,6 +462,10 @@ span.disabled { filter: opacity(50%); }
     margin-right:5px;
 }
 
+.btn-update-doc.inactive{
+    background-color:#8A909D;
+}
+
 .btn-ignore-doc{
     background-color:#7DBCFF;
     color: white;

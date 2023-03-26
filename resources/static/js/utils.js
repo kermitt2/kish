@@ -370,7 +370,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             console.log(response["detail"]);
             callToaster("toast-top-center", "error", response["detail"], "Damn, saving annotations didn't work!");
         } else {
-            // older annotations, if any, are cleaned for the new ones
+            // older annotations, if any, have now been cleaned for the new ones
 
             // store annotations
             for(var key in classValueMap) {
@@ -390,7 +390,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                 callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
 
             var completed = 0;
-            // update header progress info display, for excerpt-level annotation task
+            // update header progress info display, for excerpt-level annotation tasks
             if (taskInfo["level"] !== "document") {
                 var currentcountStr = $("#progress-done").text();
                 var currentCount = parseInt(currentcountStr);
@@ -412,13 +412,6 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                         currentCount = taskInfo["nb_excerpts"];                        
                     }
                     callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
-                }
-            } else {
-                var currentcountStr = $("#progress-done").text();
-                var currentCount = parseInt(currentcountStr);
-                console.log('currentCount:' + currentCount + ", taskInfo[nb_documents]: " + taskInfo["nb_documents"]);
-                if (currentCount === taskInfo["nb_documents"]) {
-                    completed = 1;
                 }
             }
 
@@ -444,9 +437,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             });
 */
             // update task assignment information to keep track of the progress more easily
-            if (taskInfo["level"] === "document") 
-                updateTaskAssignment(taskInfo["id"], completed, 0, currentCount);
-            else 
+            if (taskInfo["level"] !== "document") 
                 updateTaskAssignment(taskInfo["id"], completed, currentCount, 0);
 
             // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end

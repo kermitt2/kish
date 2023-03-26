@@ -130,27 +130,31 @@ function displayDocumentArea(userInfo_, currentDocument_, taskInfo_, labels_, ot
     $("#button-document-ignore").attr('document-id', documentId);
 
     // document status for this task and set the document-level buttons
-    if (currentDocument["validated"] == 1) {
-        $("#button-document-update").show();
-        $("#button-document-update").click(function() {
-            updateDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-        $("#button-document-ignore").removeClass("ignored");
-        $("#button-document-ignore").show();
-        $("#button-document-ignore").click(function() {
-            ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-    } else if (currentDocument["ignored"] == 1) {
+    if (currentDocument["ignored"] == 1) {
+        $("#button-document-update").addClass("inactive");
         $("#button-document-update").show();
         $("#button-document-update").click(function() {
             updateDocument(userInfo, taskInfo, documentId);
             return true;
         });
         $("#button-document-ignore").addClass("ignored");
+        $("#button-document-ignore").html("Ignored");
         $("#button-document-ignore").show();
         $("#button-document-ignore").attr('document-id', documentId);
+        $("#button-document-ignore").click(function() {
+            ignoreDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+    } else if (currentDocument["validated"] == 1) {
+        $("#button-document-update").removeClass("inactive");
+        $("#button-document-update").show();
+        $("#button-document-update").click(function() {
+            updateDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+        $("#button-document-ignore").removeClass("ignored");
+        $("#button-document-ignore").html("Ignore doc.");
+        $("#button-document-ignore").show();
         $("#button-document-ignore").click(function() {
             ignoreDocument(userInfo, taskInfo, documentId);
             return true;
@@ -162,6 +166,7 @@ function displayDocumentArea(userInfo_, currentDocument_, taskInfo_, labels_, ot
             return true;
         });
         $("#button-document-ignore").removeClass("ignored");
+        $("#button-document-ignore").html("Ignore doc.");
         $("#button-document-ignore").show();
         $("#button-document-ignore").click(function() {
             ignoreDocument(userInfo, taskInfo, documentId);
@@ -576,7 +581,9 @@ function validateDocument(userInfo, taskInfo, document_id) {
                 $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
 
                 // update task status
-                updateTaskAssignment(taskInfo["id"], 1, 0, currentCount+1);
+                updateTaskAssignment(taskInfo["id"], 1, 0, (currentCount+1));
+            } else {
+                updateTaskAssignment(taskInfo["id"], 0, 0, (currentCount+1));
             }
 
             // validate every excerpts in the doc
@@ -594,9 +601,10 @@ function validateDocument(userInfo, taskInfo, document_id) {
 
 function updateDocument(userInfo, taskInfo, document_id) {
     $("#button-document-validation").hide(); // should be hidden anyway here
+    $("#button-document-update").removeClass("inactive");
     $("#button-document-update").show();
     $("#button-document-ignore").removeClass("ignored");
-
+    $("#button-document-ignore").html("Ignore doc.");
 
 }
 
@@ -604,11 +612,6 @@ function ignoreDocument(userInfo, taskInfo, document_id) {
     var url = defineBaseURL("tasks/"+taskInfo["id"]+"/document/ignore");
     var data = {}
     data["document_id"] = document_id;
-
-    $("#button-document-validation").hide();
-    $("#button-document-update").show();
-    $("#button-document-ignore").show();
-    $("#button-document-ignore").addClass("ignored");
 
     var xhr = new XMLHttpRequest();
     xhr.open("PUT", url, true);
@@ -623,14 +626,27 @@ function ignoreDocument(userInfo, taskInfo, document_id) {
             console.log(response["detail"]);
             callToaster("toast-top-center", "error", response["detail"], "Damn, ignoring document didn't work!");
         } else {
-            // update counters
-            var currentcountStr = $("#progress-done").text();
-            var currentCount = parseInt(currentcountStr);
-            $("#progress-done").html(""+(currentCount+1));
+            // update counters if the document was not already validated before
+            if ($("#button-document-validation").css("display") !== "none") {
+                var currentcountStr = $("#progress-done").text();
+                var currentCount = parseInt(currentcountStr);
+                $("#progress-done").html(""+(currentCount+1));
 
-            if (currentCount === taskInfo["nb_documents"]) {                
-                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+                if ((currentCount+1) === taskInfo["nb_documents"]) {                
+                    $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+                    updateTaskAssignment(taskInfo["id"], 1, 0, currentCount+1);
+                } else {
+                    // update task status
+                    updateTaskAssignment(taskInfo["id"], 0, 0, currentCount+1);
+                }
             }
+
+            $("#button-document-validation").hide();
+            $("#button-document-update").addClass("inactive");
+            $("#button-document-update").show();
+            $("#button-document-ignore").addClass("ignored");
+            $("#button-document-ignore").html("Ignored");
+            $("#button-document-ignore").show();
         }
     }
 

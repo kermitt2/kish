@@ -296,7 +296,7 @@ async def get_task_attributes(task_item):
     # number of completed documents in the task
     statement = text("SELECT count(DISTINCT document_id)" + 
         " FROM intask" + 
-        " WHERE task_id = '"+task_id+"' AND validated = 1 AND excerpt_id IS NULL")
+        " WHERE task_id = '"+task_id+"' AND (validated = 1 OR ignored =1) AND excerpt_id IS NULL")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)
@@ -337,7 +337,7 @@ async def validate_document(document_id, task_id):
     '''
     Validate a document and all its excerpts for a given task
     '''
-    statement = "UPDATE intask SET validated = 1 WHERE document_id = '" + document_id + "' AND task_id ='" + task_id + "'"
+    statement = "UPDATE intask SET validated = 1, ignored = 0 WHERE document_id = '" + document_id + "' AND task_id ='" + task_id + "'"
     statement = text(statement)
     try:
         async with engine.connect() as conn:
@@ -369,7 +369,7 @@ async def validate_excerpt(excerpt_id, task_id):
     '''
     Validate an excerpt in a given task
     '''
-    statement = "UPDATE intask SET validated = 1 WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
+    statement = "UPDATE intask SET validated = 1, ignored = 0  WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
     statement = text(statement)
     try:
         async with engine.connect() as conn:
