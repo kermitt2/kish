@@ -4,13 +4,19 @@
 
 // templates
 const taskInfoTemplate = "<table style=\"width:100%;\"><tr> \
-                        <td style=\"width:40%;font-size:150%;\"><span style=\"color:grey\">Progress:</span> \
+                        <td style=\"width:15%;font-size:100%;\"><span style=\"color:grey\">Progress:</span> \
                         <span id=\"progress-done\">{{nb_completed_excerpts}}</span> / \
                          {{nb_excerpts}} <span id=\"progress-complete\"></span> </td> \
-                        <td style=\"width:15%;\"><span style=\"color:grey\">Task:</span> {{name}} </td> \
-                        <td style=\"width:15%;\"><span style=\"color:grey\">Type:</span> {{type}} </td> \
+                        <td style=\"width:20%;\"><span style=\"color:grey\">Task:</span> {{name}} </td> \
+                        <td style=\"width:10%;\"><span style=\"color:grey\">Type:</span> {{type}} </td> \
                         <td style=\"width:15%;\"><span style=\"color:grey\">Dataset:</span> {{dataset_name}} </td> \
-                        <td style=\"width:15%;\"><span style=\"color:grey\">Task doc.:</span> {{nb_documents}} </td> \
+                        <td style=\"width:10%;\"><span style=\"color:grey\">Task doc.:</span> {{nb_documents}} </td> \
+                        <td style=\"width:30%;text-align:right;\"> \
+                        <button class=\"mb-1 btn-sm btn-validate-doc\" style=\"display: none;\" id=\"button-document-validation\">Validate doc.</button> \
+                        <button class=\"mb-1 btn-sm btn-update-doc\" style=\"display: none;\" id=\"button-document-update\">Update doc.</button> \
+                        <button class=\"mb-1 btn-sm btn-ignore-doc\" style=\"display: none;\" id=\"button-document-ignore\">Ignore doc.</button> \
+                        <button class=\"mb-1 btn-sm btn-next-doc\" style=\"display: none;\" id=\"previousDocumentButton\">Previous doc.</button> \
+                        <button class=\"mb-1 btn-sm btn-next-doc\" style=\"display: none;\" id=\"nextDocumentButton\">Next doc.</button></td> \
                         </tr></table>";
 
 const templateTaskTableHeader = "<thead><tr> \
@@ -38,12 +44,18 @@ function annotationTask(userInfo, taskInfo) {
     $("#guidelines-task-id").html(taskInfo["id"]);
     $("#guidelines-side-bar").show();
 
+    $("#annotation-doc-view").show();
+    $("#annotation-val-area").show();
+    $("#annotation-paging").show();
+
     activateSideBarMenuChoice($("#annotate-side-bar"));
 
     setTaskInfo(taskInfo);
 
     // get the list of excerpt identifiers for the tasks
     var url = defineBaseURL("tasks/"+taskInfo["id"]+"/excerpts");
+    if (taskInfo["level"] === "document")
+        url = defineBaseURL("tasks/"+taskInfo["id"]+"/documents");
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
@@ -58,17 +70,29 @@ function annotationTask(userInfo, taskInfo) {
             console.log(response["detail"]);
             callToaster("toast-top-center", "error", response["detail"], "Damn, accessing excepts of the task failed!");
         } else {
-            var excerpts = []
-            for (var excerptPos in response["records"]["excerpts"]) {
-                excerpts.push(response["records"][excerptPos]);
+            if (taskInfo["level"] === "document") {
+                var documents = []
+                for (var documentPos in response["records"]["documents"]) {
+                    documents.push(response["records"][documentPos]);
+                }
+                taskInfo["documents"] = documents;
+
+                if(response["records"].hasOwnProperty('first_non_complete'))
+                    taskInfo["first_non_complete"] = response["records"]["first_non_complete"];
+                else
+                    taskInfo["first_non_complete"] = taskInfo["nb_documents"]-1;
+            } else {
+                var excerpts = []
+                for (var excerptPos in response["records"]["excerpts"]) {
+                    excerpts.push(response["records"][excerptPos]);
+                }
+                taskInfo["excerpts"] = excerpts;
+
+                if(response["records"].hasOwnProperty('first_non_complete'))
+                    taskInfo["first_non_complete"] = response["records"]["first_non_complete"];
+                else
+                    taskInfo["first_non_complete"] = taskInfo["nb_excerpts"]-1;
             }
-            taskInfo["excerpts"] = excerpts;
-
-            if(response["records"].hasOwnProperty('first_non_complete'))
-                taskInfo["first_non_complete"] = response["records"]["first_non_complete"];
-            else
-                taskInfo["first_non_complete"] = taskInfo["nb_excerpts"]-1;
-
             getTaskLabels(userInfo, taskInfo);
         }
     }
@@ -109,7 +133,10 @@ function getTaskLabels(userInfo, taskInfo) {
             labelColorMap = initLabelColorMap(labelColorMap, labels);
             labelColorMap = initLabelColorMap(labelColorMap, otherLabels);
 
-            setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["first_non_complete"]);
+            if (taskInfo["level"] === "document")
+                displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["first_non_complete"]);
+            else
+                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["first_non_complete"]);
         }
     }
     xhr.send(null);
@@ -144,8 +171,10 @@ function setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, 
         } else {
             response = response["record"];
 
+            console.log(response);
+
             displayExcerptArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, response);
-            displayLabelArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, response["id"]); 
+            displayLabelArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, response); 
         }
     }
     xhr.send(null);
@@ -155,23 +184,19 @@ function displayExcerptArea(userInfo, taskInfo, labels, otherLabels, labelColorM
     // here we branch wrt. the type of task, because the annotation components change
     if (taskInfo["type"] === "classification" || 
         (taskInfo["type"] === "reconciliation") && (taskInfo["subtype"] === "classification") ) {
-        // document type branch: either text or PDF
         displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
     } else {
-        // document type branch: either text or PDF
-        displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
+        displayExcerptAreaLabeling("#annotation-doc-view", userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
     } 
 }
 
-function displayLabelArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier) {  
+function displayLabelArea(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {  
     // here we branch wrt. the type of task, because the annotation components change
     if (taskInfo["type"] === "classification" || 
         (taskInfo["type"] === "reconciliation") && (taskInfo["subtype"] === "classification") ) {
-        // document type branch: either text or PDF
-        displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
+        displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
     } else {
-        // document type branch: either text or PDF
-        displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
+        displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem);
     }
 }
 
@@ -179,9 +204,17 @@ function setTaskInfo(taskInfo) {
     if (taskInfo == null) {
         $("#annotation-task-info").html("The task is not available");
     } else {
-        var taskContent = taskInfoTemplate
+        var taskContent;
+
+        if (taskInfo["level"] === "document") {
+            taskContent = taskInfoTemplate
+                    .replace("{{nb_completed_excerpts}}", taskInfo["nb_completed_documents"])
+                    .replace("{{nb_excerpts}}", taskInfo["nb_documents"]);
+        } else {
+            taskContent = taskInfoTemplate
                     .replace("{{nb_completed_excerpts}}", taskInfo["nb_completed_excerpts"])
                     .replace("{{nb_excerpts}}", taskInfo["nb_excerpts"]);
+        }
         
         if (taskInfo["name"])
             taskContent = taskContent.replace("{{name}}", taskInfo["name"]);
@@ -328,10 +361,23 @@ function displayTask(userInfo, table, pos, taskIdentifier) {
             else
                 taskContent = taskContent.replace("{{nb_excerpts}}", "0");
 
-            if (response["nb_completed_excerpts"])
-                taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_excerpts"]);
-            else
-                taskContent = taskContent.replace("{{nb_completed_excerpts}}", "0");
+            if (response["level"] === "document") {
+                if (response["nb_completed_documents"]) {
+                    if (response["nb_documents"])
+                        taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_documents"] + " / " + response["nb_documents"] + " doc.");
+                    else
+                        taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_documents"] + " doc.");
+                } else 
+                    taskContent = taskContent.replace("{{nb_completed_excerpts}}", "0");
+            } else {
+                if (response["nb_completed_excerpts"]) {
+                    if (response["nb_excerpts"])
+                        taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_excerpts"] + " / " + response["nb_excerpts"] + " excepts");
+                    else
+                        taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_excerpts"] + " excerpt");
+                } else
+                    taskContent = taskContent.replace("{{nb_completed_excerpts}}", "0");
+            }
 
             if (response["status"]) {
                 if (response["status"] == "completed") {
@@ -339,8 +385,7 @@ function displayTask(userInfo, table, pos, taskIdentifier) {
                 } else {
                     taskContent = taskContent.replace("{{status}}", response["status"]);
                 }
-            }
-            else
+            } else
                 taskContent = taskContent.replace("{{status}}", "unknown");
 
             if (response["assigned"])

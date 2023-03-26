@@ -49,7 +49,8 @@ function clearMainContent() {
     $("#dataset-create-view").hide();
     $("#dataset-metrics-view").hide();
     $("#dataset-export-view").hide();
-    $("#annotation-doc-view").html("");
+    $("#annotation-doc-view").hide();
+    $("#annotation-val-area").hide();
     $("#annotation-val-area").html("");
-    $("#annotation-paging").html("");
+    $("#annotation-paging").hide();
 }

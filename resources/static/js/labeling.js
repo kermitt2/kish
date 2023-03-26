@@ -5,6 +5,12 @@
 var recognito;
 var recognito_mode;
 
+var docInfoTemplate = "<div class=\"pb-2\"><div class=\"row\" style=\"display: flex; align-items: center;\">" + 
+            "<div class=\"col\" style=\"display: flex; align-items: center;\"><p>{{level}} excerpt {{rank}} / {{totalRank}} - " + 
+            "<span id=\"doc_url\"></span></p></div>" + 
+            "<div class=\"col-md-auto\"><button class=\"sb-1 btn-sm btn-relation\" id=\"button_relation\">" + 
+            "Relation</button></div></div></div>";
+
 /**
  * Label editor plugin
  **/
@@ -15,7 +21,7 @@ var LabelSelectorWidget = function(args) {
     var currentAnnotation = args.annotation;
 
     var activateLabel = function(evt) { 
-        console.log(evt)
+        //console.log(evt)
         if (evt.target.classList.contains('disabled')) {
             // do nothing, alternatively we could remove previous selection, annotation and set the new one to this
         } else if (evt.target.classList.contains('selected')) {
@@ -23,7 +29,7 @@ var LabelSelectorWidget = function(args) {
             evt.target.classList.remove("selected");
 
             if (currentAnnotation && currentAnnotation.bodies && currentAnnotation.bodies.length>0 && currentAnnotation.bodies[0].value === evt.target.textContent) {
-                console.log(currentAnnotation.id);
+                //console.log(currentAnnotation.id);
                 args.onRemoveBody(currentAnnotation.bodies[0]);
             }
 
@@ -63,7 +69,7 @@ var LabelSelectorWidget = function(args) {
     container.className = 'r6o-widget';
 
     for (var labelPos in labels) {
-        console.log("create button")
+        //console.log("create button")
 
         var button = createButton(labels[labelPos], labelPos);
         button.style["margin-right"] = "5px";
@@ -85,8 +91,83 @@ var LabelSelectorWidget = function(args) {
 
     return container;
 }
-  
-function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {
+
+function displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank) {
+    // get document information
+    urlString = "tasks/"+taskInfo["id"]+"/document"
+    if (rank != null)
+        urlString += "?rank="+rank;  
+    var url = defineBaseURL(urlString);
+
+    // retrieve the existing task item information
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+    xhr.onloadend = function () {
+        // status
+        var response = JSON.parse(xhr.responseText);
+        if (xhr.status != 200) {
+            // display server level error
+            console.log(response["detail"]);
+            callToaster("toast-top-center", "error", response["detail"], "Damn, accessing document record didn't work!");
+            $("#doc_url").html("<p>The document record is not available</p>");
+        } else {
+            response = response["record"];
+            docText = ""
+            if (response["doi"])
+                docText += response["doi"];
+            $("#doc_url").html(docText);
+
+            // todo jump to the last non-validated excerpt?
+            var rankExcerpt = 0;
+
+            $("#previousDocumentButton").off('click');
+            $("#nextDocumentButton").off('click');
+
+            $("#button-document-validation").off('click');
+            $("#button-document-update").off('click');
+            $("#button-document-ignore").off('click');
+            $("#button-document-validation").hide();
+            $("#button-document-update").hide();
+            $("#button-document-ignore").hide();
+
+            $("#previousDocumentButton").addClass('disabled');
+            $("#previousDocumentButton").show();
+            $("#nextDocumentButton").addClass('disabled');
+            $("#nextDocumentButton").show();
+
+            if (rank > 0) {
+                //$("#previousDocumentButton").show();
+                $("#previousDocumentButton").removeClass('disabled');
+                $("#previousDocumentButton").click(function() {
+                    event.preventDefault();
+                    //clearMainContent();
+                    displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1)
+                });
+            } else {
+                //$("#previousDocumentButton").hide();
+                $("#previousDocumentButton").addClass('disabled');
+            }
+            if (rank < taskInfo["nb_documents"]-1) {
+                //$("#nextDocumentButton").show();
+                $("#nextDocumentButton").removeClass('disabled');
+                $("#nextDocumentButton").click(function() {
+                    event.preventDefault();
+                    //clearMainContent();
+                    displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1)
+                });
+            } else {
+                $("#nextDocumentButton").addClass('disabled');
+            }
+
+            displayDocumentArea(userInfo, response, taskInfo, labels, otherLabels, labelColorMap, rank, rankExcerpt);
+        }
+    }
+    xhr.send(null);
+}
+
+function displayExcerptAreaLabeling(positionId, userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {
 
     // get inline tag annotations, if any
     var url = defineBaseURL("annotations/excerpt/"+excerptItem["id"]+"?type=labeling");
@@ -96,11 +177,15 @@ function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, lab
     xhr.open("GET", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     
+    var labelMap = createLabelMap(labels);
+
     xhr.onloadend = function () {
         // list of existing inline annotations 
         var inlineLabeling = [];
         // status
-        if (xhr.status == 200) {
+        if (xhr.status == 401) {
+            window.location.href = "sign-in.html";
+        } else if (xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
             records = response["records"];
             for(var recordPos in records) {
@@ -111,83 +196,61 @@ function displayExcerptAreaLabeling(userInfo, taskInfo, labels, otherLabels, lab
         }
 
         // now display the excerpt
-        var docInfoText = "<div class=\"pb-2\"><div class=\"row\" style=\"display: flex; align-items: center;\">" + 
-            "<div class=\"col\" style=\"display: flex; align-items: center;\"><p>Task excerpt " + (rank+1) + " / " + taskInfo["nb_excerpts"] + " - " + 
-            "<span id=\"doc_url\"></span></p></div>" + 
-            "<div class=\"col-md-auto\"><button class=\"sb-1 btn-sm btn-relation\" id=\"button_relation\">" + 
-            "Relation</button></div></div></div>";
+        var docInfoText = docInfoTemplate
+                            .replace("{{level}}", "Document")
+                            .replace("{{rank}}", (rank+1))
+                            .replace("{{totalRank}}", taskInfo["nb_excerpts"]);
 
-        // add a button for switching to relation mode from the annotation
-        var callRelation = function() {
-            if (recognito_mode === "ANNOTATION") {
-                console.log("set mode to relations")
-                recognito.setMode('RELATIONS');
-                recognito_mode = 'RELATIONS';
-                // change pointer 
-                document.body.style.cursor = "ew-resize";
-                $("#button_relation").addClass("selected");
-            } else {
-                recognito.setMode('ANNOTATION');
-                recognito_mode = 'ANNOTATION';
-                // restore pointer 
-                document.body.style.cursor = "default";
-                $("#button_relation").removeClass("selected");
-            }
-        }
-        
         var fullContext = excerptItem["full_context"];
-        var context = excerptItem["text"];
-        var indContext = 0;
-        if (context && context.length > 0) {
-            var indContext = fullContext.indexOf(context);
-            if (indContext == -1)
-                indContext = 0;
-        }
-        $("#annotation-doc-view").html(docInfoText + "<pre id=\"content-annotation\">"+fullContext+"</pre>");
-
-        recognito = Recogito.init({
-            content: document.getElementById('content-annotation'), 
-            //disableEditor: true,
-            mode: "pre",
-            formatter: formatter,
-            widgets: [
-                { widget: LabelSelectorWidget, labels: labels }
-            ],
-            relationVocabulary: ['related']
-        });
-        recognito_mode = 'ANNOTATION';
-
-        $("#button_relation").bind('click', callRelation); 
-
-        // labeling event handler  
-        recognito.on('createAnnotation', function(annotation, overrideId) {
-            console.log(annotation);
-
-            recognito.setMode('ANNOTATION');
-            recognito_mode = 'ANNOTATION';
-            document.body.style.cursor = "default";
-            $("#button_relation").removeClass("selected");
-        });
-
-        recognito.on('deleteAnnotation', function(annotation, overrideId) {
-            // POST to the server and receive a new ID
-            console.log(annotation);
-            recognito.setMode('ANNOTATION');
-            recognito_mode = 'ANNOTATION';
-            document.body.style.cursor = "default";
-            $("#button_relation").removeClass("selected");
-        });
-
-        // add annotation for recogito layer
-        var labelMap = createLabelMap(labels);
-        //console.log(labelMap);
-        addInlineAnnotations(fullContext, inlineLabeling, labelMap, labelColorMap, indContext);
-
+        //var context = excerptItem["text"];
+        //$("#annotation-doc-view").html(docInfoText + "<pre id=\"content-annotation\">"+fullContext+"</pre>");
+        
+        initRecogitoLabelingArea(fullContext, positionId, docInfoText, labels, inlineLabeling, labelMap, labelColorMap);
         setDocumentInfo(excerptItem["document_id"]);
     }
 
     xhr.send(null);
 }    
+
+function initRecogitoLabelingArea(fullContext, positionId, docInfoText, labels, inlineLabeling, labelMap, labelColorMap) {
+    $(positionId).html(docInfoText + "<pre id=\"content-annotation\">"+fullContext+"</pre>");
+
+    recognito = Recogito.init({
+        content: document.getElementById('content-annotation'), 
+        //disableEditor: true,
+        mode: "pre",
+        formatter: formatter,
+        widgets: [
+            { widget: LabelSelectorWidget, labels: labels }
+        ],
+        relationVocabulary: ['related']
+    });
+    recognito_mode = 'ANNOTATION';
+
+    $("#button_relation").bind('click', callRelation); 
+
+    // labeling event handler  
+    recognito.on('createAnnotation', function(annotation, overrideId) {
+        //console.log(annotation);
+
+        recognito.setMode('ANNOTATION');
+        recognito_mode = 'ANNOTATION';
+        document.body.style.cursor = "default";
+        $("#button_relation").removeClass("selected");
+    });
+
+    recognito.on('deleteAnnotation', function(annotation, overrideId) {
+        // POST to the server and receive a new ID
+        //console.log(annotation);
+        recognito.setMode('ANNOTATION');
+        recognito_mode = 'ANNOTATION';
+        document.body.style.cursor = "default";
+        $("#button_relation").removeClass("selected");
+    });
+
+    // add annotation for recogito layer
+    addInlineAnnotations(fullContext, inlineLabeling, labelMap, labelColorMap);
+}
 
 var formatter = function(annotation) {
     var classValue = annotation.bodies[0].value;
@@ -195,7 +258,7 @@ var formatter = function(annotation) {
     return "label " + classValue;
 }
 
-function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier) {    
+function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {    
     var labelHtmlContent = "<div class=\"w-100 text-center d-flex justify-content-around\" style=\"margin-top: auto; margin-bottom: auto;\">";
     const localHeight = 10*labels.length;
     $("#annotation-val-area").css("min-height", localHeight);
@@ -219,6 +282,14 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
     var isUserAnnotation = false;
     var isIgnoredExcerpt = false;
 
+    if (excerptItem["ignored"]) {
+        isIgnoredExcerpt = true;
+    }
+
+    if (excerptItem["validated"]) {
+        isUserAnnotation = true;
+    }
+
     // validation/paging area
     var localWidth = $("#annotation-val-view").width();
     var pagingHtmlContent = "";
@@ -226,14 +297,14 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         // we will need to place the navigation buttons under the valid/ignore buttons
         pagingHtmlContent += "<div class=\"row w-100 justify-content-center \" style=\"width: 100%;\">";
         if (isIgnoredExcerpt) {
-            pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+            pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\">Ignored</button>"; 
         } else if (isUserAnnotation) {
-            pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+            pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\">Ignore</button>"; 
         } else {
-            pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+            pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\">Ignore</button>"; 
         }
         pagingHtmlContent += "</div>";
 
@@ -252,14 +323,14 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; ";
         if (isIgnoredExcerpt) {
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\">Ignored</button>"; 
         } else if (isUserAnnotation) {
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\">Ignore</button>"; 
         } else {
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
+            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\">Ignore</button>"; 
         }
         pagingHtmlContent += " &nbsp; &nbsp; ";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
@@ -284,16 +355,16 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
     }
 
     $("#button-validate").click(function() {
-        validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, isUserAnnotation, recognito);
+        validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation, recognito);
         return true;
     });
     
-    if (!isIgnoredExcerpt) {
+    //if (!isIgnoredExcerpt) {
         $("#button-ignore").click(function() {
-            ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, isUserAnnotation);
+            ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation);
             return true;
         });
-    }
+    //}
     
     if (rank+1 >= taskInfo["nb_excerpts"]) {
         $("#button-next").css("visibility", "hidden");
@@ -312,7 +383,7 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
     }
 }
 
-function addInlineAnnotations(fullContext, inlineLabeling, labelMap, labelColorMap, indContext) {
+function addInlineAnnotations(fullContext, inlineLabeling, labelMap, labelColorMap) {
 
     if (inlineLabeling == null || inlineLabeling.length == 0) 
         return;
@@ -326,10 +397,7 @@ function addInlineAnnotations(fullContext, inlineLabeling, labelMap, labelColorM
         if (!isPreAnnotation && inlineAnnotation["source"] === "automatic")
             continue;
 
-        console.log(inlineAnnotation);
-
         var labelName = labelMap[inlineAnnotation["label_id"]];
-
         var annotation = { 
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "type": "Annotation",
@@ -353,10 +421,28 @@ function addInlineAnnotations(fullContext, inlineLabeling, labelMap, labelColorM
 
         annotation["body"][0]["value"] = labelName;
         annotation["target"]["selector"][0]["exact"] = inlineAnnotation["chunk"];
-        annotation["target"]["selector"][1]["start"] = inlineAnnotation["offset_start"] + indContext;
-        annotation["target"]["selector"][1]["end"] = inlineAnnotation["offset_end"] + indContext;
+        annotation["target"]["selector"][1]["start"] = inlineAnnotation["offset_start"];
+        annotation["target"]["selector"][1]["end"] = inlineAnnotation["offset_end"];
         annotation["id"] = inlineAnnotation["id"];
 
         recognito.addAnnotation(annotation);
     }
 }
+
+// add a button for switching to relation mode from the annotation
+var callRelation = function() {
+    if (recognito_mode === "ANNOTATION") {
+        console.log("set mode to relations")
+        recognito.setMode('RELATIONS');
+        recognito_mode = 'RELATIONS';
+        // change pointer 
+        document.body.style.cursor = "ew-resize";
+        $("#button_relation").addClass("selected");
+    } else {
+        recognito.setMode('ANNOTATION');
+        recognito_mode = 'ANNOTATION';
+        // restore pointer 
+        document.body.style.cursor = "default";
+        $("#button_relation").removeClass("selected");
+    }
+};

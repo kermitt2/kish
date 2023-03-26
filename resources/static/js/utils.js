@@ -71,7 +71,7 @@ function callToaster(positionClass, type, msg, greetings, duration) {
     }
 }
 
-function storeAnnotation(taskInfo, excerptIdentifier, label_id, value, offsets) {
+function storeAnnotation(taskInfo, excerptIdentifier, label_id, value, offsets, callback) {
     var url = defineBaseURL("annotations/annotation");
     var data = {};
     data["label_id"] = label_id;
@@ -94,6 +94,7 @@ function storeAnnotation(taskInfo, excerptIdentifier, label_id, value, offsets) 
     if (offsets && offsets.length == 2) {
         data["offset_start"] = offsets[0];
         data["offset_end"] = offsets[1];
+        data["chunk"] = value;
     }
 
     // retrieve the existing task information
@@ -110,7 +111,9 @@ function storeAnnotation(taskInfo, excerptIdentifier, label_id, value, offsets) 
             console.log(response["detail"]);
             callToaster("toast-top-center", "error", response["detail"], "Damn, adding annotation didn't work!");
         } else {
-            // successfully store new annotation, nothing to worry here
+            // successfully store new annotation, nothing to worry here, but we can execute a callback
+            if (callback)
+                callback();
         }
     }
 
@@ -155,14 +158,21 @@ function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, r
                 }
             }
 
-            // update button
-            $("#button-validate").css("background-color", "#8a909d");
-            $("#button-validate").html("Update");
-            $("#button-validate").css("color", "white");
+            // update excerpt status as ignored on server for this task
+            updateExcerptTaskStatus(taskInfo["id"], excerptIdentifier, false, true);
 
-            $("#button-ignore").css("background-color", "red");
-            $("#button-ignore").html("Ignored");
-            $("#button-ignore").css("color", "black");
+            // update button
+            //$("#button-validate").css("background-color", "#8a909d");
+            //$("#button-validate").html("Update");
+            //$("#button-validate").css("color", "white");
+            $("#button-validate").removeClass("validate")
+            $("#button-validate").addClass("update-inactive")
+
+            //$("#button-ignore").css("background-color", "red");
+            //$("#button-ignore").html("Ignored");
+            //$("#button-ignore").css("color", "black");
+            $("#button-ignore").removeClass("ignore")
+            $("#button-ignore").addClass("ignored")
 
             $("#button-validate").off('click');
             $("#button-ignore").off('click');
@@ -263,7 +273,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
         for (var annotationPos in annotations) {
             const annotation = annotations[annotationPos];
 
-            console.log(annotation);
+            //console.log(annotation);
 
             /* recogito data model for inline annotations is as follow:
             {
@@ -365,41 +375,60 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             for(var key in classValueMap) {
                 //console.log("store annotation:");
                 //console.log(key + " / " + classValueMap[key] + " / " + offsetValueMap[key]);
-                storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key], offsetValueMap[key]);
+                if (taskInfo["level"] && taskInfo["level"] === "document") {
+                    storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key], offsetValueMap[key], function() {
+                        $("#sentence-"+excerptIdentifier+"-0").trigger("click");
+                    });
+                    
+                } else {
+                    storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key], offsetValueMap[key], null);
+                }
             }
             
-            // update progress info display
+            if (taskInfo["level"] && taskInfo["level"] === "document") 
+                callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
+
             var completed = 0;
-            var currentcountStr = $("#progress-done").text();
-            var currentCount = parseInt(currentcountStr);
-            if (!update) {
-                if (currentCount != NaN) {
-                    currentCount += 1;
-                    if (currentCount >= taskInfo["nb_excerpts"]) {
-                        $("#progress-done").html(currentCount);
-                        $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
-                        completed = 1;
-                        currentCount = taskInfo["nb_excerpts"];
-                    } else if (currentCount < taskInfo["nb_excerpts"]) {
-                        $("#progress-done").html(currentCount);
+            // update header progress info display, for excerpt-level annotation task
+            if (taskInfo["level"] !== "document") {
+                var currentcountStr = $("#progress-done").text();
+                var currentCount = parseInt(currentcountStr);
+                if (!update) {
+                    if (currentCount != NaN) {
+                        currentCount += 1;
+                        if (currentCount >= taskInfo["nb_excerpts"]) {
+                            $("#progress-done").html(currentCount);
+                            $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+                            completed = 1;
+                            currentCount = taskInfo["nb_excerpts"];
+                        } else if (currentCount < taskInfo["nb_excerpts"]) {
+                            $("#progress-done").html(currentCount);
+                        }
                     }
+                } else {
+                    if (currentCount >= taskInfo["nb_excerpts"]) {
+                        completed = 1;
+                        currentCount = taskInfo["nb_excerpts"];                        
+                    }
+                    callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
                 }
             } else {
-                if (currentCount >= taskInfo["nb_excerpts"]) {
+                var currentcountStr = $("#progress-done").text();
+                var currentCount = parseInt(currentcountStr);
+                if (currentCount == taskInfo["nb_documents"]) {
                     completed = 1;
-                    currentCount = taskInfo["nb_excerpts"];
-                    callToaster("toast-top-center", "success", "the annotation excerpt is updated", "Yes!", "1000");
                 }
             }
 
-            // update button
-            $("#button-validate").css("background-color", "#fec400");
-            $("#button-validate").html("Update");
-            $("#button-validate").css("color", "black");
+            // update excerpt status as validated on server for this task
+            updateExcerptTaskStatus(taskInfo["id"], excerptIdentifier, true, false);
 
-            $("#button-ignore").css("background-color", "#8a909d");
-            $("#button-ignore").html("Ignore");
-            $("#button-ignore").css("color", "white");
+            // update button
+/*            $("#button-validate").removeClass("validate");
+            $("#button-validate").addClass("update");
+            $("#button-validate").html("Update");
+            $("#button-ignore").removeClass("ignore");
+            $("#button-ignore").addClass("ignore-inactive");
             
             $("#button-validate").off('click');
             $("#button-validate").click(function() {
@@ -411,14 +440,21 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                 ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
                 return true;
             });
-
-            // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
-            if (userInfo["auto_move_on"] == 1 && completed == 0 && ((rank+1) != taskInfo["nb_excerpts"])) {
-                setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
-            }
-
+*/
             // update task assignment information to keep track of the progress more easily
             updateTaskAssignment(taskInfo["id"], completed, currentCount);
+
+            // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
+            if (!taskInfo["level"] || taskInfo["level"] !== "document") {
+                if (userInfo["auto_move_on"] == 1 && completed == 0 && ((rank+1) != taskInfo["nb_excerpts"])) {
+                    setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
+                } else {
+                    setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank);
+                }
+            } /*else {
+                // refresh document view
+                $("#sentence-"+excerptIdentifier+"-0").trigger("click");
+            }*/
         }
     }
 
@@ -472,4 +508,33 @@ function checkPreAnnotation(annotations) {
         }
     }
     return preAnnotation;
+}
+
+function updateExcerptTaskStatus(taskId, excerptIdentifier, validated, ignored) {
+    var urlStr = "tasks/"+taskId+"/excerpt/"+excerptIdentifier;
+    if (validated) {
+        urlStr += "/validate";
+    } else {
+        urlStr += "/ignore";
+    }
+    var url = defineBaseURL(urlStr);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("PUT", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+    xhr.onloadend = function () {
+        if (xhr.status == 401) { 
+            window.location.href = "sign-in.html";
+        } else if (xhr.status != 200) {
+            // display server level error
+            var response = JSON.parse(xhr.responseText);
+            console.log(response["detail"]);
+            callToaster("toast-top-center", "error", response["detail"], "Damn, saving new excerpt didn't work!");
+        } else {
+            // nothing more to do normally
+        }
+    }
+
+    xhr.send(null);   
 }

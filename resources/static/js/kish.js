@@ -86,6 +86,9 @@ var kish = (function($) {
             $("#guidelines-side-bar").show();
             $("#annotate-side-bar").show();
             $("#annotation-view").show();
+            $("#annotation-doc-view").show();
+            $("#annotation-val-area").show();
+            $("#annotation-paging").show();
             return true;
         });
 

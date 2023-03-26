@@ -27,7 +27,9 @@ function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabel
         // list of inline annotations in case of classification excerpt to be visually enriched
         var inlineLabeling = [];
         // status
-        if (xhr.status == 200) {
+        if (xhr.status == 401) {
+            window.location.href = "sign-in.html";
+        } else if (xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
             records = response["records"];
             for(var recordPos in records) {
@@ -47,7 +49,7 @@ function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabel
         var ind = fullContext.indexOf(context);
 
         if (inlineLabeling != null && inlineLabeling.length > 0) {
-            context = applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColorMap);
+            context = applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColorMap, ind);
         } else {
             context = he.encode(context);
         }
@@ -68,7 +70,7 @@ function displayExcerptAreaClassification(userInfo, taskInfo, labels, otherLabel
     xhr.send(null);
 }
 
-function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier) {    
+function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem) {    
     // get task-specific annotations
     var url;
 
@@ -76,9 +78,9 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         // use original task type, this is an added field subtype, only available for reconciliation task
         // (see the data model)
         const primaryType = taskInfo["subtype"];
-        url = defineBaseURL("annotations/excerpt/"+excerptIdentifier+"?type="+primaryType);
+        url = defineBaseURL("annotations/excerpt/"+excerptItem["id"]+"?type="+primaryType);
     } else {
-        url = defineBaseURL("annotations/excerpt/"+excerptIdentifier+"?type="+taskInfo["type"]);
+        url = defineBaseURL("annotations/excerpt/"+excerptItem["id"]+"?type="+taskInfo["type"]);
     } 
 
     // retrieve the existing annotation information
@@ -242,14 +244,14 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
             // we will need to place the navigation buttons under the valid/ignore buttons
             pagingHtmlContent += "<div class=\"row w-100 justify-content-center \" style=\"width: 100%;\">";
             if (isIgnoredExcerpt) {
-                pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+                pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\">Ignored</button>"; 
             } else if (isUserAnnotation) {
-                pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+                pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\">Ignore</button>"; 
             } else {
-                pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+                pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\">Ignore</button>"; 
             }
             pagingHtmlContent += "</div>";
 
@@ -268,14 +270,14 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
             pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
             pagingHtmlContent += " &nbsp; &nbsp; ";
             if (isIgnoredExcerpt) {
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn btn-secondary\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: red;color:white;\">Ignored</button>"; 
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\">Ignored</button>"; 
             } else if (isUserAnnotation) {
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #fec400;color:black;\">Update</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"color:white;\">Ignore</button>"; 
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\">Ignore</button>"; 
             } else {
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #1e8449;color:white;\">Validate</button>";
-                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn \" style=\"background-color: #7DBCFF;color:white;\">Ignore</button>"; 
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
+                pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\">Ignore</button>"; 
             }
             pagingHtmlContent += " &nbsp; &nbsp; ";
             pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
@@ -300,13 +302,13 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         }
 
         $("#button-validate").click(function() {
-            validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, isUserAnnotation, null);
+            validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation, null);
             return true;
         });
         
         if (!isIgnoredExcerpt) {
             $("#button-ignore").click(function() {
-                ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, isUserAnnotation);
+                ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation);
                 return true;
             });
         }
@@ -330,7 +332,7 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
     xhr.send(null);
 }
 
-function applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColorMap) {
+function applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColorMap, ind) {
 
     if (inlineLabeling == null || inlineLabeling.length == 0) 
         return context;
@@ -371,6 +373,11 @@ function applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColor
         //var entityRawForm = piece.rawForm;
         var start = parseInt(piece.offset_start, 10);
         var end = parseInt(piece.offset_end, 10);
+
+        if (ind > 0) {
+            start -= ind;
+            end -= ind;
+        }
 
         if (start < pos) {
             // we have a problem in the initial sort of the entities
