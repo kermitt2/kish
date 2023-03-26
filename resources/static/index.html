@@ -17,6 +17,14 @@
     <link href="assets/plugins/simplebar/simplebar.css" rel="stylesheet" />
     <link href="assets/plugins/nprogress/nprogress.css" rel="stylesheet" />
 
+    <!-- PDF.js stuff -->
+    <link type="text/css" href="lib/pdf.js/web/text_layer_builder.css" rel="stylesheet"/>
+    <link type="text/css" href="lib/pdf.js/web/annotation_layer_builder.css" rel="stylesheet"/>
+    <script type="text/javascript" src="lib/pdf.js/web/text_layer_builder.js"></script>
+    <script type="text/javascript" src="lib/pdf.js/web/pdf_link_service.js"></script>
+    <script type="text/javascript" src="lib/pdf.js/web/annotation_layer_builder.js"></script>
+    <script type="text/javascript" src="lib/pdf.js/build_/pdf.js"></script>
+
     <!-- recogito-js lib -->
     <link href="lib/recogito-js/recogito.min.css" rel="stylesheet">
     <script src="lib/recogito-js/recogito.min.js"></script>
@@ -322,7 +330,7 @@
               ——— The annotation view
               ===================================== -->
               <div id="annotation-view" class="col-lg-11 col-xl-12" style="display:none;">
-                <div class="row">
+                <div class="row" style="height: 50px;">
                   <div id="annotation-task-info" class="pb-5" style="width:100%;"></div>
                 </div>
                 <div class="row">
@@ -331,10 +339,10 @@
                       <div id="annotation-doc-view" class="col-8 border pt-3 pb-3"></div>
                       <div id="annotation-val-view" class="col-4 border d-flex flex-column" style="position:relative;">
                         <div class="p-2 align-items-top" style="width: 100%; min-height: 100px;">
-                          <div id="annotation-val-area" class="pl-4 pt-2 w-100"></div>
+                          <div id="annotation-val-area" class="pt-2 w-100"></div>
                         </div>
                         <div class="p-2" style="width: 100%;">
-                          <div id="annotation-paging" class="justify-content-center pb-2 w-100" style="width:100%; align-items: center; justify-content: center;"></div>
+                          <div id="annotation-paging" class="pb-2 w-100" style="display:flex; width:100%; align-items: center; justify-content: center;"></div>
                         </div>
                       </div>
                     </div>
@@ -505,6 +513,7 @@
     <script src="js/user.js"></script>
     <script src="js/task.js"></script>
     <script src="js/dataset.js"></script>
+    <script src="js/document.js"></script>
     <script src="js/labeling.js"></script>
     <script src="js/classification.js"></script>
     <script src="js/guidelines.js"></script>
