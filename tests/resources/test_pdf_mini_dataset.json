@@ -1,0 +1,37 @@
+{
+    "documents": [
+        {
+            "id": "a37a4e9796",
+            "doi": "10.14348/molcells.2017.0013",
+            "full_text_url": "https://www.molcells.org/journal/download_pdf.php?doi=10.14348/molcells.2017.0013",
+            "full_text_pdf_uri": "resources/data/documents/molce-40-5-346.pdf",
+            "full_text_tei_uri": "resources/data/documents/molce-40-5-346.tei.xml",
+            "texts": []
+        },
+        {
+            "id": "a37a4e9798",
+            "doi": "10.1257/aer.20150897",
+            "full_text_url": "https://pubs.aeaweb.org/doi/pdfplus/10.1257/aer.20150897",
+            "full_text_pdf_uri": "resources/data/documents/aer.20150897.pdf",
+            "full_text_tei_uri": "resources/data/documents/aer.20150897.tei.xml",
+            "texts": []
+        },
+        {
+            "id": "a37a4e9799",
+            "doi": "10.1080/17421772.2011.647058",
+            "full_text_url": "https://discovery.dundee.ac.uk/ws/files/1274137/DDPE_253.pdf",
+            "full_text_pdf_uri": "resources/data/documents/DDPE_253.pdf",
+            "full_text_tei_uri": "resources/data/documents/DDPE_253.tei.xml",
+            "texts": []
+        },
+        
+        {
+            "id": "a37a4e9797",
+            "doi": "10.1038/ncomms1451",
+            "full_text_url": "https://www.nature.com/articles/ncomms1451.pdf",
+            "full_text_pdf_uri": "resources/data/documents/ncomms1451.pdf",
+            "full_text_tei_uri": "resources/data/documents/ncomms1451.tei.xml",
+            "texts": []
+        }
+    ]
+}
