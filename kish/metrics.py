@@ -23,7 +23,10 @@ async def compute_metrics(task_items):
         nb_cases += task_item["nb_excerpts"]
         nb_completed_cases += task_item["nb_completed_excerpts"]
 
-    result["progress"] = nb_completed_cases / nb_cases
+    if nb_cases == 0:
+        result["progress"] = 0
+    else:
+        result["progress"] = nb_completed_cases / nb_cases
     
     primary_completed_tasks = []
     for task_item in task_items:
@@ -60,7 +63,10 @@ async def compute_metrics(task_items):
         result["nb_min_disagreements"] = 0
     result["nb_distinct_tasks"] = nb_distinct_tasks
     result["nb_completed_distinct_cases"] = nb_completed_distinct_cases
-    result['percentage_agreement'] = 1 - (nb_disagreements / nb_completed_distinct_cases)
+    if nb_completed_distinct_cases == 0:
+        result['percentage_agreement'] = 0
+    else:
+        result['percentage_agreement'] = 1 - (nb_disagreements / nb_completed_distinct_cases)
     result['nb_completed_tasks'] = nb_completed_tasks
 
     result['nb_total_cases'] = nb_cases

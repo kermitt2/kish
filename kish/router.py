@@ -233,11 +233,13 @@ async def get_task_excerpts(identifier: str):
     from utils_db import get_items
     items = await get_items("intask", { "task_id": identifier }, full=True)
     if items == None or len(items)==0:
-        raise HTTPException(status_code=404, detail="Excerpt not found")
+        result["records"] = {}
+        #raise HTTPException(status_code=404, detail="Excerpt not found")
     else:
         records = []
         for item in items:
-            records.append(item["excerpt_id"])
+            if "excerpt_id" in item:
+                records.append(item["excerpt_id"])
         all_records = {}
         all_records["excerpts"] = records
 
@@ -258,6 +260,50 @@ async def get_task_excerpts(identifier: str):
                 if not excerptDone:
                     all_records["first_non_complete"] = i
                     break
+            i += 1
+
+        result["records"] = all_records
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result   
+
+@router.get("/tasks/{identifier}/documents", tags=["tasks"], 
+    description="Return all documents identifiers from the given task.")
+async def get_task_documents(identifier: str):
+    start_time = time.time()
+    result = {}
+
+    from utils_db import get_items
+    items = await get_items("intask", { "task_id": identifier }, full=True)
+    if items == None or len(items)==0:
+        result["records"] = {}
+        #raise HTTPException(status_code=404, detail="Excerpt not found")
+    else:
+        records = []
+        for item in items:
+            if "document_id" in item and item["document_id"] not in records:
+                records.append(item["document_id"])
+        all_records = {}
+        all_records["documents"] = records
+
+        i = 0
+        for item in items:
+            if "excerpt_id" in item:
+                local_annotation_dict = { "task_id": identifier, "excerpt_id": item["excerpt_id"], }
+                local_annotations = await get_items("annotation", local_annotation_dict, full=True)
+                documentDone = False
+
+                if local_annotations == None or len(local_annotations) == 0:
+                    all_records["first_non_complete"] = i
+                    break
+                else:
+                    for local_annotation in local_annotations:
+                        if "user_id" in local_annotation and local_annotation["user_id"] != None:
+                            documentDone = True
+                            break
+                    if not documentDone:
+                        all_records["first_non_complete"] = i
+                        break
             i += 1
 
         result["records"] = all_records
@@ -294,10 +340,100 @@ async def get_task_excerpt(identifier: str, rank: int = None):
         item = items[0]
         from utils_db import get_first_item
         excerpt_item = await get_first_item("excerpt", {"id": item["excerpt_id"]})
-        if item == None:
+        if excerpt_item == None:
             raise HTTPException(status_code=404, detail="Excerpt not found")
         else:
+            excerpt_item["validated"] = item["validated"]
+            excerpt_item["ignored"] = item["ignored"]
+            excerpt_item["task_id"] = item["task_id"]
             result['record'] = excerpt_item
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/tasks/{identifier}/document", tags=["tasks"], 
+    description="Return a document from the given task.")
+async def get_task_document(identifier: str, rank: int = None):
+    '''
+    To get a document to be annotated or already annotated in task, parameter
+    are its rank (in the task list of documents) or a jump method which can be:
+    - "first": first in the task list (same as rank=0)
+    - "last": last in the task list 
+
+    Return response include the ""status" of the document in the task, e.g 
+    validated or not.
+    '''
+    start_time = time.time()
+    result = {}
+    intask_dict = { "task_id": identifier }
+
+    if rank == -1 or rank == None:
+        offset_from = 0
+    else: 
+        offset_from = rank
+
+    from utils_db import get_items
+    items = await get_items("intask", intask_dict, full=True)
+    if items == None or len(items)==0:
+        raise HTTPException(status_code=404, detail="Document not found")
+    else:
+        # get the documents
+        local_documents = []
+        for item in items:
+            if "document_id" in item and item["document_id"] not in local_documents:
+                local_documents.append(item["document_id"])
+
+        if offset_from>=len(local_documents):
+            # inconsistent rank beyond the number of documents in the task, but we can default with the last one
+            item_id = local_documents[-1]
+        else:
+            item_id = local_documents[offset_from]
+
+        # enrich the task item with some additional information
+        from utils_db import get_first_item
+        document_item = await get_first_item("document", {"id": item_id})
+        if document_item == None:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        intask_item = await get_first_item("intask", {"document_id": item_id, "task_id": identifier, "excerpt_id": None})
+        if intask_item != None:
+            document_item["validated"] = intask_item["validated"]
+            document_item["ignored"] = intask_item["ignored"]
+
+        result['record'] = document_item
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.get("/tasks/{identifier_task}/document/{identifier_doc}/excerpts", tags=["tasks"], 
+    description="Return all the excerpts for a document from the given task.")
+async def get_task_document_excerpts(identifier_task: str, identifier_doc: str):
+    '''
+    To get all the excerpts of a document to be annotated or already annotated in a 
+    given task. The full record of the excerpts are returned. 
+    '''
+    start_time = time.time()
+    result = {}
+    records = []
+    intask_dict = { "task_id": identifier_task, "document_id": identifier_doc }
+
+    from utils_db import get_items, get_first_item
+    items = await get_items("intask", intask_dict, full=True)
+    if items == None or len(items)==0:
+        raise HTTPException(status_code=404, detail="No excerpt found")
+    else:
+        # get the excerpt objects now
+        for item in items:
+            if "excerpt_id" not in item or item["excerpt_id"] is None:
+                continue
+
+            excerpt_item = await get_first_item("excerpt", {"id": item["excerpt_id"] })
+            if excerpt_item == None:
+                continue
+
+            excerpt_item["validated"] = item["validated"]
+            excerpt_item["ignored"] = item["ignored"]
+            records.append(excerpt_item)
+
+        result['records'] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
@@ -404,11 +540,43 @@ async def get_document_metadata(identifier: str):
     from utils_db import get_first_item
     item = await get_first_item("document", {"id": identifier})
     if item == None:
-        raise HTTPException(status_code=404, detail="Labels not found")
+        raise HTTPException(status_code=404, detail="Document not found")
     else:
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result
+
+@router.get("/documents/{identifier}/pdf", tags=["datasets"], 
+    description="Return the PDF of a document, if available on server.")
+async def get_document_metadata(identifier: str):
+    
+    from utils_db import get_first_item
+    item = await get_first_item("document", {"id": identifier})
+    if item == None:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # get and check TEI path
+    pdf_file_path = item["pdf_uri"]
+    if pdf_file_path == None or len(pdf_file_path) == 0 or not os.path.isfile(pdf_file_path):
+        raise HTTPException(status_code=404, detail="PDF file not valid")
+    
+    return FileResponse(pdf_file_path)
+
+@router.get("/documents/{identifier}/tei", tags=["datasets"], 
+    description="Return the TEI XML of a document, if available on server.")
+async def get_document_metadata(identifier: str):
+
+    from utils_db import get_first_item
+    item = await get_first_item("document", {"id": identifier})
+    if item == None:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # get and check TEI path
+    tei_file_path = item["tei_uri"]
+    if tei_file_path == None or len(tei_file_path) == 0 or not os.path.isfile(tei_file_path):
+        raise HTTPException(status_code=404, detail="TEI XML file not valid")
+
+    return FileResponse(tei_file_path)
 
 @router.get("/tasks/redundant/me", tags=["tasks"], 
     description="Return the list of redundant tasks that can not be assigned to the current user.")
@@ -681,6 +849,70 @@ async def get_excerpt_annotation(identifier: str, type: str, user: User = Depend
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
+
+@router.put("/tasks/{identifier}/excerpt", tags=["annotations"], 
+    description="Create or update an excerpt from a document for a given task.")
+async def add_excerpt(identifier: str, request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    excerpt_dict = await request.json()
+
+    # if excerpt id already present, it is an update
+    existing_excerpt = None
+    update = False
+    if "excerpt_id" in excerpt_dict:
+        from utils_db import get_first_item
+        existing_excerpt = await get_first_item("excerpt", { "id": excerpt_dict["excerpt_id"] } )
+
+    # create excerpt record
+    if existing_excerpt is not None:
+        excerpt_record = existing_excerpt
+        update = True
+    else:
+        excerpt_record = {}
+    if "excerpt_id" in excerpt_dict:
+        excerpt_record["id"] = excerpt_dict["excerpt_id"]
+    if "text" in excerpt_dict:
+        excerpt_record["text"] = excerpt_dict["text"]
+        excerpt_record["full_context"] = excerpt_dict["text"]
+    if "full_context" in excerpt_dict:
+        excerpt_record["full_context"] = excerpt_dict["full_context"]
+    if "document_id" in excerpt_dict:
+        excerpt_record["document_id"] = excerpt_dict["document_id"]
+    if "dataset_id" in excerpt_dict:
+        excerpt_record["dataset_id"] = excerpt_dict["dataset_id"]
+
+    excerpt_record["offset_start"] = 0
+    excerpt_record["offset_end"] = 0
+
+    if update:
+        from utils_db import update_record
+        excerpt_result = await update_record("excerpt", excerpt_record["id"], excerpt_record, full=True)
+    else:
+        from utils_db import insert_item
+        if "id" in excerpt_record:
+            excerpt_result = await insert_item("excerpt", excerpt_record, add_id=False)
+        else:
+            excerpt_result = await insert_item("excerpt", excerpt_record, add_id=True)
+
+    print("excerpt_result")
+    print(excerpt_result)
+
+    # add or update excerpt to the task
+    intask_record = {}
+    intask_record["excerpt_id"] = excerpt_result["id"]
+    intask_record["document_id"] = excerpt_record["document_id"]
+    intask_record["task_id"] = identifier
+    intask_record["validated"] = False
+    intask_record["ignored"] = False
+    from utils_db import insert_item
+    await insert_item("intask", intask_record, add_id=False)
+
+    result['record'] = excerpt_result
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
 @router.put("/annotations/annotation", tags=["annotations"], 
     description="Add or update an annotation.")
 async def add_annotation(request: Request, user: User = Depends(current_user)):
@@ -740,5 +972,81 @@ async def clear_annotations(identifier: str, request: Request, user: User = Depe
     delete_result = await delete_items("annotation", {"excerpt_id": annotations_dict["excerpt_id"], "user_id": str(user.id), "task_id": identifier} )
     if delete_result != None and "error" in delete_result:
         raise HTTPException(status_code=500, detail="Annotation deletion failed: "+delete_result["error"])
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.put("/tasks/{identifier}/document/validate", tags=["annotations"], 
+    description="Set a document as validated in a given task.")
+async def validate_document(identifier: str, request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    document_dict = await request.json()
+
+    if not "document_id" in document_dict:
+        raise HTTPException(status_code=500, detail="Document validation failed: missing document_id parameter")
+    document_id = document_dict["document_id"]
+
+    from utils_db import validate_document
+    update_result = await validate_document(document_id, identifier)
+
+    if update_result != None and "error" in update_result:
+        raise HTTPException(status_code=500, detail="Document validation failed: "+update_result["error"])
+
+    result["record"] = "success"
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.put("/tasks/{identifier}/document/ignore", tags=["annotations"], 
+    description="Set a document as ignored in a given task.")
+async def ignore_document(identifier: str, request: Request, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    document_dict = await request.json()
+
+    if not "document_id" in document_dict:
+        raise HTTPException(status_code=500, detail="Document status to ignored failed: missing document_id parameter")
+    document_id = document_dict["document_id"]
+
+    from utils_db import ignore_document
+    update_result = await ignore_document(document_id, identifier)
+
+    if update_result != None and "error" in update_result:
+        raise HTTPException(status_code=500, detail="Document status to ignored failed: "+update_result["error"])
+
+    result["record"] = "success"
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.put("/tasks/{identifier_task}/excerpt/{identifier_excerpt}/validate", tags=["annotations"], 
+    description="Set an excerpt as validated in a given task.")
+async def validate_task_excerpt(identifier_task: str, identifier_excerpt: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    from utils_db import validate_excerpt
+    update_result = await validate_excerpt(identifier_excerpt, identifier_task)
+
+    if update_result != None and "error" in update_result:
+        raise HTTPException(status_code=500, detail="Excerpt validation failed: "+update_result["error"])
+
+    result["record"] = "success"
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
+@router.put("/tasks/{identifier_task}/excerpt/{identifier_excerpt}/ignore", tags=["annotations"], 
+    description="Set an excerpt as ignored in a given task.")
+async def ignore_task_excerpt(identifier_task: str, identifier_excerpt: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    from utils_db import ignore_excerpt
+    update_result = await ignore_excerpt(identifier_excerpt, identifier_task)
+
+    if update_result != None and "error" in update_result:
+        raise HTTPException(status_code=500, detail="Excerpt status to ignore failed: "+update_result["error"])
+
+    result["record"] = "success"
     result['runtime'] = round(time.time() - start_time, 3)
     return result

@@ -44,7 +44,11 @@ async def import_dataset_json(dataset_id: str, paths: list):
         for record in ijson.items(f, "documents.item"):
             document_dict = {}
             if "full_text_url" in record:
-                document_dict["pdf_uri"] = record["full_text_url"]
+                document_dict["pdf_url"] = record["full_text_url"]
+            if "full_text_pdf_uri" in record:
+                document_dict["pdf_uri"] = record["full_text_pdf_uri"]
+            if "full_text_tei_uri" in record:
+                document_dict["tei_uri"] = record["full_text_tei_uri"]
             if "doi" in record:
                 document_dict["doi"] = record["doi"]
             if "pmc" in record:
@@ -82,8 +86,13 @@ async def import_dataset_json(dataset_id: str, paths: list):
                     for annotation in excerpt["entity_spans"]:
                         annotation_dict = {}
                         annotation_dict["excerpt_id"] = excerpt_id
+                        # offsets are always relative to the full context
                         annotation_dict["offset_start"] = annotation["start"]
                         annotation_dict["offset_end"] = annotation["end"]
+                        if "offset_start" in excerpt_dict:
+                            annotation_dict["offset_start"] += excerpt_dict["offset_start"]
+                        if "offset_start" in excerpt_dict:
+                            annotation_dict["offset_end"] += excerpt_dict["offset_start"]
                         annotation_dict["chunk"] = annotation["rawForm"]
                         annotation_dict["source"] = "automatic"
                         annotation_dict["type"] = "labeling"

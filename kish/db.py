@@ -56,7 +56,9 @@ class Task(Base):
     '''
     If a task is a redundant task, it is indicated by the redundant field
     pointing to the primary task. A user cannot be assigned to more than one 
-    task corresponding to the same primary task. 
+    task corresponding to the same primary task. Supported types of task are
+    "classification" and "labeling". "level" indicates the level of input to
+    be annotated in the task, either "document" or "excerpt".
     '''
     __tablename__ = "task"
 
@@ -64,6 +66,7 @@ class Task(Base):
     dataset_id = Column(String, ForeignKey("dataset.id"))
     name = Column(String)
     type = Column(String)
+    level = Column(String)
     redundant = Column(String, ForeignKey("task.id"))
     guidelines = Column(String)
 
@@ -74,6 +77,7 @@ class Document(Base):
     doi = Column(String)
     pmc = Column(String)
     pmid = Column(String)
+    pdf_url = Column(String)
     pdf_uri = Column(String)
     tei_uri = Column(String)
 
@@ -154,7 +158,10 @@ class InTask(Base):
     __tablename__ = "intask"
 
     task_id = Column(String, ForeignKey("task.id"), nullable=False, primary_key=True)
-    excerpt_id = Column(String, ForeignKey("excerpt.id"), nullable=False, primary_key=True)
+    excerpt_id = Column(String, ForeignKey("excerpt.id"), nullable=True, primary_key=True)
+    document_id = Column(String, ForeignKey("document.id"), nullable=False, primary_key=True)
+    validated = Column(Boolean)
+    ignored = Column(Boolean)
 
 class Assign(Base):
     '''

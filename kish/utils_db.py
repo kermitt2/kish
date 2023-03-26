@@ -153,7 +153,7 @@ async def insert_item(table, record_as_dict, add_id=True):
             await conn.commit()
     except SQLAlchemyError as e:
         error=str(e.orig)
-        print("Fail to insert "+ table + " record: " + error)
+        #print("Fail to insert "+ table + " record: " + error)
         return {"error": error}
 
     if "id" in record_as_dict:
@@ -161,7 +161,7 @@ async def insert_item(table, record_as_dict, add_id=True):
     else:
         return
 
-async def update_record(table, record_id, record_dict):
+async def update_record(table, record_id, record_dict, full=False):
     statement = "UPDATE " + table + " SET " 
     start = True
     for key in record_dict:
@@ -185,7 +185,11 @@ async def update_record(table, record_id, record_dict):
         print("Fail to update "+ table + " record: " + error)
         return {"error": error}
 
-    return {"id": record_id}
+    if full:
+        record_dict["id"] = record_id
+        return record_dict
+    else:
+        return {"id": record_id}
 
 async def update_task_assignment_progress(task_id, user_id, record_dict):
     statement = "UPDATE assign SET " 
@@ -232,7 +236,7 @@ async def get_task_attributes(task_item):
     attributes = {}
 
     # number of excerpts
-    statement = text("SELECT count(*) FROM intask WHERE task_id = '"+task_id+"'")
+    statement = text("SELECT count(*) FROM intask WHERE task_id = '"+task_id+"' AND excerpt_id is not null")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)
@@ -242,9 +246,9 @@ async def get_task_attributes(task_item):
         print("Fail to access record in intask table: " + error)
 
     # number of documents
-    statement = text("SELECT count(DISTINCT excerpt.document_id)" + 
-        " FROM intask, excerpt" + 
-        " WHERE intask.task_id = '"+task_id+"' AND intask.excerpt_id = excerpt.id")
+    statement = text("SELECT count(DISTINCT intask.document_id)" + 
+        " FROM intask" + 
+        " WHERE intask.task_id = '"+task_id+"'")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)
@@ -263,7 +267,7 @@ async def get_task_attributes(task_item):
             attributes["nb_annotations"] = result.scalar()
     except SQLAlchemyError as e:
         error=str(e.__dict__['orig'])
-        print("Fail to access record in intask table: " + error)
+        print("Fail to access record in annotation table: " + error)
 
     # number of pre-annotations    
     statement = text("SELECT count(DISTINCT annotation.id)" + 
@@ -275,17 +279,28 @@ async def get_task_attributes(task_item):
             attributes["nb_pre_annotations"] = result.scalar()
     except SQLAlchemyError as e:
         error=str(e.__dict__['orig'])
-        print("Fail to access record in intask table: " + error)
+        print("Fail to access record in annotation table: " + error)
 
     # number of completed excerpts in the task
     statement = text("SELECT count(DISTINCT annotation.excerpt_id)" + 
         " FROM annotation" + 
-        #" WHERE annotation.task_id = '"+task_id+"' AND annotation.user_id = '" + user_id +"'")
         " WHERE annotation.task_id = '"+task_id+"' AND annotation.user_id IS NOT NULL")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)
             attributes["nb_completed_excerpts"] = result.scalar()
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to access record in annotation table: " + error)
+
+    # number of completed documents in the task
+    statement = text("SELECT count(DISTINCT document_id)" + 
+        " FROM intask" + 
+        " WHERE task_id = '"+task_id+"' AND validated = 1 AND excerpt_id IS NULL")
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(statement)
+            attributes["nb_completed_documents"] = result.scalar()
     except SQLAlchemyError as e:
         error=str(e.__dict__['orig'])
         print("Fail to access record in intask table: " + error)
@@ -316,6 +331,70 @@ async def delete_items(table, record_dict):
     except SQLAlchemyError as e:
         error=str(e.__dict__['orig'])
         print("Fail to delete record(s) in "+ table + ": " + error)
+        return {"error": error}
+
+async def validate_document(document_id, task_id):
+    '''
+    Validate a document and all its excerpts for a given task
+    '''
+    statement = "UPDATE intask SET validated = 1 WHERE document_id = '" + document_id + "' AND task_id ='" + task_id + "'"
+    statement = text(statement)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(statement)
+            await conn.commit()
+            return
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to update record(s) in intask: " + error)
+        return {"error": error}
+
+async def ignore_document(document_id, task_id):
+    '''
+    Set a document (and all its excerpts) to be ignored for a given task 
+    '''
+    statement = "UPDATE intask SET ignored = 1 WHERE document_id = '" + document_id + "' AND task_id ='" + task_id + "'"
+    statement = text(statement)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(statement)
+            await conn.commit()
+            return
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to update record(s) in intask: " + error)
+        return {"error": error}
+
+async def validate_excerpt(excerpt_id, task_id):
+    '''
+    Validate an excerpt in a given task
+    '''
+    statement = "UPDATE intask SET validated = 1 WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
+    statement = text(statement)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(statement)
+            await conn.commit()
+            return
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to update record(s) in intask: " + error)
+        return {"error": error}
+
+async def ignore_excerpt(excerpt_id, task_id):
+    '''
+    Ignore an excerpt in a given task
+    '''
+    statement = "UPDATE intask SET ignored = 1 WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
+    statement = text(statement)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(statement)
+            await conn.commit()
+            return
+    except SQLAlchemyError as e:
+        error=str(e.__dict__['orig'])
+        print("Fail to update record(s) in intask: " + error)
         return {"error": error}
 
 async def test_init():
@@ -405,4 +484,56 @@ async def test_labeling_init():
 
     from kish.tasks import generate_tasks
     await generate_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023a", "mentions", task_type="labeling", target_annotators=2, redundancy=2, 
+        guidelines="guidelines-softcite-labeling.md")
+
+async def test_document_init():
+    # create a dataset and tasks with PDF document without pre-annotation
+    
+    # Dataset
+    dataset_data = { "id": '811b64f1-323f-4a78-bdb8-ebaab44b023b', 
+                     "name": "soft_data_pdf",
+                     "description": "Software and dataset mention contexts in PDF",
+                     "image_url": "images/software.png" }
+
+    # check if dataset is already present
+    dataset = await get_first_item("dataset", {"id": dataset_data["id"]})
+    if dataset is not None:
+
+        # extra specifications for labels associated to the dataset
+        from loader import import_labels_json
+        await import_labels_json(dataset["id"], ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+
+        # check if reconciliation tasks are already present
+
+        # get the tasks for this dataset
+        task_ids = await get_items("task", {"dataset_id": dataset["id"]})
+
+        for task_id in task_ids:
+            # if task is complete, check completeness of all redundant tasks
+            from tasks import check_completed_tasks, open_reconciliation_task, has_reconciliation_task
+            already_reconciliation = await has_reconciliation_task(task_id)
+            if not already_reconciliation:
+                allComplete = await check_completed_tasks(task_id)
+                if allComplete:
+                    await open_reconciliation_task(task_id)
+        return
+
+    # extra specifications for labels associated to the dataset
+    from loader import import_labels_json
+    await import_labels_json("811b64f1-323f-4a78-bdb8-ebaab44b023b", 
+        ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+
+    await insert_item("dataset", dataset_data)
+
+    # insert data for the dataset
+    dataset_data_sources = ["tests/resources/test_pdf_mini_dataset.json"]
+
+    from loader import import_dataset_json
+    result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
+        "811b64f1-323f-4a78-bdb8-ebaab44b023b", 
+        dataset_data_sources)
+
+    # create task for 4 annotators with the 4 documents
+    from kish.tasks import generate_document_tasks
+    await generate_document_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023b", "mentions", task_type="labeling", target_annotators=1, redundancy=4, 
         guidelines="guidelines-softcite-labeling.md")

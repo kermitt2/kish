@@ -4,7 +4,8 @@ import json
 
 async def generate_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, guidelines=None):
     """
-    For a given dataset and some specifications, create a list of tasks to be assigned or selected by users.
+    For a given dataset and some specifications, create a list of tasks to be assigned or selected by users
+    at the level of excerpt.
     
     Task can be of type "classification" or "labeling".
     
@@ -18,6 +19,9 @@ async def generate_tasks(dataset_id, task_group_name, task_type="classification"
     
     The path to the annotation guidelines associated to the generated tasks can also be specified here as
     additional argument.
+
+    Here, the level of input to be annotated in the task is "excerpt". We show excerpt one after the other
+    to the user for annotations. 
     """
     nb_tasks = 0
 
@@ -52,7 +56,8 @@ async def generate_tasks(dataset_id, task_group_name, task_type="classification"
             task_dict = { "type": task_type, 
                           "dataset_id": dataset_id, 
                           "name": dataset["name"]+"-"+task_group_name+"-task"+str(i)+"-"+str(j),
-                          "guidelines": guidelines }
+                          "guidelines": guidelines,
+                          "level": "excerpt" }
             if j != 0 and primary_task_id != -1:
                 task_dict["redundant"] = primary_task_id
 
@@ -82,7 +87,7 @@ async def generate_tasks(dataset_id, task_group_name, task_type="classification"
 
             for local_excerpt in local_excerpts:
                 #print(local_excerpt)
-                intask_dict = { "task_id": task_id, "excerpt_id": local_excerpt["id"] }
+                intask_dict = { "task_id": task_id, "excerpt_id": local_excerpt["id"], "document_id": local_excerpt["document_id"], "validated": False, "ignored": False }
                 await insert_item("intask", intask_dict, add_id=False)
 
     return nb_tasks
@@ -256,8 +261,96 @@ async def open_reconciliation_task(task_id):
         for label_id in labelValueMap:
             #print(labelValueMap[label_id])
             if len(labelValueMap[label_id]) > 1:
-                intask_dict = { "task_id": reconciliation_task_id, "excerpt_id": excerpt_id }
+                intask_dict = { "task_id": reconciliation_task_id, 
+                                "excerpt_id": excerpt_id, 
+                                "document_id": intask_excerpt["document_id"], 
+                                "validated": False }
                 await insert_item("intask", intask_dict, add_id=False)
                 break
     return True
+
+async def generate_document_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, guidelines=None):
+    """
+    For a given dataset and some specifications, create a list of document-level tasks to be assigned or selected by users.
+    
+    Task can be of type "classification" or "labeling".
+    
+    The number of annotators is used to create a certain number of tasks, dividing the full dataset into
+    smaller sets to be annotated.
+    
+    The maximum size of a task is bounded by a parameter too. 
+    
+    The redundancy parameter indicates by how many users the same task should be performed in order to allow 
+    reconcialiation step/correction for disagreements and/or to produce Inter Annotator Agreement scores.
+    
+    The path to the annotation guidelines associated to the generated tasks can also be specified here as
+    additional argument.
+
+    The level of input to be presented to the user here is the document. This level supposes that the documents
+    specified in the task include a PDF and a TEI XML URI for display. 
+    """
+    nb_tasks = 0
+
+    # get dataset information
+    dataset = await get_first_item("dataset", { "id": dataset_id } )
+
+    if not "nb_documents" in dataset or not "nb_excerpts" in dataset:
+        return 0
+
+    nb_documents = dataset["nb_documents"]
+
+    # to determine task size, we check which criteria between number of annotators (first) 
+    # and max_task_size (second) should apply
+    nb_documents_per_task = (nb_documents // target_annotators) + 1
+    if nb_documents_per_task > max_task_size:
+        # we sub-partition
+        divider = (nb_documents // max_task_size) + 1
+        nb_tasks = divider
+        nb_documents_per_task = (nb_documents // nb_tasks) + 1
+    else:
+        nb_tasks = target_annotators
+
+    print("nb_tasks: " + str(nb_tasks))
+    print("nb_documents_per_task: " + str(nb_documents_per_task))
+
+    for i in range(0,nb_tasks):
+        # add redundancy
+        primary_task_id = -1
+        for j in range(0, redundancy):
+            # create task
+            task_dict = { "type": task_type, 
+                          "dataset_id": dataset_id, 
+                          "name": dataset["name"]+"-"+task_group_name+"-task"+str(i)+"-"+str(j),
+                          "guidelines": guidelines,
+                          "level": "document" }
+            if j != 0 and primary_task_id != -1:
+                task_dict["redundant"] = primary_task_id
+
+            task_item = await insert_item("task", task_dict)
+            task_id = task_item["id"]
+            
+            if j == 0: 
+                primary_task_id = task_id
+
+            # prepare documents for the task
+            offset_from = i * nb_documents_per_task
+            offset_to = (i+1) * nb_documents_per_task
+            local_documents = await get_items("InCollection", { "dataset_id": dataset_id }, offset_from=offset_from, offset_to=offset_to, full=True)
+
+            # update dataset
+            dataset_dict = {}
+            if "nb_tasks" in dataset and dataset["nb_tasks"] is not None:
+                dataset_dict["nb_tasks"] = dataset["nb_tasks"] + 1
+                dataset["nb_tasks"] += 1
+            else:
+                dataset_dict["nb_tasks"] = 1
+                dataset["nb_tasks"] = 1
+            await update_record("dataset", dataset_id, dataset_dict)
+
+            for local_document in local_documents:
+                print(local_document)
+                intask_dict = { "task_id": task_id, "document_id": local_document["document_id"], "validated": False, "ignored": False }
+                await insert_item("intask", intask_dict, add_id=False)
+
+    return nb_tasks
 
