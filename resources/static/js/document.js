@@ -572,8 +572,11 @@ function validateDocument(userInfo, taskInfo, document_id) {
             var currentCount = parseInt(currentcountStr);
             $("#progress-done").html(""+(currentCount+1));
 
-            if (currentCount === taskInfo["nb_documents"]) {                
+            if ((currentCount+1) === taskInfo["nb_documents"]) {
                 $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+
+                // update task status
+                updateTaskAssignment(taskInfo["id"], 1, 0, currentCount+1);
             }
 
             // validate every excerpts in the doc

@@ -174,6 +174,7 @@ class Assign(Base):
     in_progress = Column(Boolean)
     is_completed = Column(Boolean)
     completed_excerpts = Column(Integer)
+    completed_documents = Column(Integer)
 
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

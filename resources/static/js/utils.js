@@ -186,12 +186,13 @@ function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, r
     xhr.send(JSON.stringify(data));
 }
 
-function updateTaskAssignment(taskIdentifier, completed, currentCount) {
+function updateTaskAssignment(taskIdentifier, completed, currentCount, currentCountDocuments) {
     var url = defineBaseURL("tasks/"+taskIdentifier+"/assign");
     var data = {}
     data["in_progress"] = 1;
     data["is_completed"] = completed;
     data["completed_excerpts"] = currentCount
+    data["completed_documents"] = currentCountDocuments
 
     var xhr = new XMLHttpRequest();
     xhr.open("PUT", url, true);
@@ -415,7 +416,8 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             } else {
                 var currentcountStr = $("#progress-done").text();
                 var currentCount = parseInt(currentcountStr);
-                if (currentCount == taskInfo["nb_documents"]) {
+                console.log('currentCount:' + currentCount + ", taskInfo[nb_documents]: " + taskInfo["nb_documents"]);
+                if (currentCount === taskInfo["nb_documents"]) {
                     completed = 1;
                 }
             }
@@ -442,7 +444,10 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             });
 */
             // update task assignment information to keep track of the progress more easily
-            updateTaskAssignment(taskInfo["id"], completed, currentCount);
+            if (taskInfo["level"] === "document") 
+                updateTaskAssignment(taskInfo["id"], completed, 0, currentCount);
+            else 
+                updateTaskAssignment(taskInfo["id"], completed, currentCount, 0);
 
             // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
             if (!taskInfo["level"] || taskInfo["level"] !== "document") {
