@@ -623,9 +623,42 @@ function updateDocument(userInfo, taskInfo, document_id) {
     $("#button-document-ignore").html("Ignore doc.");
 
     // update server status, document is not anymore ignored so we consider it is similar to validation
-    validateDocument(userInfo, taskInfo, document_id);
+    var url = defineBaseURL("tasks/"+taskInfo["id"]+"/document/validate");
+    var data = {}
+    data["document_id"] = document_id;
 
-    callToaster("toast-top-center", "success", "the document is updated", "Yes!", "1000");
+    var xhr = new XMLHttpRequest();
+    xhr.open("PUT", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+    xhr.onloadend = function () {
+        if (xhr.status == 401) { 
+            window.location.href = "sign-in.html";
+        } else if (xhr.status != 200) {
+            // display server level error
+            var response = JSON.parse(xhr.responseText);
+            console.log(response["detail"]);
+            callToaster("toast-top-center", "error", response["detail"], "Damn, updating document didn't work!");
+        } else {
+            var currentcountStr = $("#progress-done").text();
+            var currentCount = parseInt(currentcountStr);
+
+            // no counter progress necessary because the document was already completed
+            
+            if ((currentCount) === taskInfo["nb_documents"]) {
+                $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
+
+                // update task status
+                updateTaskAssignment(taskInfo["id"], 1, 0, (currentCount+1));
+            } else {
+                updateTaskAssignment(taskInfo["id"], 0, 0, (currentCount+1));
+            }
+
+            callToaster("toast-top-center", "success", "the document is updated", "Yes!", "1000");
+        }
+    }
+
+    xhr.send(JSON.stringify(data));
 }
 
 function ignoreDocument(userInfo, taskInfo, document_id) {

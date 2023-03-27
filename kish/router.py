@@ -283,28 +283,22 @@ async def get_task_documents(identifier: str):
     else:
         records = []
         for item in items:
-            if "document_id" in item and item["document_id"] not in records:
+            if "document_id" in item and ("excerpt_id" not in item or item["excerpt_id"] is None) and item["document_id"] not in records:
                 records.append(item["document_id"])
         all_records = {}
         all_records["documents"] = records
 
         i = 0
         for item in items:
-            if "excerpt_id" in item:
-                local_annotation_dict = { "task_id": identifier, "excerpt_id": item["excerpt_id"], }
-                local_annotations = await get_items("annotation", local_annotation_dict, full=True)
-                documentDone = False
-
-                if local_annotations == None or len(local_annotations) == 0:
-                    all_records["first_non_complete"] = i
-                    break
-                else:
-                    for local_annotation in local_annotations:
-                        if "user_id" in local_annotation and local_annotation["user_id"] != None:
-                            documentDone = True
-                            break
-                    if not documentDone:
-                        all_records["first_non_complete"] = i
+            if "document_id" in item and ("excerpt_id" not in item or item["excerpt_id"] is None):
+                if item["validated"] == 0 and item["ignored"] == 0:
+                    we_have_match = True
+                    try:
+                        all_records["first_non_complete"] = records.index(item["document_id"])
+                    except: 
+                        # this should not happen
+                        we_have_match = False
+                    if we_have_match:
                         break
             i += 1
 

@@ -353,7 +353,7 @@ async def ignore_document(document_id, task_id):
     '''
     Set a document (and all its excerpts) to be ignored for a given task 
     '''
-    statement = "UPDATE intask SET ignored = 1 WHERE document_id = '" + document_id + "' AND task_id ='" + task_id + "'"
+    statement = "UPDATE intask SET ignored = 1, validated = 0 WHERE document_id = '" + document_id + "' AND task_id ='" + task_id + "'"
     statement = text(statement)
     try:
         async with engine.connect() as conn:
@@ -369,7 +369,7 @@ async def validate_excerpt(excerpt_id, task_id):
     '''
     Validate an excerpt in a given task
     '''
-    statement = "UPDATE intask SET validated = 1, ignored = 0  WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
+    statement = "UPDATE intask SET validated = 1, ignored = 0 WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
     statement = text(statement)
     try:
         async with engine.connect() as conn:
@@ -385,7 +385,7 @@ async def ignore_excerpt(excerpt_id, task_id):
     '''
     Ignore an excerpt in a given task
     '''
-    statement = "UPDATE intask SET ignored = 1 WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
+    statement = "UPDATE intask SET ignored = 1, validated = 0 WHERE excerpt_id = '" + excerpt_id + "' AND task_id ='" + task_id + "'"
     statement = text(statement)
     try:
         async with engine.connect() as conn:
@@ -501,7 +501,8 @@ async def test_document_init():
 
         # extra specifications for labels associated to the dataset
         from loader import import_labels_json
-        await import_labels_json(dataset["id"], ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+        #await import_labels_json(dataset["id"], ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+        await import_labels_json(dataset["id"], ["tests/resources/softcite-labels.json"])
 
         # check if reconciliation tasks are already present
 
@@ -521,7 +522,7 @@ async def test_document_init():
     # extra specifications for labels associated to the dataset
     from loader import import_labels_json
     await import_labels_json("811b64f1-323f-4a78-bdb8-ebaab44b023b", 
-        ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+        ["tests/resources/softcite-labels.json"])
 
     await insert_item("dataset", dataset_data)
 
