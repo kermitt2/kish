@@ -47,7 +47,7 @@ api:
   log_level: "debug"
   reload: false
   # the following is used in the generated API documentation
-  version: "0.1"
+  version: "0.2"
   name: "KISH web app and API"
   description: "Keeping It Simple is Hard"
   api_route: ""
