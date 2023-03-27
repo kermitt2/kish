@@ -831,15 +831,15 @@ async def get_excerpt_annotation(identifier: str, type: str, user: User = Depend
     result = {}
     from utils_db import get_items
 
-    if user.role == "annotator":
-        items1 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": str(user.id)}, full=True)
-        items2 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": None}, full=True)
-        if items1 == None and items2 == None:
-            raise HTTPException(status_code=404, detail="Annotation not found")
-        else:
-            items = items1+items2
+    #if user.role == "annotator":
+    items1 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": str(user.id)}, full=True)
+    items2 = await get_items("annotation", {"excerpt_id": identifier, "type": type, "user_id": None}, full=True)
+    if items1 == None and items2 == None:
+        raise HTTPException(status_code=404, detail="Annotation not found")
     else:
-        items = await get_items("annotation", {"excerpt_id": identifier, "type": type}, full=True)
+        items = items1+items2
+    #else:
+    #    items = await get_items("annotation", {"excerpt_id": identifier, "type": type}, full=True)
 
     result['records'] = items
     result['runtime'] = round(time.time() - start_time, 3)

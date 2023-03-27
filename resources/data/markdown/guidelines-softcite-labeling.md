@@ -402,7 +402,10 @@ The programming environment here is clearly a software and should be annotated a
 1.
 ```
     " ... using the **Ingenuity Pathways Analysis (IPA)** tool... "
+```
 
+2.
+```
     " The user interface was linked to a **My Structured Query Language (MySQL)** database "
 ```
 
