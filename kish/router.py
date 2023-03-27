@@ -977,20 +977,23 @@ async def remove_annotations(identifier: str, request: Request, user: User = Dep
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
-@router.delete("/tasks/{identifier_task}/excerpt/{identifier_excerpt}", tags=["annotations"], 
+@router.delete("/tasks/{identifier}/excerpt", tags=["annotations"], 
     description="Remove an excerpt from a given task and all its current annotations.")
-async def remove_task_excerpt(identifier_task: str, identifier_excerpt: str, user: User = Depends(current_user)):
+async def remove_task_excerpt(identifier: str, request: Request, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
 
+    annotations_dict = await request.json()
+    identifier_excerpt = annotations_dict["excerpt_id"]
+
     # delete annotations for the specified task and excerpt
     from utils_db import delete_items
-    delete_result = await delete_items("annotation", {"excerpt_id": identifier_excerpt, "user_id": str(user.id), "task_id": identifier_task} )
+    delete_result = await delete_items("annotation", {"excerpt_id": identifier_excerpt, "user_id": str(user.id), "task_id": identifier} )
     if delete_result != None and "error" in delete_result:
         raise HTTPException(status_code=500, detail="Annotation deletion failed: "+delete_result["error"])
 
     # then intask except
-    delete_result = await delete_items("intask", {"excerpt_id": identifier_excerpt, "task_id": identifier_task} )
+    delete_result = await delete_items("intask", {"excerpt_id": identifier_excerpt, "task_id": identifier} )
     if delete_result != None and "error" in delete_result:
         raise HTTPException(status_code=500, detail="Task excerpt deletion failed: "+delete_result["error"])
 
@@ -1006,7 +1009,6 @@ async def remove_task_excerpt(identifier_task: str, identifier_excerpt: str, use
 
     result['runtime'] = round(time.time() - start_time, 3)
     return result
-
 
 @router.put("/tasks/{identifier}/document/validate", tags=["annotations"], 
     description="Set a document as validated in a given task.")

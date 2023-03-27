@@ -418,24 +418,6 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             // update excerpt status as validated on server for this task
             updateExcerptTaskStatus(taskInfo["id"], excerptIdentifier, true, false);
 
-            // update button
-/*            $("#button-validate").removeClass("validate");
-            $("#button-validate").addClass("update");
-            $("#button-validate").html("Update");
-            $("#button-ignore").removeClass("ignore");
-            $("#button-ignore").addClass("ignore-inactive");
-            
-            $("#button-validate").off('click');
-            $("#button-validate").click(function() {
-                validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, true, recognito);
-                return true;
-            });
-            $("#button-ignore").off('click');
-            $("#button-ignore").click(function() {
-                ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier);
-                return true;
-            });
-*/
             // update task assignment information to keep track of the progress more easily
             if (taskInfo["level"] !== "document") 
                 updateTaskAssignment(taskInfo["id"], completed, currentCount, 0);
@@ -532,5 +514,33 @@ function updateExcerptTaskStatus(taskId, excerptIdentifier, validated, ignored) 
         }
     }
 
-    xhr.send(null);   
+    xhr.send(null);
+}
+
+function removeTaskExcerpt(userInfo, taskInfo, excerptIdentifier) {
+    var url = defineBaseURL("tasks/"+taskInfo["id"]+"/excerpt");
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE", url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+
+    var data = {}
+    data["excerpt_id"] = excerptIdentifier;
+    data["task_id"] = taskInfo["id"];
+    data["type"] = taskInfo["type"];
+
+    xhr.onloadend = function () {
+        if (xhr.status == 401) { 
+            window.location.href = "sign-in.html";
+        } else if (xhr.status != 200) {
+            // display server level error
+            var response = JSON.parse(xhr.responseText);
+            console.log(response["detail"]);
+            callToaster("toast-top-center", "error", response["detail"], "Damn, ignoring excerpt didn't work!");
+        } else {
+            // nothing more to do normally
+        }
+    }
+
+    xhr.send(JSON.stringify(data));
 }

@@ -359,12 +359,10 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         return true;
     });
     
-    //if (!isIgnoredExcerpt) {
-        $("#button-ignore").click(function() {
-            ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation);
-            return true;
-        });
-    //}
+    $("#button-ignore").click(function() {
+        ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation);
+        return true;
+    });
     
     if (rank+1 >= taskInfo["nb_excerpts"]) {
         $("#button-next").css("visibility", "hidden");

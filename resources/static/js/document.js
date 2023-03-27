@@ -181,10 +181,18 @@ async function showDocument(documentId) {
 
     var nbPages = -1;
 
-    $("#annotation-doc-view").append(
+    $("#annotation-doc-view").empty();
+    $("#annotation-doc-view").html('<div id="info-fetch" class="row justify-content-center" style="width: 100%; padding:10px; text-align: center;"></div>'+
+        '<div id="document-view" style="overflow-y:auto; height:100vh; position:relative;"></div>');
+
+    $("#info-fetch").html('<p style="color:white;"><div class="spinner-border" style="color: #7DBCFF;" role="status">'+
+                '<span class="sr-only">Loading...</span></div> <span style="padding-left: 10px; padding-top:7px;">fetching PDF...</span></p>');
+
+    // info on PDF download
+    /*$("#annotation-doc-view").append(
         '<div class="row" style="width: 68%; padding:10px; text-align: center;">' +
         '<p style="color:white;">fetching PDF...</p></div>'
-    );
+    );*/
 
     // display the local PDF
     var reader = new FileReader();
@@ -197,27 +205,30 @@ async function showDocument(documentId) {
             
             //$('#requestResult').html('');
             nbPages = pdf.numPages;
-            $("#annotation-doc-view").empty();
-            $("#annotation-doc-view").html('<div id="document-view" style="overflow-y:auto; height:100vh; position:relative;"></div>');
+            /*$("#annotation-doc-view").empty();
+            $("#annotation-doc-view").html('<div id="info-fetch" class="row" style="width: 100%; padding:10px; text-align: center;></div>'+
+                '<div id="document-view" style="overflow-y:auto; height:100vh; position:relative;"></div>');*/
               
             // Get div#document-view
             var container = document.getElementById("document-view");
 
-            // enable hyperlinks within PDF files
+            // enable hyperlinks within PDF files, or not if in comment
             //var pdfLinkService = new PDFJS.PDFLinkService();
             //pdfLinkService.setDocument(pdf, null);
 
+            // info on annotation download and mapping
             /*$("#annotation-doc-view").append(
                 '<div class="row" style="width: 100%; padding:10px; text-align: center;">' +
                 '<p style="color:#BC0E0E;">fetching annotations...</p></div>'
             );*/
+            $("#info-fetch").html('<p style="color:white;"><div class="spinner-border" style="color: #7DBCFF;" role="status">'+
+                '<span class="sr-only">Loading...</span></div> <span style="padding-left: 10px; padding-top:7px;">fetching annotations...</span></p>');
 
             // Loop from 1 to total_number_of_pages in PDF document
             for (var i = 1; i <= nbPages; i++) {
 
                 // Get desired page
                 var page = await pdf.getPage(i);
-                //pdf.getPage(i).then(function (page) {
 
                 var table = document.createElement("table");
                 table.setAttribute('id', 'page-row-'+i);
@@ -266,8 +277,6 @@ async function showDocument(documentId) {
 
                 container.appendChild(table);
 
-                //fitToContainer(canvas);
-
                 // we could think about a dynamic way to set the scale based on the available parent width
                 var viewport = page.getViewport((td1.offsetWidth * 1.0) / page.getViewport(1.0).width);
 
@@ -312,12 +321,17 @@ async function showDocument(documentId) {
                 textLayer.render();
             }
             getTEI(documentId);
+            $("#info-fetch").empty();
+            $("#info-fetch").hide();
         }).catch(error => {
-            $("#annotation-doc-view").empty();
-            $("#annotation-doc-view").append(
+            //$("#annotation-doc-view").empty();
+            /*$("#annotation-doc-view").append(
                 '<div class="row" style="width: 100%; padding:10px; text-align: center;">' +
                 '<font color="red">Failed to render online PDF: ' + error.message + ' </font></div>'
-            );
+            );*/
+            $("#info-fetch").html('<div class="row" style="width: 100%; padding:10px; text-align: center;">' +
+                '<font color="red">Failed to render online PDF: ' + error.message + ' </font></div>');
+
         });
     }
     httpGetAsynBlob(pdf_url, res => reader.readAsArrayBuffer(res));
@@ -593,6 +607,8 @@ function validateDocument(userInfo, taskInfo, document_id) {
                     // check that still open excerpts for this doc should be set valid on server side too
                 }
             }
+
+            callToaster("toast-top-center", "success", "the document is validated", "Yes!", "1000");
         }
     }
 
@@ -608,6 +624,8 @@ function updateDocument(userInfo, taskInfo, document_id) {
 
     // update server status, document is not anymore ignored so we consider it is similar to validation
     validateDocument(userInfo, taskInfo, document_id);
+
+    callToaster("toast-top-center", "success", "the document is updated", "Yes!", "1000");
 }
 
 function ignoreDocument(userInfo, taskInfo, document_id) {
@@ -649,6 +667,8 @@ function ignoreDocument(userInfo, taskInfo, document_id) {
             $("#button-document-ignore").addClass("ignored");
             $("#button-document-ignore").html("Ignored");
             $("#button-document-ignore").show();
+
+            callToaster("toast-top-center", "success", "the document is ignored", "Yes!", "1000");
         }
     }
 
@@ -792,6 +812,22 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
         // we simply discard current excerpt
         $("#annotation-val-area").html("");
         $("#annotation-paging").html("");
+        
+        console.log("in button-ignore");
+
+        if (localExcerptsList.indexOf(excerptItem["id"]) != -1) {
+            // remove excerpt on server with all its annotations
+
+            console.log("remove task excerpt");
+            removeTaskExcerpt(userInfo, taskInfo, excerptItem["id"]);
+
+            // remove excerpt locally
+            const ind = localExcerptsList.indexOf(excerptItem["id"]);
+            if (ind != -1) {
+                localExcerptsList.splice(ind, 1);
+            }
+            delete(localExcerpts[excerptItem["id"]]);
+        }
         // unselect corresponding sentence
         for(var i=0; i<maxSegment; i++) {
             var segmentID = 'sentence-' + excerptItem["id"] + '-' + i;
@@ -801,17 +837,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             if ($("#"+segmentID).hasClass("activated")) {
                 $("#"+segmentID).removeClass("activated");
             }
-        }
-        if (navigationButton) {
-            // remove excerpt on server with all its annotations
-            
-
-            // remove excerpt locally
-            const ind = localExcerptsList.indexOf(excerptItem["id"]);
-            if (ind != -1) {
-                localExcerptsList.splice(ind, 1);
-            }
-            localExcerpts.delete(excerptItem["id"]);
         }
         return true;
     });
