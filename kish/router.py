@@ -963,19 +963,50 @@ async def add_annotation(request: Request, user: User = Depends(current_user)):
 
 @router.delete("/tasks/{identifier}/excerpt/annotations", tags=["annotations"], 
     description="Remove all the current annotations for an excerpt in a given task.")
-async def clear_annotations(identifier: str, request: Request, user: User = Depends(current_user)):
+async def remove_annotations(identifier: str, request: Request, user: User = Depends(current_user)):
     start_time = time.time()
     result = {}
 
     annotations_dict = await request.json()
 
-    # fetch annotations for the specified task and excerpt
+    # delete annotations for the specified task and excerpt
     from utils_db import delete_items
     delete_result = await delete_items("annotation", {"excerpt_id": annotations_dict["excerpt_id"], "user_id": str(user.id), "task_id": identifier} )
     if delete_result != None and "error" in delete_result:
         raise HTTPException(status_code=500, detail="Annotation deletion failed: "+delete_result["error"])
     result['runtime'] = round(time.time() - start_time, 3)
     return result
+
+@router.delete("/tasks/{identifier_task}/excerpt/{identifier_excerpt}", tags=["annotations"], 
+    description="Remove an excerpt from a given task and all its current annotations.")
+async def remove_task_excerpt(identifier_task: str, identifier_excerpt: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    # delete annotations for the specified task and excerpt
+    from utils_db import delete_items
+    delete_result = await delete_items("annotation", {"excerpt_id": identifier_excerpt, "user_id": str(user.id), "task_id": identifier_task} )
+    if delete_result != None and "error" in delete_result:
+        raise HTTPException(status_code=500, detail="Annotation deletion failed: "+delete_result["error"])
+
+    # then intask except
+    delete_result = await delete_items("intask", {"excerpt_id": identifier_excerpt, "task_id": identifier_task} )
+    if delete_result != None and "error" in delete_result:
+        raise HTTPException(status_code=500, detail="Task excerpt deletion failed: "+delete_result["error"])
+
+    # finally delete excerpt **if not in any other task** (this contraint is important !)
+    from utils_db import get_first_item
+    dict_annot = { "excerpt_id": identifier_excerpt }
+    item = await get_first_item("intask", dict_annot)
+    if item == None:
+        # no other task with this precise excerpt, so we can remove it entirely
+        delete_result = await delete_items("excerpt", {"id": identifier_excerpt} )
+        if delete_result != None and "error" in delete_result:
+            raise HTTPException(status_code=500, detail="Excerpt deletion failed: "+delete_result["error"])
+
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+
 
 @router.put("/tasks/{identifier}/document/validate", tags=["annotations"], 
     description="Set a document as validated in a given task.")

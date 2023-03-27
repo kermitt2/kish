@@ -606,6 +606,8 @@ function updateDocument(userInfo, taskInfo, document_id) {
     $("#button-document-ignore").removeClass("ignored");
     $("#button-document-ignore").html("Ignore doc.");
 
+    // update server status, document is not anymore ignored so we consider it is similar to validation
+    validateDocument(userInfo, taskInfo, document_id);
 }
 
 function ignoreDocument(userInfo, taskInfo, document_id) {
@@ -796,10 +798,13 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             if ($("#"+segmentID).hasClass("selected")) {
                 $("#"+segmentID).removeClass("selected");
             }
+            if ($("#"+segmentID).hasClass("activated")) {
+                $("#"+segmentID).removeClass("activated");
+            }
         }
         if (navigationButton) {
-            // remove excerpt on server
-
+            // remove excerpt on server with all its annotations
+            
 
             // remove excerpt locally
             const ind = localExcerptsList.indexOf(excerptItem["id"]);
@@ -807,13 +812,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
                 localExcerptsList.splice(ind, 1);
             }
             localExcerpts.delete(excerptItem["id"]);
-
-            for(var i=0; i<maxSegment; i++) {
-                var segmentID = 'sentence-' + excerptItem["id"] + '-' + i;
-                if ($("#"+segmentID).hasClass("activated")) {
-                    $("#"+segmentID).removeClass("activated");
-                }
-            }
         }
         return true;
     });
