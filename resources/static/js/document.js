@@ -747,7 +747,7 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
     var pagingHtmlContent = "";
 
     console.log(localWidth);
-    if (localWidth < 450) {
+    if (localWidth < 500) {
         // we will need to place the navigation buttons under the valid/ignore buttons
         pagingHtmlContent += "<div class=\"row w-100 justify-content-center \" style=\"width: 100%;\">";
         if (isIgnoredExcerpt) {
@@ -762,7 +762,7 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
         }
         pagingHtmlContent += "</div>";
 
-        pagingHtmlContent += "<div class=\"row w-100 justify-content-between \"  style=\"width: 100%;\">";
+        pagingHtmlContent += "<div class=\"row w-100 justify-content-between \" style=\"width: 100%;\">";
         pagingHtmlContent += "<div>";
         pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
         pagingHtmlContent += " &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
@@ -773,6 +773,7 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
         pagingHtmlContent += "</div>";
         pagingHtmlContent += "</div>";
     } else {
+        pagingHtmlContent += "<div class=\"row w-100 justify-content-center\">";
         pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; ";
@@ -789,6 +790,7 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
         pagingHtmlContent += " &nbsp; &nbsp; ";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
+        pagingHtmlContent += "</div>";
     }
     $("#annotation-paging").html(pagingHtmlContent);
 

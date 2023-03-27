@@ -319,6 +319,7 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         pagingHtmlContent += "</div>";
         pagingHtmlContent += "</div>";
     } else {
+        pagingHtmlContent += "<div class=\"row w-100 justify-content-center\">";
         pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; ";
@@ -335,6 +336,7 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         pagingHtmlContent += " &nbsp; &nbsp; ";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
         pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
+        pagingHtmlContent += "</div>";
     }
     $("#annotation-paging").html(pagingHtmlContent);
 
