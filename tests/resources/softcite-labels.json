@@ -26,8 +26,14 @@
         },
         {
             "name": "publisher",
-            "color": "#44005a",
-            "description": "publisher or creator of the software",
+            "color": "#4d0066",
+            "description": "publisher or creator of the software as an organization",
+            "type": "labeling"
+        },
+        {
+            "name": "publisher/person",
+            "color": "#9900cc",
+            "description": "when the mentioned publisher or creator of the software is a person",
             "type": "labeling"
         },
         {

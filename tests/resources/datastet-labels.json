@@ -2,19 +2,19 @@
     "labels": [
         {
             "name": "dataset",
-            "color": "#8d2400",
+            "color": "#01A9DB",
             "description": "dataset name",
             "type": "labeling"
         },
         {
             "name": "dataset/accession-number",
-            "color": "#7d2400",
+            "color": "#c43c35",
             "description": "software environment name",
             "type": "labeling"
         },
         {
             "name": "dataset/implicit",
-            "color": "#5d2400",
+            "color": "#f89406",
             "description": "software component name",
             "type": "labeling"
         },
