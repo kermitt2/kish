@@ -271,10 +271,11 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
     if (recognito) {
         // if labeling annotation, we grab annotations from the annotation layer
         const annotations = recognito.getAnnotations();
+        console.log("nb annotations:" + annotations.length);
         for (var annotationPos in annotations) {
             const annotation = annotations[annotationPos];
 
-            //console.log(annotation);
+            console.log(annotation);
 
             /* recogito data model for inline annotations is as follow:
             {
@@ -327,11 +328,17 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             for (var selectorPos in annotation["target"]["selector"]) {
                 const selector = annotation["target"]["selector"][selectorPos];
                 if (selector["type"] && selector["type"] === "TextQuoteSelector") {
-                    classValueMap[labelId] = selector["exact"];
+                    if (!classValueMap[labelId]) {
+                        classValueMap[labelId] = [];
+                    }
+                    classValueMap[labelId].push(selector["exact"]);
                 } else if (selector["type"] && selector["type"] === "TextPositionSelector") {
                     const offsetStart = selector["start"];
                     const offsetEnd = selector["end"];
-                    offsetValueMap[labelId] = [offsetStart, offsetEnd];
+                    if (!offsetValueMap[labelId]) {
+                        offsetValueMap[labelId] = [];
+                    }
+                    offsetValueMap[labelId].push([offsetStart, offsetEnd]);
                 }
             }            
         }
@@ -376,13 +383,14 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             for(var key in classValueMap) {
                 //console.log("store annotation:");
                 //console.log(key + " / " + classValueMap[key] + " / " + offsetValueMap[key]);
-                if (taskInfo["level"] && taskInfo["level"] === "document") {
-                    storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key], offsetValueMap[key], function() {
-                        $("#sentence-"+excerptIdentifier+"-0").trigger("click");
-                    });
-                    
-                } else {
-                    storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key], offsetValueMap[key], null);
+                for(var posAnnot in classValueMap[key]) {
+                    if (taskInfo["level"] && taskInfo["level"] === "document") {
+                        storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key][posAnnot], offsetValueMap[key][posAnnot], function() {
+                            $("#sentence-"+excerptIdentifier+"-0").trigger("click");
+                        });
+                    } else {
+                        storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key][posAnnot], offsetValueMap[key][posAnnot], null);
+                    }
                 }
             }
             
