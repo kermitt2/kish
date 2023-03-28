@@ -8,9 +8,9 @@ __Early unstable work in progress !__
 
 The main goal of this web application is to facilitate and improve the quality of manual annotation of PDF documents (the current scholar publishing standard), by synchronizing PDF and structured extracted content. Annotation of PDF can go beyond bounding boxes or text selection directly on the PDF text layer, which are both imprecise and subject to multiple layout and text quality issues.
 
-The technical approach is kept volontary very simple, with minimal dependencies and without any additional database or server to run. The tool uses an embedded SQLite database. It is a single page web application without server-side templating, the server only provides data, authentication, etc. via a web API. 
+The technical approach is kept volontary very simple, with minimal dependencies and without any additional database or server to install/run. The application is a Python FastAPI web service serving dynamic web pages. The tool uses an embedded SQLite database. It is a single page web application without server-side templating. Every back-end actions (including authentication) is realized via a REST API. 
 
-**Back-end:** python 3.7+, fastapi, fastapi-users (for secure authentication), SQLITE, sqlalchemy
+**Back-end:** python 3.7+, FastAPI, fastapi-users (for secure authentication), SQLITE, sqlalchemy
 
 **Front-end:** jquery, PDF.js, Bootstrap 5, recogito-js 
 
@@ -28,6 +28,7 @@ Get the github repo:
 git clone https://github.com/kermitt2/kish
 cd kish
 ```
+
 It is strongly advised to setup first a virtual environment to avoid falling into one of these gloomy python dependency marshlands - you can adjust the version of Python to be used, but be sure to be 3.7 or higher:
 
 ```console

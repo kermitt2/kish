@@ -101,6 +101,14 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
         var isUserAnnotation = false;
         var isIgnoredExcerpt = false;
 
+        if (excerptItem["ignored"]) {
+            isIgnoredExcerpt = true;
+        }
+
+        if (excerptItem["validated"]) {
+            isUserAnnotation = true;
+        }
+
         // status
         if (xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
@@ -111,10 +119,14 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
                 let record = records[recordPos];
 
                 if (record["user_id"] == userInfo["id"] && record["task_id"] == taskInfo["id"]) {
-                    isUserAnnotation = true;
-                    if (record["ignored"]) {
+                    //isUserAnnotation = true;
+                    /*if (record["ignored"]) {
                         isIgnoredExcerpt = true;
                     } else {
+                        prelabeling[record["label_id"]] = record;
+                    }*/
+
+                    if (!record["ignored"]) {
                         prelabeling[record["label_id"]] = record;
                     }
                 }

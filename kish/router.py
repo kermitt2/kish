@@ -247,22 +247,30 @@ async def get_task_excerpts(identifier: str):
 
         i = 0
         for item in items:
-            local_annotation_dict = { "task_id": identifier, "excerpt_id": item["excerpt_id"], }
-            local_annotations = await get_items("annotation", local_annotation_dict, full=True)
-            excerptDone = False
+            if item["validated"] == 0 and item["ignored"] == 0:
+                break
+            i += 1
 
-            if local_annotations == None or len(local_annotations) == 0:
+        all_records["first_non_complete"] = i
+
+        '''
+        local_annotation_dict = { "task_id": identifier, "excerpt_id": item["excerpt_id"], }
+        local_annotations = await get_items("annotation", local_annotation_dict, full=True)
+        excerptDone = False
+
+        if local_annotations == None or len(local_annotations) == 0:
+            all_records["first_non_complete"] = i
+            break
+        else:
+            for local_annotation in local_annotations:
+                if "user_id" in local_annotation and local_annotation["user_id"] != None:
+                    excerptDone = True
+                    break
+            if not excerptDone:
                 all_records["first_non_complete"] = i
                 break
-            else:
-                for local_annotation in local_annotations:
-                    if "user_id" in local_annotation and local_annotation["user_id"] != None:
-                        excerptDone = True
-                        break
-                if not excerptDone:
-                    all_records["first_non_complete"] = i
-                    break
-            i += 1
+        i += 1
+        '''
 
         result["records"] = all_records
 

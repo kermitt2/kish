@@ -348,12 +348,12 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             var label = labels[labelPos];
 
             if ($("#checkbox-"+label["name"]).is(":checked")) {
-                classValueMap[label["id"]] = 1;
+                classValueMap[label["id"]] = [ 1 ];
             } else {
-                classValueMap[label["id"]] = 0;
+                classValueMap[label["id"]] = [ 0 ];
             }
 
-            offsetValueMap[label["id"]] = [];
+            offsetValueMap[label["id"]] = [ [] ];
         }
     }
 

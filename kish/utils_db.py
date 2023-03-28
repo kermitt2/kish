@@ -282,21 +282,21 @@ async def get_task_attributes(task_item):
         print("Fail to access record in annotation table: " + error)
 
     # number of completed excerpts in the task
-    statement = text("SELECT count(DISTINCT annotation.excerpt_id)" + 
-        " FROM annotation" + 
-        " WHERE annotation.task_id = '"+task_id+"' AND annotation.user_id IS NOT NULL")
+    statement = text("SELECT count(DISTINCT excerpt_id)" + 
+        " FROM intask" + 
+        " WHERE task_id = '"+task_id+"' AND (validated = 1 OR ignored = 1) AND excerpt_id IS NOT NULL")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)
-            attributes["nb_completed_excerpts"] = result.scalar()
+            attributes["nb_completed_excerpts"] = result.scalar() 
     except SQLAlchemyError as e:
         error=str(e.__dict__['orig'])
-        print("Fail to access record in annotation table: " + error)
+        print("Fail to access record in intask table: " + error)
 
     # number of completed documents in the task
     statement = text("SELECT count(DISTINCT document_id)" + 
         " FROM intask" + 
-        " WHERE task_id = '"+task_id+"' AND (validated = 1 OR ignored =1) AND excerpt_id IS NULL")
+        " WHERE task_id = '"+task_id+"' AND (validated = 1 OR ignored = 1) AND excerpt_id IS NULL")
     try:
         async with engine.connect() as conn:
             result = await conn.execute(statement)
