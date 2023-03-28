@@ -293,51 +293,42 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
     // validation/paging area
     var localWidth = $("#annotation-val-view").width();
     var pagingHtmlContent = "";
-    if (localWidth < 500) {
-        // we will need to place the navigation buttons under the valid/ignore buttons
-        pagingHtmlContent += "<div class=\"row w-100 justify-content-center \" style=\"width: 100%;\">";
-        if (isIgnoredExcerpt) {
-            pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\">Ignored</button>"; 
-        } else if (isUserAnnotation) {
-            pagingHtmlContent += "  <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\">Ignore</button>"; 
-        } else {
-            pagingHtmlContent += " <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\">Ignore</button>"; 
-        }
-        pagingHtmlContent += "</div>";
 
-        pagingHtmlContent += "<div class=\"row w-100 justify-content-between \"  style=\"width: 100%;\">";
+    var smallValView = false;    
+    if (localWidth < 500) 
+        smallValView = true;
+
+    pagingHtmlContent += "<div class=\"row w-100 justify-content-center\">";
+    if (!smallValView){
+        pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
+        pagingHtmlContent += "<button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"margin-left:10px; margin-right:20px;\"><i class=\"mdi mdi-less-than\"/></button>";
+    } 
+    if (isIgnoredExcerpt) {
+        pagingHtmlContent += "<button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+        pagingHtmlContent += "<button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\" style=\"margin-left: 10px;\">Ignored</button>"; 
+    } else if (isUserAnnotation) {
+        pagingHtmlContent += "<button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
+        pagingHtmlContent += "<button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\" style=\"margin-left: 10px;\">Ignore</button>"; 
+    } else {
+        pagingHtmlContent += "<button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
+        pagingHtmlContent += "<button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\" style=\"margin-left: 10px;\">Ignore</button>"; 
+    }
+    if (smallValView) {
+        pagingHtmlContent += "</div>";
+        pagingHtmlContent += "<div class=\"row w-100 justify-content-between \" style=\"width: 100%;\">";
         pagingHtmlContent += "<div>";
         pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
-        pagingHtmlContent += " &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
+        pagingHtmlContent += "<button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"margin-left: 10px;\"><i class=\"mdi mdi-less-than\"/></button>";
         pagingHtmlContent += "</div>";
         pagingHtmlContent += "<div>";
-        pagingHtmlContent += " <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
-        pagingHtmlContent += " &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
-        pagingHtmlContent += "</div>";
+        pagingHtmlContent += "<button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
+        pagingHtmlContent += "<button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"margin-left: 10px;\"><i class=\"mdi mdi-skip-forward\"/></button>";
         pagingHtmlContent += "</div>";
     } else {
-        pagingHtmlContent += "<div class=\"row w-100 justify-content-center\">";
-        pagingHtmlContent += "<button type=\"button\" id=\"button-start\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-backward\"/></button>";
-        pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-back\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-less-than\"/></button>";
-        pagingHtmlContent += " &nbsp; &nbsp; ";
-        if (isIgnoredExcerpt) {
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignored\">Ignored</button>"; 
-        } else if (isUserAnnotation) {
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn update\">Update</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore-inactive\">Ignore</button>"; 
-        } else {
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-validate\" type=\"button\" class=\"mb-1 btn validate\">Validate</button>";
-            pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-ignore\" type=\"button\" class=\"mb-1 btn ignore\">Ignore</button>"; 
-        }
-        pagingHtmlContent += " &nbsp; &nbsp; ";
-        pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-greater-than\"/></button>";
-        pagingHtmlContent += " &nbsp; &nbsp; <button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\"><i class=\"mdi mdi-skip-forward\"/></button>";
-        pagingHtmlContent += "</div>";
+        pagingHtmlContent += "<button id=\"button-next\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"margin-left: 20px;\"><i class=\"mdi mdi-greater-than\"/></button>";
+        pagingHtmlContent += "<button id=\"button-end\" type=\"button\" class=\"mb-1 btn btn-secondary\" style=\"margin-left: 10px;\"><i class=\"mdi mdi-skip-forward\"/></button>";
     }
+    pagingHtmlContent += "</div>";
     $("#annotation-paging").html(pagingHtmlContent);
 
     if (rank == 0) {
