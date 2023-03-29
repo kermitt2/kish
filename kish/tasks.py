@@ -2,7 +2,14 @@ from utils_db import insert_item, get_first_item, update_record, get_items, row2
 import subprocess
 import json 
 
-async def generate_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, guidelines=None):
+async def generate_tasks(dataset_id, 
+                        task_group_name, 
+                        task_type="classification", 
+                        target_annotators=5, 
+                        redundancy=2, 
+                        max_task_size=50, 
+                        max_task_number=20, 
+                        guidelines=None):
     """
     For a given dataset and some specifications, create a list of tasks to be assigned or selected by users
     at the level of excerpt.
@@ -44,6 +51,9 @@ async def generate_tasks(dataset_id, task_group_name, task_type="classification"
         nb_excerpts_per_task = (nb_excerpts // nb_tasks) + 1
     else:
         nb_tasks = target_annotators
+
+    if nb_tasks > max_task_number:
+        nb_tasks = max_task_number
 
     print("nb_tasks: " + str(nb_tasks))
     print("nb_excerpts_per_task: " + str(nb_excerpts_per_task))
@@ -269,7 +279,14 @@ async def open_reconciliation_task(task_id):
                 break
     return True
 
-async def generate_document_tasks(dataset_id, task_group_name, task_type="classification", target_annotators=5, redundancy=2, max_task_size=50, guidelines=None):
+async def generate_document_tasks(dataset_id, 
+                                task_group_name, 
+                                task_type="classification", 
+                                target_annotators=5, 
+                                redundancy=2, 
+                                max_task_size=50, 
+                                max_task_number=20, 
+                                guidelines=None):
     """
     For a given dataset and some specifications, create a list of document-level tasks to be assigned or selected by users.
     
@@ -310,6 +327,9 @@ async def generate_document_tasks(dataset_id, task_group_name, task_type="classi
     else:
         nb_tasks = target_annotators
 
+    if nb_tasks > max_task_number:
+        nb_tasks = max_task_number
+
     print("nb_tasks: " + str(nb_tasks))
     print("nb_documents_per_task: " + str(nb_documents_per_task))
 
@@ -348,7 +368,7 @@ async def generate_document_tasks(dataset_id, task_group_name, task_type="classi
             await update_record("dataset", dataset_id, dataset_dict)
 
             for local_document in local_documents:
-                print(local_document)
+                #print(local_document)
                 intask_dict = { "task_id": task_id, "document_id": local_document["document_id"], "validated": False, "ignored": False }
                 await insert_item("intask", intask_dict, add_id=False)
 

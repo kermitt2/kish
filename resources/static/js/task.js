@@ -22,10 +22,10 @@ const taskInfoTemplate = "<table style=\"width:100%;\"><tr> \
 const templateTaskTableHeader = "<thead><tr> \
         <td style=\"width:{{first_col_width}}%;\"></td> \
         <td style=\"width:15%; font-weight: bold;\">{{status}} Task</td> \
-        <td style=\"width:10%;\">Type</td> \
-        <td style=\"width:10%;\">Dataset</td> \
+        <td style=\"width:7%;\">Type</td> \
+        <td style=\"width:15%;\">Dataset</td> \
         <td style=\"width:10%;\"># documents</td> \
-        <td style=\"width:10%;\"># excerpts</td> \
+        <td style=\"width:7%;\"># excerpts</td> \
         <td style=\"width:10%;\"># completed</td> \
         <td style=\"width:10%;\">Status</td> \
         <td style=\"width:15%;\">Assigned to</td> \

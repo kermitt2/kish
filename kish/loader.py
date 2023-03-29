@@ -1,3 +1,4 @@
+import os
 import ijson
 import json
 import gzip
@@ -6,13 +7,14 @@ from utils_db import insert_item, get_items, get_first_item, update_record
 
 # note: ijson is used to stream json loading
 
-async def import_dataset_json(dataset_id: str, paths: list):
+async def import_dataset_json(dataset_id: str, paths: list, prefix_path: str=None):
     '''
     Import JSON classification document and excerpts, possibily pre-classified and/or pre-labeled
     paths is a list of path to json files to be imported to the dataset (so a dataset can be provided in 
     several files). 
     Note: there is no shuffle of the documents or excerpts on the dataset right noe, so a shuffle needs 
     to be done on the JSON files prior loading.
+    prefix_path indicates the root path where to find the resources for the dataset
     '''
     print("import... " + str(paths) + " in dataset " + dataset_id)
 
@@ -46,9 +48,9 @@ async def import_dataset_json(dataset_id: str, paths: list):
             if "full_text_url" in record:
                 document_dict["pdf_url"] = record["full_text_url"]
             if "full_text_pdf_uri" in record:
-                document_dict["pdf_uri"] = record["full_text_pdf_uri"]
+                document_dict["pdf_uri"] = record["full_text_pdf_uri"] if prefix_path is None else os.path.join(prefix_path, record["full_text_pdf_uri"])
             if "full_text_tei_uri" in record:
-                document_dict["tei_uri"] = record["full_text_tei_uri"]
+                document_dict["tei_uri"] = record["full_text_tei_uri"] if prefix_path is None else os.path.join(prefix_path, record["full_text_tei_uri"])
             if "doi" in record:
                 document_dict["doi"] = record["doi"]
             if "pmc" in record:
