@@ -58,7 +58,7 @@ api:
   # pass phrase for signing reset and verification password token (choose something strong and keep it secret)
   passphrase: ""
   # lifetime in seconds of reset and verification token
-  lifetime: 3600
+  lifetime: 86400
 
   # this must be kept secured
   oauth:

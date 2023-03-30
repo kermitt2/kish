@@ -152,12 +152,13 @@ function displayDatasets(userInfo) {
                     divContent += "<table id=\"dataset-"+pos+"-task-view-table\" class=\"table table-borderless\" style=\"width:90%;table-layout:fixed;border-top: 1px solid #8a909d;\"></table>";
                     divContent += "</div>";
                 }
-                $("#dataset-view").html(divContent);
-
-                for(var pos in response["records"]) {
-                    displayDataset(userInfo, pos, response["records"][pos]);
-                    displayDatasetTasks(userInfo, pos, response["records"][pos]);
-                }
+                //$("#dataset-view").html(divContent);
+                $("#dataset-view").html(divContent).promise().done(function() {
+                    for(var pos in response["records"]) {
+                        displayDataset(userInfo, pos, response["records"][pos]);
+                        //displayDatasetTasks(userInfo, pos, response["records"][pos]);
+                    }
+                });
             }
         }
     };
@@ -203,11 +204,13 @@ function displayDataset(userInfo, pos, datasetIdentifier) {
             }                
             divContent += "</tr></table>";
 
-            $("#dataset-"+pos).html(divContent);
-            $("#delete-dataset-"+pos).click(function() {
-                deleteDataset(datasetIdentifier);
-                //clearMainContent();
-                return true;
+            $("#dataset-"+pos).html(divContent).promise().done(function() {
+                $("#delete-dataset-"+pos).click(function() {
+                    deleteDataset(datasetIdentifier);
+                    return true;
+                });
+
+                displayDatasetTasks(userInfo, pos, datasetIdentifier);
             });
         }
     };
