@@ -251,10 +251,11 @@ function displayDatasetTasks(userInfo, pos, datasetIdentifier) {
                     tableContent += "<tr id=\"dataset-"+pos+"-task-"+pos2+"\"></tr>\n";
                 }
                 tableContent += "</tbody>";
-                $("#dataset-"+pos+"-task-view-table").html(tableContent);
-                for(var pos2 in response["records"]) {
-                    displayTask(userInfo, "dataset-"+pos, pos2, response["records"][pos2]);
-                }
+                $("#dataset-"+pos+"-task-view-table").html(tableContent).promise().done(function() {
+                    for(var pos2 in response["records"]) {
+                        displayTask(userInfo, "dataset-"+pos, pos2, response["records"][pos2]);
+                    }
+                });
             }
         }
     };
