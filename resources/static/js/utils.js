@@ -162,15 +162,9 @@ function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, r
             updateExcerptTaskStatus(taskInfo["id"], excerptIdentifier, false, true);
 
             // update button
-            //$("#button-validate").css("background-color", "#8a909d");
-            //$("#button-validate").html("Update");
-            //$("#button-validate").css("color", "white");
             $("#button-validate").removeClass("validate")
             $("#button-validate").addClass("update-inactive")
 
-            //$("#button-ignore").css("background-color", "red");
-            //$("#button-ignore").html("Ignored");
-            //$("#button-ignore").css("color", "black");
             $("#button-ignore").removeClass("ignore")
             $("#button-ignore").addClass("ignored")
 
@@ -378,11 +372,8 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             callToaster("toast-top-center", "error", response["detail"], "Damn, saving annotations didn't work!");
         } else {
             // older annotations, if any, have now been cleaned for the new ones
-
             // store annotations
             for(var key in classValueMap) {
-                //console.log("store annotation:");
-                //console.log(key + " / " + classValueMap[key] + " / " + offsetValueMap[key]);
                 for(var posAnnot in classValueMap[key]) {
                     if (taskInfo["level"] && taskInfo["level"] === "document") {
                         storeAnnotation(taskInfo, excerptIdentifier, key, classValueMap[key][posAnnot], offsetValueMap[key][posAnnot], function() {
@@ -437,10 +428,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                 } else {
                     setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank);
                 }
-            } /*else {
-                // refresh document view
-                $("#sentence-"+excerptIdentifier+"-0").trigger("click");
-            }*/
+            } 
         }
     }
 

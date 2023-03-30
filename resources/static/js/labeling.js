@@ -65,12 +65,9 @@ var LabelSelectorWidget = function(args) {
     }
 
     var container = document.createElement('div');
-        //container.className = 'r6o-widget r6o-tag';
     container.className = 'r6o-widget';
 
     for (var labelPos in labels) {
-        //console.log("create button")
-
         var button = createButton(labels[labelPos], labelPos);
         button.style["margin-right"] = "5px";
         button.style["margin-top"] = "5px";           
@@ -138,23 +135,18 @@ function displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, la
             $("#nextDocumentButton").show();
 
             if (rank > 0) {
-                //$("#previousDocumentButton").show();
                 $("#previousDocumentButton").removeClass('disabled');
                 $("#previousDocumentButton").click(function() {
                     event.preventDefault();
-                    //clearMainContent();
                     displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1)
                 });
             } else {
-                //$("#previousDocumentButton").hide();
                 $("#previousDocumentButton").addClass('disabled');
             }
             if (rank < taskInfo["nb_documents"]-1) {
-                //$("#nextDocumentButton").show();
                 $("#nextDocumentButton").removeClass('disabled');
                 $("#nextDocumentButton").click(function() {
                     event.preventDefault();
-                    //clearMainContent();
                     displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1)
                 });
             } else {
@@ -202,9 +194,6 @@ function displayExcerptAreaLabeling(positionId, userInfo, taskInfo, labels, othe
                             .replace("{{totalRank}}", taskInfo["nb_excerpts"]);
 
         var fullContext = excerptItem["full_context"];
-        //var context = excerptItem["text"];
-        //$("#annotation-doc-view").html(docInfoText + "<pre id=\"content-annotation\">"+fullContext+"</pre>");
-        
         initRecogitoLabelingArea(fullContext, positionId, docInfoText, labels, inlineLabeling, labelMap, labelColorMap);
         setDocumentInfo(excerptItem["document_id"]);
     }
@@ -231,8 +220,6 @@ function initRecogitoLabelingArea(fullContext, positionId, docInfoText, labels, 
 
     // labeling event handler  
     recognito.on('createAnnotation', function(annotation, overrideId) {
-        //console.log(annotation);
-
         recognito.setMode('ANNOTATION');
         recognito_mode = 'ANNOTATION';
         document.body.style.cursor = "default";
@@ -241,7 +228,6 @@ function initRecogitoLabelingArea(fullContext, positionId, docInfoText, labels, 
 
     recognito.on('deleteAnnotation', function(annotation, overrideId) {
         // POST to the server and receive a new ID
-        //console.log(annotation);
         recognito.setMode('ANNOTATION');
         recognito_mode = 'ANNOTATION';
         document.body.style.cursor = "default";
@@ -336,12 +322,10 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         $("#button-back").css("visibility", "hidden");
     } else {
         $("#button-start").click(function() {
-            //clearMainContent();
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, 0);
             return true;
         });
         $("#button-back").click(function() {
-            //clearMainContent();
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1);
             return true;
         });
@@ -362,12 +346,10 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
         $("#button-end").css("visibility", "hidden");
     } else {
         $("#button-next").click(function() {
-            //clearMainContent();
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
             return true;
         });
         $("#button-end").click(function() {
-            //clearMainContent();
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["nb_excerpts"]-1);
             return true;
         });

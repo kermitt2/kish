@@ -118,7 +118,6 @@ function displayDocumentArea(userInfo_, currentDocument_, taskInfo_, labels_, ot
                 let record = records[recordPos];
                 localExcerpts[record["id"]] = record;
                 localExcerptsList.push(record["id"]);
-                //console.log(localExcerpts[record["id"]]);
             }
         }
         showDocument(documentId);
@@ -188,12 +187,6 @@ async function showDocument(documentId) {
     $("#info-fetch").html('<p style="color:white;"><div class="spinner-border" style="color: #7DBCFF;" role="status">'+
                 '<span class="sr-only">Loading...</span></div> <span style="padding-left: 10px; padding-top:7px;">fetching PDF...</span></p>');
 
-    // info on PDF download
-    /*$("#annotation-doc-view").append(
-        '<div class="row" style="width: 68%; padding:10px; text-align: center;">' +
-        '<p style="color:white;">fetching PDF...</p></div>'
-    );*/
-
     // display the local PDF
     var reader = new FileReader();
     reader.onloadend = await function () {
@@ -202,13 +195,8 @@ async function showDocument(documentId) {
         var pdfAsArray = new Uint8Array(reader.result);
         // Use PDFJS to render a pdfDocument from pdf array
         PDFJS.getDocument(pdfAsArray).then(async function (pdf) {
-            
-            //$('#requestResult').html('');
             nbPages = pdf.numPages;
-            /*$("#annotation-doc-view").empty();
-            $("#annotation-doc-view").html('<div id="info-fetch" class="row" style="width: 100%; padding:10px; text-align: center;></div>'+
-                '<div id="document-view" style="overflow-y:auto; height:100vh; position:relative;"></div>');*/
-              
+
             // Get div#document-view
             var container = document.getElementById("document-view");
 
@@ -217,10 +205,6 @@ async function showDocument(documentId) {
             //pdfLinkService.setDocument(pdf, null);
 
             // info on annotation download and mapping
-            /*$("#annotation-doc-view").append(
-                '<div class="row" style="width: 100%; padding:10px; text-align: center;">' +
-                '<p style="color:#BC0E0E;">fetching annotations...</p></div>'
-            );*/
             $("#info-fetch").html('<p style="color:white;"><div class="spinner-border" style="color: #7DBCFF;" role="status">'+
                 '<span class="sr-only">Loading...</span></div> <span style="padding-left: 10px; padding-top:7px;">fetching annotations...</span></p>');
 
@@ -269,12 +253,6 @@ async function showDocument(documentId) {
                 td1.setAttribute('style', 'width:100%;');
                 td1.appendChild(div);
 
-                /*var annot = document.createElement("div");
-                annot.setAttribute('style', 'vertical-align:top;');
-                annot.setAttribute('id', 'detailed_annot-' + (page.pageIndex + 1));
-                td2.setAttribute('style', 'vertical-align:top;width:30%;');
-                td2.appendChild(annot);*/
-
                 container.appendChild(table);
 
                 // we could think about a dynamic way to set the scale based on the available parent width
@@ -301,8 +279,6 @@ async function showDocument(documentId) {
 
                 // Set class to textLayer which have required CSS styles
                 textLayerDiv.setAttribute("class", "textLayer");
-                //textLayerDiv.setAttribute('style', 'width: 100%;');
-                //textLayerDiv.setAttribute('style', 'height: 100%;');
 
                 // Append newly created div in `div#page-#{pdf_page_number}`
                 div.appendChild(textLayerDiv);
@@ -324,11 +300,6 @@ async function showDocument(documentId) {
             $("#info-fetch").empty();
             $("#info-fetch").hide();
         }).catch(error => {
-            //$("#annotation-doc-view").empty();
-            /*$("#annotation-doc-view").append(
-                '<div class="row" style="width: 100%; padding:10px; text-align: center;">' +
-                '<font color="red">Failed to render online PDF: ' + error.message + ' </font></div>'
-            );*/
             $("#info-fetch").html('<div class="row" style="width: 100%; padding:10px; text-align: center;">' +
                 '<font color="red">Failed to render online PDF: ' + error.message + ' </font></div>');
 
@@ -373,9 +344,6 @@ function getSentences(tei) {
     var sentenceNodes = tei.getElementsByTagName("s");
     for(var sentenceNodePos in sentenceNodes) {
         const sentenceNode = sentenceNodes[sentenceNodePos];
-
-        //console.log(sentenceNode);
-
         var sentenceInfo = {};
         var identifier;
         var coords;
@@ -409,9 +377,6 @@ function getSentences(tei) {
 
         var localText = sentenceNode.textContent;
         sentenceInfo["text"] = localText;
-
-        //console.log(sentenceInfo);
-
         sentencesMapping[identifier] = sentenceInfo;
     }
 
@@ -440,10 +405,6 @@ function showSentences() {
                 var y = (sentenceBox["y"] * scale_y) - 1;
                 var width = (sentenceBox["w"] * scale_x) + 1;
                 var height = (sentenceBox["h"] * scale_y) + 1;
-
-                //make clickable the area
-                //console.log("make clickable area");
-                //console.log(page + " " + x + " " + y + " " + width + " " + height);
 
                 var element = document.createElement("a");
                 element.setAttribute("class", "sentenceBox");
@@ -504,8 +465,6 @@ function selectSentence() {
     const sentenceInfo = sentencesMapping[sentenceId];
     const nbSegments = sentenceInfo["coordinates"].length;
 
-    //console.log(sentenceInfo)
-
     for(var i=0; i<nbSegments; i++) {
         var segmentID = 'sentence-' + sentenceId + '-' + i;
         if ($("#"+segmentID).hasClass("selected")) {
@@ -515,7 +474,6 @@ function selectSentence() {
         }
     }
 
-    //console.log(localID);
     // current excerpt rank in the document, by default 0
     var rankExcerpt = localExcerptsList.indexOf(sentenceId);
     if (rankExcerpt == -1)
@@ -644,7 +602,6 @@ function updateDocument(userInfo, taskInfo, document_id) {
             var currentCount = parseInt(currentcountStr);
 
             // no counter progress necessary because the document was already completed
-            
             if ((currentCount) === taskInfo["nb_documents"]) {
                 $("#progress-complete").html("<span style=\"color: green;\">Completed !</span>");
 
@@ -843,7 +800,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
 
         if (localExcerptsList.indexOf(excerptItem["id"]) != -1) {
             // remove excerpt on server with all its annotations
-
             console.log("remove task excerpt");
             removeTaskExcerpt(userInfo, taskInfo, excerptItem["id"]);
 
@@ -907,8 +863,6 @@ function createExcerptIfNeeded(userInfo, taskInfo, excerptIdentifier, document_i
     data["text"] = textContent;
     data["full_context"] = textContent;
     data["dataset_id"] = taskInfo["dataset_id"];
-
-    //console.log(data);
 
     var xhr = new XMLHttpRequest();
     xhr.open("PUT", url, true);
