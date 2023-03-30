@@ -443,33 +443,36 @@ function displayTask(userInfo, table, pos, taskIdentifier) {
                 }
             }
             
-            $("#"+table+"-task-"+pos).html(taskContent);
+            //$("#"+table+"-task-"+pos).html(taskContent);
 
-            if (response["assigned"]) {
-                if (response["assigned"] === userInfo["email"]) {
-                    $("#self-assign" + origin + "-task-"+pos).click(function() {
-                        selfUnassignTask(userInfo, taskIdentifier);
-                        return true;
-                    });
-                    $("#annotate" + origin + "-task-"+pos).click(function() {
-                        annotationTask(userInfo, response);
-                        return true;
-                    });
+            $("#"+table+"-task-"+pos).html(taskContent).promise().done(function() {
+                //your callback logic / code here
+                if (response["assigned"]) {
+                    if (response["assigned"] === userInfo["email"]) {
+                        $("#self-assign" + origin + "-task-"+pos).click(function() {
+                            selfUnassignTask(userInfo, taskIdentifier);
+                            return true;
+                        });
+                        $("#annotate" + origin + "-task-"+pos).click(function() {
+                            annotationTask(userInfo, response);
+                            return true;
+                        });
+                    } else {
+                        $("#self-deassign" + origin + "-task-"+pos).click(function() {
+                            unAssignTask(userInfo, taskIdentifier);
+                            return true;
+                        });
+                    }
                 } else {
-                    $("#self-deassign" + origin + "-task-"+pos).click(function() {
-                        unAssignTask(userInfo, taskIdentifier);
-                        return true;
-                    });
+                    if (userInfo["redundant_tasks"].indexOf(taskIdentifier) == -1 || 
+                        (response["type"] === "reconciliation" && userInfo["role"] !== "annotator")) {
+                        $("#self-assign" + origin + "-task-"+pos).click(function() {
+                            selfAssignTask(userInfo, taskIdentifier);
+                            return true;
+                        });
+                    } 
                 }
-            } else {
-                if (userInfo["redundant_tasks"].indexOf(taskIdentifier) == -1 || 
-                    (response["type"] === "reconciliation" && userInfo["role"] !== "annotator")) {
-                    $("#self-assign" + origin + "-task-"+pos).click(function() {
-                        selfAssignTask(userInfo, taskIdentifier);
-                        return true;
-                    });
-                } 
-            }
+            });
         }
     };
 
