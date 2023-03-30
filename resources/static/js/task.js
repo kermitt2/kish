@@ -331,7 +331,7 @@ function displayTasks(userInfo) {
     xhr.send(null);
 }
 
-function displayTask(userInfo, table, pos, taskIdentifier) {
+async function displayTask(userInfo, table, pos, taskIdentifier) {
     var url = defineBaseURL("tasks/"+taskIdentifier);
 
     // retrieve the existing task information
@@ -339,7 +339,7 @@ function displayTask(userInfo, table, pos, taskIdentifier) {
     xhr.open("GET", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 
-    xhr.onloadend = function () {
+    xhr.onloadend = async function () {
         // status
         if (xhr.status != 200) {
             // display server level error
@@ -443,10 +443,8 @@ function displayTask(userInfo, table, pos, taskIdentifier) {
                 }
             }
             
-            //$("#"+table+"-task-"+pos).html(taskContent);
-
-            $("#"+table+"-task-"+pos).html(taskContent).promise().done(function() {
-                //your callback logic / code here
+            await $("#"+table+"-task-"+pos).html(taskContent);
+            setTimeout(function() {
                 if (response["assigned"]) {
                     if (response["assigned"] === userInfo["email"]) {
                         $("#self-assign" + origin + "-task-"+pos).click(function() {
@@ -472,7 +470,7 @@ function displayTask(userInfo, table, pos, taskIdentifier) {
                         });
                     } 
                 }
-            });
+            }, 0);
         }
     };
 

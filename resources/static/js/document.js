@@ -129,7 +129,7 @@ function displayDocumentArea(userInfo_, currentDocument_, taskInfo_, labels_, ot
     $("#button-document-ignore").attr('document-id', documentId);
 
     // document status for this task and set the document-level buttons
-    if (currentDocument["ignored"] == 1) {
+    /*if (currentDocument["ignored"] == 1) {
         $("#button-document-update").addClass("inactive");
         $("#button-document-update").show();
         $("#button-document-update").click(function() {
@@ -171,7 +171,7 @@ function displayDocumentArea(userInfo_, currentDocument_, taskInfo_, labels_, ot
             ignoreDocument(userInfo, taskInfo, documentId);
             return true;
         });
-    }
+    }*/
 }
 
 async function showDocument(documentId) {
@@ -419,6 +419,77 @@ function showSentences() {
                 }
             }
         }
+    }
+
+    // we activate next/previous doc only now that we are sure that the sentence areas have been mapped
+    // to the current document to avoid having sentence areas on the wrong doc
+    if (rankDocument > 0) {
+        $("#previousDocumentButton").removeClass('disabled');
+        $("#previousDocumentButton").click(function() {
+            event.preventDefault();
+            displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rankDocument-1)
+        });
+    } else {
+        $("#previousDocumentButton").addClass('disabled');
+    }
+    if (rankDocument < taskInfo["nb_documents"]-1) {
+        $("#nextDocumentButton").removeClass('disabled');
+        $("#nextDocumentButton").click(function() {
+            event.preventDefault();
+            displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rankDocument+1)
+        });
+    } else {
+        $("#nextDocumentButton").addClass('disabled');
+    }
+
+    // document status for this task and set the document-level buttons
+    if (currentDocument["ignored"] == 1) {
+        $("#button-document-update").addClass("inactive");
+        $("#button-document-update").show();
+        $("#button-document-update").click(function() {
+            const documentId = $("#button-document-update").attr('document-id');
+            updateDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+        $("#button-document-ignore").addClass("ignored");
+        $("#button-document-ignore").html("Ignored");
+        $("#button-document-ignore").show();
+        $("#button-document-ignore").click(function() {
+            const documentId = $("#button-document-ignore").attr('document-id');
+            ignoreDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+    } else if (currentDocument["validated"] == 1) {
+        $("#button-document-update").removeClass("inactive");
+        $("#button-document-update").show();
+        $("#button-document-update").click(function() {
+            const documentId = $("#button-document-update").attr('document-id');
+            updateDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+        $("#button-document-ignore").removeClass("ignored");
+        $("#button-document-ignore").html("Ignore doc.");
+        $("#button-document-ignore").show();
+        $("#button-document-ignore").click(function() {
+            const documentId = $("#button-document-ignore").attr('document-id');
+            ignoreDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+    } else {
+        $("#button-document-validation").show();
+        $("#button-document-validation").click(function() {
+            const documentId = $("#button-document-validation").attr('document-id');
+            validateDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
+        $("#button-document-ignore").removeClass("ignored");
+        $("#button-document-ignore").html("Ignore doc.");
+        $("#button-document-ignore").show();
+        $("#button-document-ignore").click(function() {
+            const documentId = $("#button-document-ignore").attr('document-id');
+            ignoreDocument(userInfo, taskInfo, documentId);
+            return true;
+        });
     }
 
     localExcerptsList.sort(sortExcerpts);

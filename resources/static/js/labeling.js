@@ -134,6 +134,7 @@ function displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, la
             $("#nextDocumentButton").addClass('disabled');
             $("#nextDocumentButton").show();
 
+            /*
             if (rank > 0) {
                 $("#previousDocumentButton").removeClass('disabled');
                 $("#previousDocumentButton").click(function() {
@@ -152,6 +153,7 @@ function displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, la
             } else {
                 $("#nextDocumentButton").addClass('disabled');
             }
+            */
 
             displayDocumentArea(userInfo, response, taskInfo, labels, otherLabels, labelColorMap, rank, rankExcerpt);
         }
