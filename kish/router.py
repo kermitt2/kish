@@ -928,8 +928,7 @@ async def add_annotation(request: Request, user: User = Depends(current_user)):
     # some validation here...
     annotation_dict["user_id"] = str(user.id)
     #print("annotation to be added/updated:", annotation_dict)
-
-    print(annotation_dict)
+    #print(annotation_dict)
 
     # check if an annotation exists for this user, excerpt and task
     from utils_db import get_first_item
@@ -947,7 +946,6 @@ async def add_annotation(request: Request, user: User = Depends(current_user)):
         if annotation_result != None and "error" in annotation_result:
             raise HTTPException(status_code=500, detail="Annotation insert failed: "+annotation_result["error"])
         # keep track of progress at the task record
-            
     else:
         # we update the existing annotation
         from utils_db import update_record
@@ -976,6 +974,7 @@ async def remove_annotations(identifier: str, request: Request, user: User = Dep
     delete_result = await delete_items("annotation", {"excerpt_id": annotations_dict["excerpt_id"], "user_id": str(user.id), "task_id": identifier} )
     if delete_result != None and "error" in delete_result:
         raise HTTPException(status_code=500, detail="Annotation deletion failed: "+delete_result["error"])
+    result["record"] = "success"
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
@@ -1009,6 +1008,7 @@ async def remove_task_excerpt(identifier: str, request: Request, user: User = De
         if delete_result != None and "error" in delete_result:
             raise HTTPException(status_code=500, detail="Excerpt deletion failed: "+delete_result["error"])
 
+    result["record"] = "success"
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 

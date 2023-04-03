@@ -219,64 +219,145 @@ async def open_reconciliation_task(task_id):
                   "dataset_id": task_item["dataset_id"], 
                   "name": reconciliation_task_name,
                   "redundant": primary_task_id,
-                  "guidelines": task_item["guidelines"] }
+                  "guidelines": task_item["guidelines"],
+                  "level": task_item["level"] }
     reconciliation_task_response = await insert_item("task", reconciliation_task_dict, add_id=True)
     reconciliation_task_id = reconciliation_task_response["id"]
     reconciliation_task_dict["id"] = reconciliation_task_id
 
-    # only put excerpts with disagreements in this task
-    intask_excerpts = await get_items("intask", { "task_id": primary_task_id})
+    if task_item["level"] == "document":
+        # only put documents with disagreements in this task
+        intask_documents = await get_items("intask", { "task_id": primary_task_id})
 
-    # for each excerpt, get all annotation for the redundant tasks, check for disagreement
-    for intask_excerpt in intask_excerpts:
-        excerpt_id = intask_excerpt["excerpt_id"]
-
-        excepts_annotation_items = await get_items("annotation", { "excerpt_id": excerpt_id }, full=True)
-
-        # map a label to its values, to identify easily disagrement across excerpt annotations
-        labelValueMap = {}
-
-        for excepts_annotation_item in excepts_annotation_items:
-
-            # annotation must be in task_items (all redundant tasks) and 
-            # have a valid user (not pre-annotation from automatic upload)
-            if excepts_annotation_item["task_id"] not in task_items:
-                continue
-
-            if "user_id" not in excepts_annotation_item or excepts_annotation_item["user_id"] == None:
-                continue
-
-            # store label/chunk value for this annotation
-
-            # init excerpt map for this label
-            if excepts_annotation_item["label_id"] not in labelValueMap:
-                labelValueMap[excepts_annotation_item["label_id"]] = []
-
-            # classification value
-            if "value" in excepts_annotation_item and excepts_annotation_item["value"] != None:
-                if excepts_annotation_item["value"] not in labelValueMap[excepts_annotation_item["label_id"]]:
-                    labelValueMap[excepts_annotation_item["label_id"]].append(excepts_annotation_item["value"])
+        documents_to_reconciliate = []
+        excerpts_to_reconciliate = []
+        annotations_to_reconciliate = []
+        map_excerpt_to_document = {}
+        
+        # for each document, get first all the annotated excerpts for the redundant tasks, check for disagreement
+        for intask_document in intask_documents:            
+            document_id = intask_document["document_id"]
+            print("document_id:", document_id)
             
-            # if ignored
-            if "ignored" in excepts_annotation_item and excepts_annotation_item["ignored"]:
-                if "ignored" not in labelValueMap[excepts_annotation_item["label_id"]]:
-                    labelValueMap[excepts_annotation_item["label_id"]].append("ignored")
+            # give all the excerpts of document_id
+            all_document_excerpts = []
 
-            # chunk labeling value
-            if "chunk" in excepts_annotation_item and excepts_annotation_item["chunk"] is not None:
-                if excepts_annotation_item["chunk"] not in labelValueMap[excepts_annotation_item["label_id"]]:
-                    labelValueMap[excepts_annotation_item["label_id"]].append(excepts_annotation_item["chunk"])
+            except_number = -1
+            for task_id in task_items:
+                document_excerpts = await get_items("intask", { "document_id": document_id, "task_id": task_id }, full=True)
 
-        # if disagreement for the value of a same label id, add the excerpt to the reconciliation task
-        for label_id in labelValueMap:
-            #print(labelValueMap[label_id])
-            if len(labelValueMap[label_id]) > 1:
-                intask_dict = { "task_id": reconciliation_task_id, 
-                                "excerpt_id": excerpt_id, 
-                                "document_id": intask_excerpt["document_id"], 
-                                "validated": False }
-                await insert_item("intask", intask_dict, add_id=False)
-                break
+                if document_excerpts == None:
+                    continue
+
+                # check with other task excerpts
+                for other_task_id in task_items:
+                    if other_task_id == task_id:
+                        continue
+                    other_document_excerpts = await get_items("intask", { "document_id": document_id, "task_id": other_task_id }, full=True)
+                    if other_document_excerpts == None:
+                        continue
+
+                    other_document_excerpts_ids = []
+                    for other_document_excerpt in other_document_excerpts:
+                        other_document_excerpts_ids.append(other_document_excerpt["excerpt_id"])
+
+                    for document_excerpt in document_excerpts:
+                        if document_excerpt["excerpt_id"] == None:
+                            continue
+
+                        if not document_excerpt["excerpt_id"] in other_document_excerpts_ids:
+                            print(document_excerpt["excerpt_id"], "not in", other_document_excerpts_ids)
+                            if document_id not in documents_to_reconciliate:
+                                documents_to_reconciliate.append(document_id)
+                            if document_excerpt["excerpt_id"] not in excerpts_to_reconciliate:
+                                excerpts_to_reconciliate.append(document_excerpt["excerpt_id"])
+                                map_excerpt_to_document[document_excerpt["excerpt_id"]] = document_id
+
+                                excerpts_annotation_items = await get_items("annotation", { 
+                                    "task_id": task_id, 
+                                    "excerpt_id": document_excerpt["excerpt_id"] }, full=True)
+
+                                for excerpts_annotation_item in excerpts_annotation_items:
+                                    # ignore automatic pre-labeling
+                                    if "user_id" not in excerpts_annotation_item or excerpts_annotation_item["user_id"] == None:
+                                        continue
+                                    # add the other annotations
+                                    excerpts_annotation_item["task_id"] = reconciliation_task_id
+                                    annotations_to_reconciliate.append(excerpts_annotation_item)
+    
+        print("documents_to_reconciliate:", str(len(documents_to_reconciliate)))
+        for document_to_reconciliate in documents_to_reconciliate:
+            # add document to the reconciliation task
+            reconciliation_intask_dict = { "task_id": reconciliation_task_id, "document_id": document_to_reconciliate, "validated": 0, "ignored": 0 }
+            await insert_item("intask", reconciliation_intask_dict, add_id=False)
+
+        print("excerpts_to_reconciliate:", str(len(excerpts_to_reconciliate)))
+        for excerpt_to_reconciliate in excerpts_to_reconciliate:
+            # add excerpt to the reconciliation task
+            reconciliation_intask_dict = { "task_id": reconciliation_task_id, "document_id": map_excerpt_to_document[excerpt_to_reconciliate], "excerpt_id": excerpt_to_reconciliate, "validated": 0, "ignored": 0 }
+            print(reconciliation_intask_dict)
+            await insert_item("intask", reconciliation_intask_dict, add_id=False)    
+
+        print("annotations_to_reconciliate:", str(len(annotations_to_reconciliate)))
+        for annotation_to_reconciliate in annotations_to_reconciliate:
+            del annotation_to_reconciliate["id"]
+            del annotation_to_reconciliate["user_id"]
+            await insert_item("annotation", annotation_to_reconciliate, add_id=True)
+
+    else: 
+        # excerpt level annotation, so only put excerpts with disagreements in this task, which is simpler
+        intask_excerpts = await get_items("intask", { "task_id": primary_task_id})
+
+        # for each excerpt, get all annotation for the redundant tasks, check for disagreement
+        for intask_excerpt in intask_excerpts:
+            excerpt_id = intask_excerpt["excerpt_id"]
+
+            excepts_annotation_items = await get_items("annotation", { "excerpt_id": excerpt_id }, full=True)
+
+            # map a label to its values, to identify easily disagrement across excerpt annotations
+            labelValueMap = {}
+
+            for excepts_annotation_item in excepts_annotation_items:
+
+                # annotation must be in task_items (all redundant tasks) and 
+                # have a valid user (not pre-annotation from automatic upload)
+                if excepts_annotation_item["task_id"] not in task_items:
+                    continue
+
+                if "user_id" not in excepts_annotation_item or excepts_annotation_item["user_id"] == None:
+                    continue
+
+                # store label/chunk value for this annotation
+
+                # init excerpt map for this label
+                if excepts_annotation_item["label_id"] not in labelValueMap:
+                    labelValueMap[excepts_annotation_item["label_id"]] = []
+
+                # classification value
+                if "value" in excepts_annotation_item and excepts_annotation_item["value"] != None:
+                    if excepts_annotation_item["value"] not in labelValueMap[excepts_annotation_item["label_id"]]:
+                        labelValueMap[excepts_annotation_item["label_id"]].append(excepts_annotation_item["value"])
+                
+                # if ignored
+                if "ignored" in excepts_annotation_item and excepts_annotation_item["ignored"]:
+                    if "ignored" not in labelValueMap[excepts_annotation_item["label_id"]]:
+                        labelValueMap[excepts_annotation_item["label_id"]].append("ignored")
+
+                # chunk labeling value
+                if "chunk" in excepts_annotation_item and excepts_annotation_item["chunk"] is not None:
+                    if excepts_annotation_item["chunk"] not in labelValueMap[excepts_annotation_item["label_id"]]:
+                        labelValueMap[excepts_annotation_item["label_id"]].append(excepts_annotation_item["chunk"])
+
+            # if disagreement for the value of a same label id, add the excerpt to the reconciliation task
+            for label_id in labelValueMap:
+                #print(labelValueMap[label_id])
+                if len(labelValueMap[label_id]) > 1:
+                    intask_dict = { "task_id": reconciliation_task_id, 
+                                    "excerpt_id": excerpt_id, 
+                                    "document_id": intask_excerpt["document_id"], 
+                                    "validated": False }
+                    await insert_item("intask", intask_dict, add_id=False)
+                    break
     return True
 
 async def generate_document_tasks(dataset_id, 

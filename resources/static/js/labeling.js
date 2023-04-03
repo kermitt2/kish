@@ -134,27 +134,6 @@ function displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, la
             $("#nextDocumentButton").addClass('disabled');
             $("#nextDocumentButton").show();
 
-            /*
-            if (rank > 0) {
-                $("#previousDocumentButton").removeClass('disabled');
-                $("#previousDocumentButton").click(function() {
-                    event.preventDefault();
-                    displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1)
-                });
-            } else {
-                $("#previousDocumentButton").addClass('disabled');
-            }
-            if (rank < taskInfo["nb_documents"]-1) {
-                $("#nextDocumentButton").removeClass('disabled');
-                $("#nextDocumentButton").click(function() {
-                    event.preventDefault();
-                    displayDocumentAreaLabeling(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1)
-                });
-            } else {
-                $("#nextDocumentButton").addClass('disabled');
-            }
-            */
-
             displayDocumentArea(userInfo, response, taskInfo, labels, otherLabels, labelColorMap, rank, rankExcerpt);
         }
     }

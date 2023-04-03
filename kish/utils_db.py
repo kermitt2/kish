@@ -591,7 +591,7 @@ async def test_document_init():
 
     # create task for 4 annotators with the 20 documents
     from kish.tasks import generate_document_tasks
-    await generate_document_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023c", "mentions", task_type="labeling", target_annotators=4, redundancy=2, 
-        guidelines="guidelines-softcite-labeling.md", max_task_size=20, max_task_number=3)
+    await generate_document_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023c", "mentions", task_type="labeling", target_annotators=2, redundancy=2, 
+        guidelines="guidelines-softcite-labeling.md", max_task_size=2, max_task_number=1)
 
 

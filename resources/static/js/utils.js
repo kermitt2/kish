@@ -3,7 +3,6 @@
  */
 String.prototype.toHtmlEntities = function() {
     return this.replace(/./gm, function(s) {
-        // return "&#" + s.charCodeAt(0) + ";";
         return (s.match(/[a-z0-9\s]+/i)) ? s : "&#" + s.charCodeAt(0) + ";";
     });
 };
@@ -266,6 +265,9 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
         // if labeling annotation, we grab annotations from the annotation layer
         const annotations = recognito.getAnnotations();
         console.log("nb annotations:" + annotations.length);
+
+        var placeTaken = {};
+
         for (var annotationPos in annotations) {
             const annotation = annotations[annotationPos];
 
@@ -319,22 +321,32 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                 continue;
             }
 
+            var chunk = null;
+            var offsets = null;
             for (var selectorPos in annotation["target"]["selector"]) {
                 const selector = annotation["target"]["selector"][selectorPos];
                 if (selector["type"] && selector["type"] === "TextQuoteSelector") {
-                    if (!classValueMap[labelId]) {
-                        classValueMap[labelId] = [];
-                    }
-                    classValueMap[labelId].push(selector["exact"]);
+                    chunk = selector["exact"];
                 } else if (selector["type"] && selector["type"] === "TextPositionSelector") {
                     const offsetStart = selector["start"];
                     const offsetEnd = selector["end"];
-                    if (!offsetValueMap[labelId]) {
-                        offsetValueMap[labelId] = [];
-                    }
-                    offsetValueMap[labelId].push([offsetStart, offsetEnd]);
+                    offsets = [offsetStart, offsetEnd];
                 }
-            }            
+            }           
+
+            // safety check: filter out duplicated identical annotation, otherwise add the annotation
+            // for storage commit
+            if (chunk != null && offsets != null && !placeTaken[""+offsets[0]+"-"+offsets[1]]) {
+                if (!classValueMap[labelId]) {
+                    classValueMap[labelId] = [];
+                }
+                classValueMap[labelId].push(chunk);
+                if (!offsetValueMap[labelId]) {
+                    offsetValueMap[labelId] = [];
+                }
+                offsetValueMap[labelId].push([offsets[0], offsets[1]]);
+                placeTaken[""+offsets[0]+"-"+offsets[1]] = chunk;
+            }
         }
     } else {
         // if classification grab class values in a map
@@ -418,8 +430,9 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
             updateExcerptTaskStatus(taskInfo["id"], excerptIdentifier, true, false);
 
             // update task assignment information to keep track of the progress more easily
-            if (taskInfo["level"] !== "document") 
+            if (taskInfo["level"] !== "document") {
                 updateTaskAssignment(taskInfo["id"], completed, currentCount, 0);
+            }
 
             // if auto move on is set, we move automatically to the next excerpt item of the task, except if we are at the end
             if (!taskInfo["level"] || taskInfo["level"] !== "document") {
@@ -428,7 +441,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                 } else {
                     setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank);
                 }
-            } 
+            }
         }
     }
 

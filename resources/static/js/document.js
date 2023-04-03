@@ -127,51 +127,6 @@ function displayDocumentArea(userInfo_, currentDocument_, taskInfo_, labels_, ot
     $("#button-document-validation").attr('document-id', documentId);
     $("#button-document-update").attr('document-id', documentId);
     $("#button-document-ignore").attr('document-id', documentId);
-
-    // document status for this task and set the document-level buttons
-    /*if (currentDocument["ignored"] == 1) {
-        $("#button-document-update").addClass("inactive");
-        $("#button-document-update").show();
-        $("#button-document-update").click(function() {
-            updateDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-        $("#button-document-ignore").addClass("ignored");
-        $("#button-document-ignore").html("Ignored");
-        $("#button-document-ignore").show();
-        $("#button-document-ignore").attr('document-id', documentId);
-        $("#button-document-ignore").click(function() {
-            ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-    } else if (currentDocument["validated"] == 1) {
-        $("#button-document-update").removeClass("inactive");
-        $("#button-document-update").show();
-        $("#button-document-update").click(function() {
-            updateDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-        $("#button-document-ignore").removeClass("ignored");
-        $("#button-document-ignore").html("Ignore doc.");
-        $("#button-document-ignore").show();
-        $("#button-document-ignore").click(function() {
-            ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-    } else {
-        $("#button-document-validation").show();
-        $("#button-document-validation").click(function() {
-            validateDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-        $("#button-document-ignore").removeClass("ignored");
-        $("#button-document-ignore").html("Ignore doc.");
-        $("#button-document-ignore").show();
-        $("#button-document-ignore").click(function() {
-            ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
-        });
-    }*/
 }
 
 async function showDocument(documentId) {
@@ -920,8 +875,16 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
 }
 
 function createExcerptIfNeeded(userInfo, taskInfo, excerptIdentifier, document_id, textContent) {
+
+    console.log("createExcerptIfNeeded: " + excerptIdentifier);
+
     if (localExcerpts[excerptIdentifier]) {
-        // excerpt already exists, nothing to do here
+        // excerpt already exists
+        // update status for pre-annotation/reconciliation
+        var data = localExcerpts[excerptIdentifier];
+        data["validated"] = 1;
+        data["ignored"] = 0;
+        localExcerpts[excerptIdentifier] = data;
         return;
     }
 
