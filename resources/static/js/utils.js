@@ -332,7 +332,7 @@ function validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorM
                     const offsetEnd = selector["end"];
                     offsets = [offsetStart, offsetEnd];
                 }
-            }           
+            }
 
             // safety check: filter out duplicated identical annotation, otherwise add the annotation
             // for storage commit
