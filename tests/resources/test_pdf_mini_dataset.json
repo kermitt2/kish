@@ -1,6 +1,14 @@
 {
     "documents": [
         {
+            "id": "49bbb65f-268b-417f-9c95-063252e274de",
+            "doi": "10.1080/10572252.2019.1601774",
+            "full_text_url": "https://osf.io/2wjhk/download",
+            "full_text_pdf_uri": "resources/data/documents/DH_Articles_ENG_1-738/49/bb/b6/5f/49bbb65f-268b-417f-9c95-063252e274de/49bbb65f-268b-417f-9c95-063252e274de.pdf",
+            "full_text_tei_uri": "resources/data/documents/DH_Articles_ENG_1-738/49/bb/b6/5f/49bbb65f-268b-417f-9c95-063252e274de/49bbb65f-268b-417f-9c95-063252e274de.tei.xml",
+            "texts": []
+        },
+        {
             "id": "a37a4e9796",
             "doi": "10.14348/molcells.2017.0013",
             "full_text_url": "https://www.molcells.org/journal/download_pdf.php?doi=10.14348/molcells.2017.0013",

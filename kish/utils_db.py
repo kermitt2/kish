@@ -170,7 +170,11 @@ async def update_record(table, record_id, record_dict, full=False):
             start = False
         else:
             statement += ", "
-        statement += key + " = '" + str(record_dict[key]) + "'"
+        # escape special character in SQLite query: weird but we need to use double quote for 
+        # this: https://stackoverflow.com/questions/603572/escape-single-quote-character-for-use-in-an-sqlite-query
+        local_value = str(record_dict[key])
+        local_value = local_value.replace("'", "''")
+        statement += key + " = '" + local_value + "'"
     if table == 'preferences':
         statement += " WHERE user_id = '" + record_id + "'";
     else:
