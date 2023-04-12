@@ -230,7 +230,7 @@ def convert(json_map_file: str, dataset_json_path: str):
                                     }
                                     '''
                                     local_annotation = {}
-                                    local_annotation["type"] = "bibr"
+                                    local_annotation["type"] = "reference"
                                     local_annotation["start"] = reference["offsetStart"]
                                     local_annotation["end"] = reference["offsetEnd"]
                                     local_annotation["rawForm"] = reference["label"]

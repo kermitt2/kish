@@ -324,7 +324,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 7975,
                             "end": 7979,
                             "rawForm": "[21]",
@@ -376,7 +376,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 8135,
                             "end": 8139,
                             "rawForm": "[22]",
@@ -561,7 +561,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 73550,
                             "end": 73559,
                             "rawForm": "[DDPA15]",
@@ -620,7 +620,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 44317,
                             "end": 44326,
                             "rawForm": "[SMER06]",
@@ -841,7 +841,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 101545,
                             "end": 101554,
                             "rawForm": "[DDPA15]",
@@ -921,7 +921,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 46958,
                             "end": 46967,
                             "rawForm": "[DDPA15]",
@@ -1353,7 +1353,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 5637,
                             "end": 5647,
                             "rawForm": "[DDPA15]",
@@ -3483,7 +3483,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 38674,
                             "end": 38694,
                             "rawForm": "(Koeser et al. 2016)",
@@ -4248,7 +4248,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 13464,
                             "end": 13477,
                             "rawForm": "(Porter 2013)",
@@ -10697,7 +10697,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 29663,
                             "end": 29667,
                             "rawForm": "[26]",
@@ -20675,7 +20675,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 20907,
                             "end": 20911,
                             "rawForm": "[41]",
@@ -22353,7 +22353,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 12179,
                             "end": 12199,
                             "rawForm": "(DeRose et al. 1990)",
@@ -26493,7 +26493,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 19998,
                             "end": 20011,
                             "rawForm": "(Schmidt 2012",
@@ -26722,7 +26722,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 8956,
                             "end": 8970,
                             "rawForm": "(Friedli 2012)",
@@ -27388,7 +27388,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 20296,
                             "end": 20317,
                             "rawForm": "(Kisler et al. 2012)",
@@ -27498,7 +27498,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 11058,
                             "end": 11083,
                             "rawForm": "(Kilgarriff et al. 2014)",
@@ -63127,7 +63127,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 17512,
                             "end": 17514,
                             "rawForm": "7",
@@ -84636,7 +84636,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 20204,
                             "end": 20209,
                             "rawForm": "[8]",
@@ -87738,7 +87738,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 104270,
                             "end": 104291,
                             "rawForm": "Brooke et al. (2017)",
@@ -89017,7 +89017,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 18956,
                             "end": 18986,
                             "rawForm": "(Hiebel, Doerr, and Eide 2017)",
@@ -89113,7 +89113,7 @@
                             ]
                         },
                         {
-                            "type": "bibr",
+                            "type": "reference",
                             "start": 13985,
                             "end": 14012,
                             "rawForm": "(Manning and Enriquez 2018)",
