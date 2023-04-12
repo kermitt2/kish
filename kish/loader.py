@@ -225,5 +225,5 @@ async def import_labels_json(dataset_id: str, paths: list):
     print("nb labels added: ", str(nb_added_labels))
     print("nb labels updates: ", str(nb_updated_labels))
 
-    dataset_labels = await get_items("label", {})
+    dataset_labels = await get_items("label", {"dataset_id": dataset_id})
     print("nb total labels in dataset:", str(len(dataset_labels)))
