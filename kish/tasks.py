@@ -453,5 +453,11 @@ async def generate_document_tasks(dataset_id,
                 intask_dict = { "task_id": task_id, "document_id": local_document["document_id"], "validated": False, "ignored": False }
                 await insert_item("intask", intask_dict, add_id=False)
 
+                local_excerpts = await get_items("excerpt", { "dataset_id": dataset_id, "document_id": local_document["document_id"] }, full=True)
+                for local_excerpt in local_excerpts:
+                    #print(local_excerpt)
+                    intask_excerpt_dict = { "task_id": task_id, "excerpt_id": local_excerpt["id"], "document_id": local_excerpt["document_id"], "validated": False, "ignored": False }
+                    await insert_item("intask", intask_excerpt_dict, add_id=False)
+
     return nb_tasks
 

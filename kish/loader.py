@@ -78,8 +78,16 @@ async def import_dataset_json(dataset_id: str, paths: list, prefix_path: str=Non
                     if position_text != -1:
                         excerpt_dict["offset_start"] = position_text
                         excerpt_dict["offset_end"] = position_text + len(excerpt["text"])
+                if "id" in excerpt:
+                    excerpt_dict["id"] = excerpt["id"]
+                else:
+                    continue
 
-                excerpt_item = await insert_item("excerpt", excerpt_dict)
+                if "id" in excerpt_dict:
+                    excerpt_item = await insert_item("excerpt", excerpt_dict, add_id=False)
+                    excerpt_item["id"] = excerpt_dict["id"]
+                #else:
+                #    excerpt_item = await insert_item("excerpt", excerpt_dict, add_id=True)
                 excerpt_id = excerpt_item["id"]
                 nb_excepts += 1
 
@@ -113,7 +121,6 @@ async def import_dataset_json(dataset_id: str, paths: list, prefix_path: str=Non
                             check_label_item = await insert_item("label", check_label)
                             check_label["id"] = check_label_item["id"]
                         annotation_dict["label_id"] = check_label["id"]
-
                         await insert_item("annotation", annotation_dict)
                         nb_labeling += 1
 
