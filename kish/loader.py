@@ -114,7 +114,7 @@ async def import_dataset_json(dataset_id: str, paths: list, prefix_path: str=Non
                             annotation_dict["original_id"] = annot_id
 
                         # do we already have this label defined?
-                        check_label = await get_first_item("label", {"name": annotation["type"], "type": "labeling"})
+                        check_label = await get_first_item("label", {"name": annotation["type"], "dataset_id": dataset_id, "type": "labeling"})
                         if check_label == None:
                             # insert this new label
                             check_label = { "name": annotation["type"], "dataset_id": dataset_id, "type": "labeling" }
@@ -132,7 +132,7 @@ async def import_dataset_json(dataset_id: str, paths: list, prefix_path: str=Non
                         classification_dict["excerpt_id"] = excerpt_id
                         
                         # do we already have this class defined?
-                        check_label = await get_first_item("label", {"name": classification, "type": "classification"})
+                        check_label = await get_first_item("label", {"name": classification, "dataset_id": dataset_id, "type": "classification"})
                         if check_label == None:
                             # insert this new label
                             check_label = { "name": classification, "dataset_id": dataset_id, "type": "classification" }
