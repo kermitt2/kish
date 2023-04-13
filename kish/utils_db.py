@@ -87,6 +87,8 @@ async def get_items(table, item_dict, offset_from=-1, offset_to=-1, full=False):
                         statement += " AND "
                     if item_dict[key] == None:
                         statement +=  key + " is NULL"
+                    elif item_dict[key] == "NOT NULL":
+                        statement +=  key + " is NOT NULL"
                     else:
                         statement +=  key + " = '" + item_dict[key] + "'"
             if offset_to != -1 and (offset_from == -1 or offset_from == 0):

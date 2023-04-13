@@ -30,16 +30,22 @@ async def compute_metrics(task_items):
     
     primary_completed_tasks = []
     for task_item in task_items:
+        # non redundant tasks are primary tasks
         if not "redundant" in task_item or task_item["redundant"] == None:
             nb_distinct_tasks += 1
 
         if task_item["type"] != "reconciliation":
             continue
 
+        # in a reconciliation task, the redundant field gives the primary task of the group of 
+        # redundant tasks corresponding to the creation of this reconcialition task
         primary_completed_tasks.append(task_item["redundant"])
+        # nb_completed_tasks gives the number of redundant group tasks completed
         nb_completed_tasks += 1
 
-        excerpt_ids = await get_items("intask", { "task_id": task_item["id"] } )
+        # here is the number of "cases" in the reconciliation task, so the number of disagreement
+        # in the group of redundant task
+        excerpt_ids = await get_items("intask", { "task_id": task_item["id"], "excerpt_id": "NOT NULL" } )
         nb_local_disagreements = len(excerpt_ids)
 
         if nb_local_disagreements > nb_max_disagreements:
@@ -50,10 +56,30 @@ async def compute_metrics(task_items):
 
         nb_disagreements += nb_local_disagreements
 
+        # get the total number of completed cases in the redundant group corresponding to this
+        # reconciliation task
+
+        excerpt_ids = await get_items("intask", { "task_id": task_item["redundant"], "excerpt_id": "NOT NULL"  } )
+        local_max_cases = len(excerpt_ids)
+        local_total_redundant_tasks = 1
+
+        for task_item2 in task_items:
+            if task_item2["type"] == "reconciliation":
+                continue
+            if task_item2["redundant"] == task_item["redundant"]:
+                excerpt_ids = await get_items("intask", { "task_id": task_item2["id"], "excerpt_id": "NOT NULL"  } )
+                if len(excerpt_ids) > local_max_cases:
+                    local_max_cases = len(excerpt_ids)
+                local_total_redundant_tasks += 1
+
+        nb_completed_distinct_cases += local_max_cases
+
+    '''
     for task_item in task_items:
         if task_item["id"] in primary_completed_tasks:
-            excerpt_ids = await get_items("intask", { "task_id": task_item["id"] } )
+            excerpt_ids = await get_items("intask", { "task_id": task_item["id"], "excerpt_id": "NOT NULL"  } )
             nb_completed_distinct_cases += len(excerpt_ids)
+    '''
 
     result["nb_disagreements"] = nb_disagreements
     result["nb_max_disagreements"] = nb_max_disagreements
@@ -66,7 +92,11 @@ async def compute_metrics(task_items):
     if nb_completed_distinct_cases == 0:
         result['percentage_agreement'] = 0
     else:
-        result['percentage_agreement'] = 1 - (nb_disagreements / nb_completed_distinct_cases)
+        if nb_disagreements / nb_completed_distinct_cases > 1:
+            # it should never happen
+            result['percentage_agreement'] = 0
+        else:
+            result['percentage_agreement'] = 1 - (nb_disagreements / nb_completed_distinct_cases)
     result['nb_completed_tasks'] = nb_completed_tasks
 
     result['nb_total_cases'] = nb_cases
