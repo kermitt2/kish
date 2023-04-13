@@ -22,7 +22,6 @@ var kish = (function($) {
             activateMenuChoice($("#user-menu-home"));
             settings(userInfo);
             $("#user-settings").show();
-            return true;
         });
 
         $("#user-preferences").hide();
@@ -35,7 +34,6 @@ var kish = (function($) {
 
         $("#logout").click(function() {
             logout();
-            return true;
         });
 
         $('#update-settings-button').click(function() {
@@ -52,14 +50,12 @@ var kish = (function($) {
             clearMainContent();
             activateMenuChoice($(this));
             displayTasks(userInfo);
-            return true;
         });
 
         $("#users-home").click(function() {
             clearMainContent();
             activateMenuChoice($(this));
             displayUsers();
-            return true;
         });
 
         $("#datasets-home").click(function() {
@@ -75,7 +71,6 @@ var kish = (function($) {
                 $("#dataset-export-side-bar").show();
             }
             displayDatasets(userInfo);
-            return true;
         });
 
         $("#annotate-side-bar").click(function() {
@@ -88,7 +83,6 @@ var kish = (function($) {
             $("#annotation-doc-view").show();
             $("#annotation-val-area").show();
             $("#annotation-paging").show();
-            return true;
         });
 
         $("#guidelines-side-bar").click(function() {
@@ -100,7 +94,6 @@ var kish = (function($) {
             $("#guidelines-side-bar").show();
             $("#annotate-side-bar").show();
             $("#guidelines-view").show();
-            return true;
         });
 
         $("#dataset-tasks-side-bar").click(function() {
@@ -116,7 +109,6 @@ var kish = (function($) {
                 $("#dataset-export-side-bar").show();
             }
             displayDatasets(userInfo);
-            return true;
         });
 
         $("#dataset-create-side-bar").click(function() {
@@ -132,7 +124,6 @@ var kish = (function($) {
                 $("#dataset-export-side-bar").show();
                 displayDatasetCreation();
             }
-            return true;
         });
 
         $("#dataset-metrics-side-bar").click(function() {
@@ -148,7 +139,6 @@ var kish = (function($) {
                 $("#dataset-create-side-bar").show();
                 $("#dataset-export-side-bar").show();
             }
-            return true;
         });
 
         $("#dataset-export-side-bar").click(function() {
@@ -164,7 +154,6 @@ var kish = (function($) {
                 $("#dataset-export-side-bar").show();
                 displayDatasetExport();
             }            
-            return true;
         });
 
         // prepare sidebar toggle

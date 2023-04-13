@@ -22,14 +22,14 @@ const taskInfoTemplate = "<table style=\"width:100%;\"><tr> \
 const templateTaskTableHeader = "<thead><tr> \
         <td style=\"width:{{first_col_width}}%;\"></td> \
         <td style=\"width:15%; font-weight: bold;\">{{status}} Task</td> \
-        <td style=\"width:7%;\">Type</td> \
+        <td style=\"width:10%;\">Type</td> \
         <td style=\"width:15%;\">Dataset</td> \
         <td style=\"width:10%;\"># documents</td> \
         <td style=\"width:7%;\"># excerpts</td> \
         <td style=\"width:10%;\"># completed</td> \
         <td style=\"width:10%;\">Status</td> \
         <td style=\"width:15%;\">Assigned to</td> \
-        <td style=\"width:10%;text-align: right;\">Action</td> \
+        <td style=\"width:7%;text-align: right;\">Action</td> \
         </tr></thead><tbody>";
 
 const templateTaskRow = "<td></td><td>{{name}}</td><td>{{type}}</td><td>{{dataset_name}}</td><td>{{nb_documents}}</td> \
@@ -432,25 +432,26 @@ async function displayTaskItem(userInfo, table, pos, taskItem) {
                 "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
                 "\" style=\"color:green;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         } else {
-            taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
+            taskContent += "<td style=\"text-align: right;\"><span id=\"self-assign" + origin + "-task-"+pos+
                 "\" style=\"color:grey;\"><i class=\"mdi mdi-minus\"/></span> &nbsp; " + 
-                "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+                "<span id=\"annotate" + origin + "-task-"+pos+
                 "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         }
     } else {
         // is this task redundant with one already assigned to the user ? 
         // or is it a reconciliation task that can't be assigned given user's role? 
-        if ((userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1 && taskItem["type"] !== "reconciliation")||
+        if (
+            (userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1 && taskItem["type"] !== "reconciliation") ||
             (userInfo["role"] === "annotator" && taskItem["type"] === "reconciliation")
             ) {
             taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
             "\" style=\"color:grey;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
-            "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+            "<span id=\"annotate" + origin + "-task-"+pos+
             "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         } else {
             taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
             "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
-            "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+            "<span id=\"annotate" + origin + "-task-"+pos+
             "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         }
     }
@@ -522,10 +523,6 @@ function selfAssignTask(userInfo, taskIdentifier) {
                 }
             }
             callToaster("toast-top-center", "success", "Success!", "Self-assignment to task");
-            /*if ($("#tasks-home").hasClass("active"))
-                displayTasks(userInfo);
-            else
-                displayDatasets(userInfo);*/
         }
     }
 
@@ -563,10 +560,6 @@ function selfUnassignTask(userInfo, taskIdentifier) {
             }
 
             callToaster("toast-top-center", "success", "Success!", "Self-unassignment from the task");
-            /*if ($("#tasks-home").hasClass("active"))
-                displayTasks(userInfo);
-            else                
-                displayDatasets(userInfo);*/
         }
     }
 
