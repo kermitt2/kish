@@ -422,6 +422,9 @@ async function displayTaskItem(userInfo, table, pos, taskItem) {
         taskContent = taskContent.replace("{{assigned}}", "");
 
     var origin = "-dataset";
+    if (response["dataset_id"]) {
+        origin += "-" + response["dataset_id"];
+    }
     if ($("#tasks-home").hasClass("active")) 
         origin = "";
 
