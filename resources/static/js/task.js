@@ -350,8 +350,6 @@ async function displayTask(userInfo, table, pos, taskIdentifier) {
             // otherwise display the task information
             var response = JSON.parse(xhr.responseText);
             response = response["record"]
-            var taskContent = templateTaskRow;
-
             displayTaskItem(userInfo, table, pos, response);
         }
     };
@@ -360,128 +358,129 @@ async function displayTask(userInfo, table, pos, taskIdentifier) {
 }
 
 async function displayTaskItem(userInfo, table, pos, taskItem) {
-    response = taskItem;
-    taskIdentifier = response["id"];
+    var taskIdentifier = taskItem["id"];
     var taskContent = templateTaskRow;
 
-    if (response["name"])
-        taskContent = taskContent.replace("{{name}}", response["name"]);
+    if (taskItem["name"])
+        taskContent = taskContent.replace("{{name}}", taskItem["name"]);
     else 
         taskContent = taskContent.replace("{{name}}", "");
 
-    if (response["type"])
-        taskContent = taskContent.replace("{{type}}", response["type"]);
+    if (taskItem["type"])
+        taskContent = taskContent.replace("{{type}}", taskItem["type"]);
     else
         taskContent = taskContent.replace("{{type}}", "");
 
-    if (response["dataset_name"])
-        taskContent = taskContent.replace("{{dataset_name}}", response["dataset_name"]);
+    if (taskItem["dataset_name"])
+        taskContent = taskContent.replace("{{dataset_name}}", taskItem["dataset_name"]);
     else
         taskContent = taskContent.replace("{{dataset_name}}", "");
 
-    if (response["nb_documents"])
-        taskContent = taskContent.replace("{{nb_documents}}", response["nb_documents"]);
+    if (taskItem["nb_documents"])
+        taskContent = taskContent.replace("{{nb_documents}}", taskItem["nb_documents"]);
     else
         taskContent = taskContent.replace("{{nb_documents}}", "0");
 
-    if (response["nb_excerpts"])
-        taskContent = taskContent.replace("{{nb_excerpts}}", response["nb_excerpts"]);
+    if (taskItem["nb_excerpts"])
+        taskContent = taskContent.replace("{{nb_excerpts}}", taskItem["nb_excerpts"]);
     else
         taskContent = taskContent.replace("{{nb_excerpts}}", "0");
 
-    if (response["level"] === "document") {
-        if (response["nb_completed_documents"]) {
-            if (response["nb_documents"])
-                taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_documents"] + " / " + response["nb_documents"] + " doc.");
+    if (taskItem["level"] === "document") {
+        if (taskItem["nb_completed_documents"]) {
+            if (taskItem["nb_documents"])
+                taskContent = taskContent.replace("{{nb_completed_excerpts}}", taskItem["nb_completed_documents"] + " / " + taskItem["nb_documents"] + " doc.");
             else
-                taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_documents"] + " doc.");
+                taskContent = taskContent.replace("{{nb_completed_excerpts}}", taskItem["nb_completed_documents"] + " doc.");
         } else 
             taskContent = taskContent.replace("{{nb_completed_excerpts}}", "0");
     } else {
-        if (response["nb_completed_excerpts"]) {
-            if (response["nb_excerpts"])
-                taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_excerpts"] + " / " + response["nb_excerpts"] + " excepts");
+        if (taskItem["nb_completed_excerpts"]) {
+            if (taskItem["nb_excerpts"])
+                taskContent = taskContent.replace("{{nb_completed_excerpts}}", taskItem["nb_completed_excerpts"] + " / " + taskItem["nb_excerpts"] + " excepts");
             else
-                taskContent = taskContent.replace("{{nb_completed_excerpts}}", response["nb_completed_excerpts"] + " excerpt");
+                taskContent = taskContent.replace("{{nb_completed_excerpts}}", taskItem["nb_completed_excerpts"] + " excerpt");
         } else
             taskContent = taskContent.replace("{{nb_completed_excerpts}}", "0");
     }
 
-    if (response["status"]) {
-        if (response["status"] == "completed") {
+    if (taskItem["status"]) {
+        if (taskItem["status"] == "completed") {
             taskContent = taskContent.replace("{{status}}", "<span style=\"color: green;\">completed</span>");
         } else {
-            taskContent = taskContent.replace("{{status}}", response["status"]);
+            taskContent = taskContent.replace("{{status}}", taskItem["status"]);
         }
     } else
         taskContent = taskContent.replace("{{status}}", "unknown");
 
-    if (response["assigned"])
-        taskContent = taskContent.replace("{{assigned}}", response["assigned"]);
+    if (taskItem["assigned"])
+        taskContent = taskContent.replace("{{assigned}}", taskItem["assigned"]);
     else
         taskContent = taskContent.replace("{{assigned}}", "");
 
     var origin = "-dataset";
-    if (response["dataset_id"]) {
-        origin += "-" + response["dataset_id"];
+    if (taskItem["dataset_id"]) {
+        origin += "-" + taskItem["dataset_id"];
     }
     if ($("#tasks-home").hasClass("active")) 
         origin = "";
 
-    if (response["assigned"]) {
-        if (response["assigned"] === userInfo["email"]) {
-            taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
-                "\" style=\"color:orange;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
-                "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
-                "\" style=\"color:green;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+    if (taskItem["assigned"]) {
+        if (taskItem["assigned"] === userInfo["email"]) {
+            taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
+                "\" style=\"color:orange;\"><i class=\"mdi mdi-minus\"/></span> &nbsp; " + 
+                "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+                "\" style=\"color:green;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         } else {
-            taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
-                "\" style=\"color:grey;\"><i class=\"mdi mdi-minus\"/></span></a> &nbsp; " + 
-                "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
-                "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+            taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
+                "\" style=\"color:grey;\"><i class=\"mdi mdi-minus\"/></span> &nbsp; " + 
+                "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+                "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         }
     } else {
         // is this task redundant with one already assigned to the user ? 
         // or is it a reconciliation task that can't be assigned given user's role? 
-        if ((userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1 && response["type"] !== "reconciliation")||
-            (userInfo["role"] === "annotator" && response["type"] === "reconciliation")
+        if ((userInfo["redundant_tasks"].indexOf(taskIdentifier) != -1 && taskItem["type"] !== "reconciliation")||
+            (userInfo["role"] === "annotator" && taskItem["type"] === "reconciliation")
             ) {
-            taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
-            "\" style=\"color:grey;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
-            "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
-            "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+            taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
+            "\" style=\"color:grey;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
+            "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+            "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         } else {
-            taskContent += "<td style=\"text-align: right;\"><a href=\"#\"><span id=\"self-assign" + origin + "-task-"+pos+
-            "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a> &nbsp; " + 
-            "<a href=\"#\"><span id=\"annotate" + origin + "-task-"+pos+
-            "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></a></td>";
+            taskContent += "<td style=\"text-align: right;\"><span class=\"clickable\" id=\"self-assign" + origin + "-task-"+pos+
+            "\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span> &nbsp; " + 
+            "<span class=\"clickable\" id=\"annotate" + origin + "-task-"+pos+
+            "\" style=\"color:grey;\"><i class=\"mdi mdi-border-color\"/></span></td>";
         }
     }
     
     await $("#"+table+"-task-"+pos).html(taskContent);
     setTimeout(function() {
-        if (response["assigned"]) {
-            if (response["assigned"] === userInfo["email"]) {
+        if (taskItem["assigned"]) {
+            if (taskItem["assigned"] === userInfo["email"]) {
                 $("#self-assign" + origin + "-task-"+pos).click(function() {
                     selfUnassignTask(userInfo, taskIdentifier);
-                    return true;
+                    //return true;
                 });
                 $("#annotate" + origin + "-task-"+pos).click(function() {
-                    annotationTask(userInfo, response);
-                    return true;
+                    annotationTask(userInfo, taskItem);
+                    //return true;
                 });
             } else {
-                $("#self-deassign" + origin + "-task-"+pos).click(function() {
-                    unAssignTask(userInfo, taskIdentifier);
-                    return true;
-                });
+                if (userInfo["role"] !== "annotator") {
+                    $("#self-assign" + origin + "-task-"+pos).click(function() {
+                        unAssignTask(userInfo, taskIdentifier);
+                        //return true;
+                    });
+                }
             }
         } else {
             if (userInfo["redundant_tasks"].indexOf(taskIdentifier) == -1 || 
-                (response["type"] === "reconciliation" && userInfo["role"] !== "annotator")) {
+                (taskItem["type"] === "reconciliation" && userInfo["role"] !== "annotator")) {
                 $("#self-assign" + origin + "-task-"+pos).click(function() {
                     selfAssignTask(userInfo, taskIdentifier);
-                    return true;
+                    //return true;
                 });
             } 
         }

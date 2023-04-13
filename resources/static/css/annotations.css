@@ -322,6 +322,7 @@ span.section-not-active { color: #848484; }
 span.section-active { color: #BC0E0E; }
 span.disabled { filter: opacity(50%); }
 /*span.label { font-weight: bold; }*/
+span.clickable:hover { cursor:pointer; }
 
 .index {
     color:#D42C2C;
