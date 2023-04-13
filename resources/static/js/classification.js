@@ -295,26 +295,20 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
             $("#button-back").css("visibility", "hidden");
         } else {
             $("#button-start").click(function() {
-                //clearMainContent();
                 setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, 0);
-                return true;
             });
             $("#button-back").click(function() {
-                //clearMainContent();
                 setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1);
-                return true;
             });
         }
 
         $("#button-validate").click(function() {
             validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation, null);
-            return true;
         });
         
         if (!isIgnoredExcerpt) {
             $("#button-ignore").click(function() {
                 ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation);
-                return true;
             });
         }
         
@@ -323,14 +317,10 @@ function displayLabelAreaClassification(userInfo, taskInfo, labels, otherLabels,
             $("#button-end").css("visibility", "hidden");
         } else {
             $("#button-next").click(function() {
-                //clearMainContent();
                 setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
-                return true;
             });
             $("#button-end").click(function() {
-                //clearMainContent();
                 setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["nb_excerpts"]-1);
-                return true;
             });
         }
     }

@@ -461,17 +461,20 @@ async function displayTaskItem(userInfo, table, pos, taskItem) {
             if (taskItem["assigned"] === userInfo["email"]) {
                 $("#self-assign" + origin + "-task-"+pos).click(function() {
                     selfUnassignTask(userInfo, taskIdentifier);
-                    //return true;
+                    taskItem["assigned"] = null;
+                    taskItem["status"] = "unassigned";
+                    displayTaskItem(userInfo, table, pos, taskItem);
                 });
                 $("#annotate" + origin + "-task-"+pos).click(function() {
                     annotationTask(userInfo, taskItem);
-                    //return true;
                 });
             } else {
                 if (userInfo["role"] !== "annotator") {
                     $("#self-assign" + origin + "-task-"+pos).click(function() {
                         unAssignTask(userInfo, taskIdentifier);
-                        //return true;
+                        taskItem["assigned"] = null;
+                        taskItem["status"] = "unassigned";
+                        displayTaskItem(userInfo, table, pos, taskItem);
                     });
                 }
             }
@@ -480,7 +483,9 @@ async function displayTaskItem(userInfo, table, pos, taskItem) {
                 (taskItem["type"] === "reconciliation" && userInfo["role"] !== "annotator")) {
                 $("#self-assign" + origin + "-task-"+pos).click(function() {
                     selfAssignTask(userInfo, taskIdentifier);
-                    //return true;
+                    taskItem["assigned"] = userInfo["email"];
+                    taskItem["status"] = "assigned";
+                    displayTaskItem(userInfo, table, pos, taskItem);
                 });
             } 
         }
@@ -517,10 +522,10 @@ function selfAssignTask(userInfo, taskIdentifier) {
                 }
             }
             callToaster("toast-top-center", "success", "Success!", "Self-assignment to task");
-            if ($("#tasks-home").hasClass("active"))
+            /*if ($("#tasks-home").hasClass("active"))
                 displayTasks(userInfo);
             else
-                displayDatasets(userInfo);
+                displayDatasets(userInfo);*/
         }
     }
 
@@ -558,10 +563,10 @@ function selfUnassignTask(userInfo, taskIdentifier) {
             }
 
             callToaster("toast-top-center", "success", "Success!", "Self-unassignment from the task");
-            if ($("#tasks-home").hasClass("active"))
+            /*if ($("#tasks-home").hasClass("active"))
                 displayTasks(userInfo);
             else                
-                displayDatasets(userInfo);
+                displayDatasets(userInfo);*/
         }
     }
 

@@ -304,22 +304,18 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
     } else {
         $("#button-start").click(function() {
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, 0);
-            return true;
         });
         $("#button-back").click(function() {
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank-1);
-            return true;
         });
     }
 
     $("#button-validate").click(function() {
         validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation, recognito);
-        return true;
     });
     
     $("#button-ignore").click(function() {
         ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptItem["id"], isUserAnnotation);
-        return true;
     });
     
     if (rank+1 >= taskInfo["nb_excerpts"]) {
@@ -328,11 +324,9 @@ function displayLabelAreaLabeling(userInfo, taskInfo, labels, otherLabels, label
     } else {
         $("#button-next").click(function() {
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank+1);
-            return true;
         });
         $("#button-end").click(function() {
             setExcerptView(userInfo, taskInfo, labels, otherLabels, labelColorMap, taskInfo["nb_excerpts"]-1);
-            return true;
         });
     }
 }

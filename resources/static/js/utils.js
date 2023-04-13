@@ -171,7 +171,6 @@ function ignoreExcerpt(userInfo, taskInfo, labels, otherLabels, labelColorMap, r
             $("#button-ignore").off('click');
             $("#button-validate").click(function() {
                 validateAnnotation(userInfo, taskInfo, labels, otherLabels, labelColorMap, rank, excerptIdentifier, true, recognito);
-                return true;
             });
         }
     }

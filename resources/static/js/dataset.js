@@ -198,7 +198,7 @@ function displayDataset(userInfo, pos, datasetIdentifier) {
 
             if (userInfo["is_superuser"]) {
                 divContent += "<td style=\"text-align: top;\"><p>&nbsp;</p><span style=\"color:orange;\"><i class=\"mdi mdi-database-edit\"/></span> &nbsp; " + 
-                "<a href=\"#\"><span id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></a></td>";
+                "<span class=\"clickable\" id=\"delete-dataset-"+pos+"\" style=\"color:red;\"><i class=\"mdi mdi-delete\"/></span></td>";
             } else {
                 divContent += "<td></td>";
             }                
@@ -207,7 +207,6 @@ function displayDataset(userInfo, pos, datasetIdentifier) {
             $("#dataset-"+pos).html(divContent).promise().done(function() {
                 $("#delete-dataset-"+pos).click(function() {
                     deleteDataset(datasetIdentifier);
-                    return true;
                 });
 
                 displayDatasetTasks(userInfo, pos, datasetIdentifier);

@@ -404,7 +404,6 @@ function showSentences() {
         $("#button-document-update").click(function() {
             const documentId = $("#button-document-update").attr('document-id');
             updateDocument(userInfo, taskInfo, documentId);
-            return true;
         });
         $("#button-document-ignore").addClass("ignored");
         $("#button-document-ignore").html("Ignored");
@@ -412,7 +411,6 @@ function showSentences() {
         $("#button-document-ignore").click(function() {
             const documentId = $("#button-document-ignore").attr('document-id');
             ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
         });
     } else if (currentDocument["validated"] == 1) {
         $("#button-document-update").removeClass("inactive");
@@ -420,7 +418,6 @@ function showSentences() {
         $("#button-document-update").click(function() {
             const documentId = $("#button-document-update").attr('document-id');
             updateDocument(userInfo, taskInfo, documentId);
-            return true;
         });
         $("#button-document-ignore").removeClass("ignored");
         $("#button-document-ignore").html("Ignore doc.");
@@ -428,14 +425,12 @@ function showSentences() {
         $("#button-document-ignore").click(function() {
             const documentId = $("#button-document-ignore").attr('document-id');
             ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
         });
     } else {
         $("#button-document-validation").show();
         $("#button-document-validation").click(function() {
             const documentId = $("#button-document-validation").attr('document-id');
             validateDocument(userInfo, taskInfo, documentId);
-            return true;
         });
         $("#button-document-ignore").removeClass("ignored");
         $("#button-document-ignore").html("Ignore doc.");
@@ -443,7 +438,6 @@ function showSentences() {
         $("#button-document-ignore").click(function() {
             const documentId = $("#button-document-ignore").attr('document-id');
             ignoreDocument(userInfo, taskInfo, documentId);
-            return true;
         });
     }
 
@@ -783,7 +777,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             const pageRowTopPos = pageRow.offsetTop;
             const topPos = local_target.offsetTop + pageRowTopPos - 100;
             document.getElementById('document-view').scrollTop = topPos;
-            return true;
         });
         $("#button-back").click(function() {
             $('#sentence-' +  localExcerptsList[rankExcerpt-1] + '-0').trigger('click');
@@ -792,7 +785,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             const pageRowTopPos = pageRow.offsetTop;
             const topPos = local_target.offsetTop + pageRowTopPos - 100;
             document.getElementById('document-view').scrollTop = topPos;
-            return true;
         });
     } 
 
@@ -814,7 +806,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             }
             $("#"+segmentID).addClass("activated");
         }
-        return true;
     });
     
     $("#button-ignore").click(function() {
@@ -846,7 +837,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
                 $("#"+segmentID).removeClass("activated");
             }
         }
-        return true;
     });
     
     if (rankExcerpt+1 >= localExcerptsList.length || !navigationButton) {
@@ -860,7 +850,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             const pageRowTopPos = pageRow.offsetTop;
             const topPos = local_target.offsetTop + pageRowTopPos - 100;
             document.getElementById('document-view').scrollTop = topPos;
-            return true;
         });
         $("#button-end").click(function() {
             $('#sentence-' +  localExcerptsList[localExcerptsList.length-1] + '-0').trigger('click');
@@ -869,7 +858,6 @@ function displayDocumentLabelAreaLabeling(userInfo, taskInfo, labels, otherLabel
             const pageRowTopPos = pageRow.offsetTop;
             const topPos = local_target.offsetTop + pageRowTopPos - 100;
             document.getElementById('document-view').scrollTop = topPos;
-            return true;
         });
     }
 }

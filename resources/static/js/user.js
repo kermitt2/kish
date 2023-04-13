@@ -62,7 +62,6 @@ function displayUsers() {
                     event.preventDefault();
                     const newLocation = $(this).parent().parent().parent();
                     addNewUser(newLocation);                        
-
                     return true;
                 });
             }
@@ -98,7 +97,6 @@ function addNewUser(newLocation) {
             event.preventDefault();
             const newLocation = $(this).parent().parent().parent();
             addNewUser(newLocation);                        
-
             return true;
         });
         return true;
