@@ -253,7 +253,7 @@ function displayDatasetTasks(userInfo, pos, datasetIdentifier) {
                 tableContent += "</tbody>";
                 $("#dataset-"+pos+"-task-view-table").html(tableContent).promise().done(function() {
                     for(var pos2 in response["records"]) {
-                        displayTask(userInfo, "dataset-"+pos, pos2, response["records"][pos2]);
+                        displayTaskItem(userInfo, "dataset-"+pos, pos2, response["records"][pos2]);
                     }
                 });
             }

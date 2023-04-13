@@ -128,6 +128,7 @@ async def export_dataset(identifier: str, type: str):
 
 
 
+'''
 @router.get("/tasks/dataset/{identifier}", tags=["tasks"],
     description="Return the list of tasks for a given dataset.")
 async def get_dataset_tasks(identifier: str):
@@ -145,6 +146,57 @@ async def get_dataset_tasks(identifier: str):
     final_records = [record["id"] for record in records]
 
     result['records'] = final_records
+    result['runtime'] = round(time.time() - start_time, 3)
+    return result
+'''
+
+@router.get("/tasks/dataset/{identifier}", tags=["tasks"],
+    description="Return the list of tasks for a given dataset.")
+async def get_dataset_tasks(identifier: str, user: User = Depends(current_user)):
+    start_time = time.time()
+    result = {}
+
+    # dataset name
+    from utils_db import get_first_item, get_items
+    dataset_item = await get_first_item("dataset", {"id": identifier})
+    
+    records = await get_items("task", { "dataset_id": identifier}, full=True)
+    for item in records:
+        item["dataset_name"] = dataset_item["name"]
+
+        # enrich the task items with some additional information
+        task_id = item["id"]
+
+        # possible assigned user 
+        from utils_db import get_assigned_user
+        local_user = await get_assigned_user(task_id)
+        if local_user == None or "user_id" not in local_user:
+            item["status"] = "unassigned"
+            item["assigned"] = None
+        else:
+            item["assigned"] = local_user["email"]
+            assign_item = await get_first_item("assign", {"task_id": task_id, "user_id": local_user["user_id"]})
+            if assign_item["is_completed"]:
+                item["status"] = "completed"
+                item["is_completed"] = 1
+            else: 
+                item["status"] = "assigned"
+                item["is_completed"] = 0
+
+        # number of documents, excerpts and annotations
+        from utils_db import get_task_attributes
+        task_attributes = await get_task_attributes(item)
+        for key in task_attributes:
+            item[key] = task_attributes[key]
+
+    # custom functions to get task name info
+    def get_name(record):
+        return record.get("name")
+
+    records.sort(key=get_name)
+
+    result['count'] = len(records)
+    result['records'] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
 
@@ -208,20 +260,7 @@ async def get_task(identifier: str, user: User = Depends(current_user)):
         task_attributes = await get_task_attributes(item)
         for key in task_attributes:
             item[key] = task_attributes[key]
-        """    
-        if "nb_documents" in task_attributes:
-            item["nb_documents"] = task_attributes["nb_documents"]
-        if "nb_excerpts" in task_attributes:
-            item["nb_excerpts"] = task_attributes["nb_excerpts"]
-        if "nb_annotations" in task_attributes:
-            item["nb_annotations"] = task_attributes["nb_annotations"]
-        if "nb_pre_annotations" in task_attributes:
-            item["nb_pre_annotations"] = task_attributes["nb_pre_annotations"]
-        if "nb_completed_excerpts" in task_attributes:
-            item["nb_completed_excerpts"] = task_attributes["nb_completed_excerpts"]
-        if "subtype" in task_attributes:
-            item["subtype"] = task_attributes["subtype"]
-        """
+
         result['record'] = item
     result['runtime'] = round(time.time() - start_time, 3)
     return result
