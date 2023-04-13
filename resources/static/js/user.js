@@ -62,7 +62,6 @@ function displayUsers() {
                     event.preventDefault();
                     const newLocation = $(this).parent().parent().parent();
                     addNewUser(newLocation);                        
-                    return true;
                 });
             }
         }
@@ -97,9 +96,7 @@ function addNewUser(newLocation) {
             event.preventDefault();
             const newLocation = $(this).parent().parent().parent();
             addNewUser(newLocation);                        
-            return true;
         });
-        return true;
     });
 
     $("#email-user-"+pos).click(function() {
@@ -109,7 +106,6 @@ function addNewUser(newLocation) {
         $("#update-user-"+pos).css("color", "orange");
         $("#update-user-"+pos).addClass("active");
         $("#email-user-"+pos).off('click');
-        return true;
     });
 
     $("#password-user-"+pos).click(function() {
@@ -119,7 +115,6 @@ function addNewUser(newLocation) {
         $("#update-user-"+pos).css("color", "orange");
         $("#update-user-"+pos).addClass("active");
         $("#password-user-"+pos).off('click');
-        return true;
     });
 
     $("#first-name-user-"+pos).click(function() {
@@ -129,7 +124,6 @@ function addNewUser(newLocation) {
         $("#update-user-"+pos).css("color", "orange");
         $("#update-user-"+pos).addClass("active");
         $("#first-name-user-"+pos).off('click');
-        return true;
     });
 
     $("#last-name-user-"+pos).click(function() {
@@ -139,7 +133,6 @@ function addNewUser(newLocation) {
         $("#update-user-"+pos).css("color", "orange");
         $("#update-user-"+pos).addClass("active");
         $("#last-name-user-"+pos).off('click');
-        return true;
     });
 
     $("#update-user-"+pos).click(function() {
@@ -147,7 +140,6 @@ function addNewUser(newLocation) {
         if ($(this).hasClass("active")) {
             updateUser(null, pos);
         }
-        return true;
     });
 }
 
@@ -193,14 +185,12 @@ function displayUser(pos, userIdentifier) {
             $("#user-"+pos).html(addRow);
             $("#delete-user-"+pos).click(function() {
                 deleteUser(userIdentifier);
-                return true;
             });
 
             $("#role-"+pos).change(function() {
                 event.preventDefault();
                 $("#update-user-"+pos).css("color", "orange");
                 $("#update-user-"+pos).addClass("active");
-                return true;
             });
 
             $("#password-user-"+pos).click(function() {
@@ -210,7 +200,6 @@ function displayUser(pos, userIdentifier) {
                 $("#update-user-"+pos).css("color", "orange");
                 $("#update-user-"+pos).addClass("active");
                 $("#password-user-"+pos).off('click');
-                return true;
             });
 
             $("#first-name-user-"+pos).click(function() {
@@ -220,7 +209,6 @@ function displayUser(pos, userIdentifier) {
                 $("#update-user-"+pos).css("color", "orange");
                 $("#update-user-"+pos).addClass("active");
                 $("#first-name-user-"+pos).off('click');
-                return true;
             });
 
             $("#last-name-user-"+pos).click(function() {
@@ -230,7 +218,6 @@ function displayUser(pos, userIdentifier) {
                 $("#update-user-"+pos).css("color", "orange");
                 $("#update-user-"+pos).addClass("active");
                 $("#last-name-user-"+pos).off('click');
-                return true;
             });
 
             $("#update-user-"+pos).click(function() {
@@ -238,7 +225,6 @@ function displayUser(pos, userIdentifier) {
                 if ($(this).hasClass("active")) {
                     updateUser(userIdentifier, pos);
                 }
-                return true;
             });
         }
     };

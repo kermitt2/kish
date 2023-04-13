@@ -48,7 +48,7 @@
 
 function displayDatasetMetrics(pos, dataset_id) {
     // display the metrics for one given dataset
-    var url = defineBaseURL("datasets/"+dataset_id+"/metrics?type=classification");
+    var url = defineBaseURL("datasets/"+dataset_id+"/metrics");
     
     // retrieve dataset metrics
     var xhr = new XMLHttpRequest();
@@ -81,9 +81,6 @@ function displayDatasetMetrics(pos, dataset_id) {
 
                 divContent += "<div class=\"col\"><h2 class=\"mb-1\">" + 
                                 (response["progress"] * 100).toFixed(2) + "&nbsp;%</h2><p style=\"color:#8a909d;\">progress</p></div>";
-
-                                //response["nb_completed_cases"] + " total completed excerpt cases"
-                                //response["nb_total_cases"] + " total excerpt cases"
 
                 divContent += "<div class=\"col\"><h2 class=\"mb-1\">" + 
                                 (response["percentage_agreement"] * 100).toFixed(2) + "&nbsp;%</h2><p style=\"color:#8a909d;\">percentage agreement</p></div>";
@@ -152,11 +149,9 @@ function displayDatasets(userInfo) {
                     divContent += "<table id=\"dataset-"+pos+"-task-view-table\" class=\"table table-borderless\" style=\"width:90%;table-layout:fixed;border-top: 1px solid #8a909d;\"></table>";
                     divContent += "</div>";
                 }
-                //$("#dataset-view").html(divContent);
                 $("#dataset-view").html(divContent).promise().done(function() {
                     for(var pos in response["records"]) {
                         displayDataset(userInfo, pos, response["records"][pos]);
-                        //displayDatasetTasks(userInfo, pos, response["records"][pos]);
                     }
                 });
             }

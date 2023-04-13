@@ -31,7 +31,6 @@ var kish = (function($) {
             activateMenuChoice($("#user-menu-home"));
             preferences(userInfo);
             $("#user-preferences").show();
-            return true;
         });
 
         $("#logout").click(function() {

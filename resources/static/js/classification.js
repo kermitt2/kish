@@ -365,7 +365,6 @@ function applyInlineAnnotations(context, inlineLabeling, otherLabels, labelColor
     for (var pi in pieces) {
         piece = pieces[pi];
 
-        //var entityRawForm = piece.rawForm;
         var start = parseInt(piece.offset_start, 10);
         var end = parseInt(piece.offset_end, 10);
 

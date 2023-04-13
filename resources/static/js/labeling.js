@@ -29,7 +29,6 @@ var LabelSelectorWidget = function(args) {
             evt.target.classList.remove("selected");
 
             if (currentAnnotation && currentAnnotation.bodies && currentAnnotation.bodies.length>0 && currentAnnotation.bodies[0].value === evt.target.textContent) {
-                //console.log(currentAnnotation.id);
                 args.onRemoveBody(currentAnnotation.bodies[0]);
             }
 

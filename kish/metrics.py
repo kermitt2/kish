@@ -78,23 +78,23 @@ async def compute_metrics(task_items):
 
     return result
 
-async def compute_overall_metrics(dataset_id: str, task_type: str):
+async def compute_overall_metrics(dataset_id: str):
     # note: progress is calculated based on every tasks
     # IAA iscalculated based on completed tasks only
 
     # get dataset basic information
     dataset_item = await get_first_item("dataset", {"id": dataset_id})
 
-    # get all tasks for the task type
-    task_items = await get_items("task", {"dataset_id": dataset_id, "type": task_type}, full=True)
+    # get all tasks for all the task types
+    task_items = await get_items("task", {"dataset_id": dataset_id}, full=True)
     task_items_reconciliation = await get_items("task", {"dataset_id": dataset_id, "type": "reconciliation"}, full=True)
 
     for task_item_reconciliation in task_items_reconciliation:
         # only keep reconciliation tasks corresponding to the given type task
         if task_item_reconciliation["type"] == "reconciliation" and "redundant" in task_item_reconciliation and task_item_reconciliation["redundant"] != None:
             primary_task = await get_first_item("task", { "id": task_item_reconciliation["redundant"] })
-            if primary_task["type"] == task_type:
-                task_items.append(task_item_reconciliation)
+            #if primary_task["type"] == task_type:
+            task_items.append(task_item_reconciliation)
 
     print("total tasks", str(len(task_items)))
 

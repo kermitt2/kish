@@ -100,14 +100,12 @@ async def get_tasks():
 
 @router.get("/datasets/{identifier}/metrics", tags=["datasets"],
     description="Return advancement and IAA metrics for the tasks of a given dataset.")
-async def get_dataset_metrics(identifier: str, type: str):
+async def get_dataset_metrics(identifier: str):
     start_time = time.time()
     result = {}
 
-    print(identifier, type)
-
     from metrics import compute_overall_metrics
-    metrics_dict = await compute_overall_metrics(identifier, type)
+    metrics_dict = await compute_overall_metrics(identifier)
     print(metrics_dict)
 
     result["metrics"] = metrics_dict
