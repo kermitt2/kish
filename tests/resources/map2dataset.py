@@ -161,11 +161,20 @@ def convert(json_map_file: str, dataset_json_path: str):
                                 local_signature = string_signature(text_entry["text"])
                                 if local_signature in map_sentence_id:
                                     text_entries = map_sentence_id[local_signature]
-                                    if text_entries != None:
-                                        for text_entrie in text_entries:
+                                    if text_entries != None and len(text_entries) != 0:
+                                        if len(text_entries) == 1:
+                                            text_entrie = text_entries[0]
                                             text_entry["id"] = text_entrie[0]
                                             text_entry["boundingBoxes"] = text_entrie[1]
                                             text_entry["text"] = text_entrie[2]
+                                        else:
+                                            # we need to select "best" match based on the coordinates
+
+                                            for text_entrie in text_entries:
+                                                text_entry["id"] = text_entrie[0]
+                                                text_entry["boundingBoxes"] = text_entrie[1]
+                                                text_entry["text"] = text_entrie[2]
+                                                break
                             
                             if "text" not in text_entry or text_entry["text"] == None:
                                 continue
@@ -255,9 +264,6 @@ def convert(json_map_file: str, dataset_json_path: str):
                     if "type" in mention and mention["type"] == "dataset":
                         if "dataset-name" in mention:
         '''
-
-
-
 
         new_documents.append(new_document)
 
