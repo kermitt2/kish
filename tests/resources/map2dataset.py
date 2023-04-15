@@ -157,6 +157,8 @@ def convert(json_map_file: str, dataset_json_path: str):
                                 text_entry["text"] = current_text
                                 text_entry["entity_spans"] = []
 
+                            annotation_page_number = get_annotation_page_number(mention)
+
                             if "text" in text_entry:
                                 local_signature = string_signature(text_entry["text"])
                                 if local_signature in map_sentence_id:
@@ -169,12 +171,15 @@ def convert(json_map_file: str, dataset_json_path: str):
                                             text_entry["text"] = text_entrie[2]
                                         else:
                                             # we need to select "best" match based on the coordinates
-
                                             for text_entrie in text_entries:
-                                                text_entry["id"] = text_entrie[0]
-                                                text_entry["boundingBoxes"] = text_entrie[1]
-                                                text_entry["text"] = text_entrie[2]
-                                                break
+                                                if "boundingBoxes" in text_entry and len(text_entry["boundingBoxes"])>0:
+                                                    page_number = text_entry["boundingBoxes"][0]["p"]                                                
+
+                                                if page_number == annotation_page_number:
+                                                    text_entry["id"] = text_entrie[0]
+                                                    text_entry["boundingBoxes"] = text_entrie[1]
+                                                    text_entry["text"] = text_entrie[2]
+                                                    break
                             
                             if "text" not in text_entry or text_entry["text"] == None:
                                 continue
@@ -284,6 +289,17 @@ def string_signature(string):
         return None
     result = re.sub(r'[^a-zA-Z0-9]', '', string)
     return result
+
+def get_annotation_page_number(mention):
+    '''
+    Given a mention, return its page number
+    '''
+    if "software-name" in mention:
+        if "boundingBoxes" in mention["software-name"]:
+            local_bounding_boxes = mention["software-name"]["boundingBoxes"]
+            if len(mention["software-name"]["boundingBoxes"])>0:
+                return mention["software-name"]["boundingBoxes"][0]["p"]
+    return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
