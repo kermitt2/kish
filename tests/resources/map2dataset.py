@@ -107,12 +107,20 @@ def convert(json_map_file: str, dataset_json_path: str):
         new_document["doi"] = document["DOI"]
         new_document["full_text_url"] = document["oaLink"]
         new_document["full_text_pdf_uri"] = document["pdf_file_path"]
-        new_document["full_text_tei_uri"] = document["pdf_file_path"].replace(".pdf", ".tei.xml")
+
+        # extension could be .tei.xml or .grobid.tei.xml depending on the client that generate the TEI
+        # we do a file look-up to decide
+        if os.path.exists(os.path.join(json_map_dir, document["pdf_file_path"].replace(".pdf", ".grobid.tei.xml"))):
+            new_document["full_text_tei_uri"] = document["pdf_file_path"].replace(".pdf", ".grobid.tei.xml")
+        else:
+            new_document["full_text_tei_uri"] = document["pdf_file_path"].replace(".pdf", ".tei.xml")
         new_document["texts"] = []
 
         # for the indicated sentence contexts, we retrieve the original TEI identifier and bounding boxes
         # they can be accessed in the JSON file with extension .tei.json if present along the other files
         tei_structure_file = os.path.join(json_map_dir, document["pdf_file_path"].replace(".pdf", ".tei.json"))
+        if not os.path.exists(tei_structure_file):
+            tei_structure_file = os.path.join(json_map_dir, document["pdf_file_path"].replace(".pdf", ".grobid.tei.json"))
 
         print(tei_structure_file)
         map_sentence_id = {}

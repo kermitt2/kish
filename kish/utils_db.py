@@ -606,3 +606,56 @@ async def test_document_init():
     await generate_document_tasks("811b64f1-323f-4a78-bdb8-ebaab44b023d", "mentions", task_type="labeling", target_annotators=1, redundancy=1, 
         guidelines="guidelines-softcite-labeling.md", max_task_size=20, max_task_number=4)
 
+async def test_sandbox_init():
+    # create a dataset and tasks with PDF document with pre-annotation for demo/sandbox
+    
+    # Dataset
+    dataset_data = { "id": '011b64f1-323f-4a78-bdb8-ebaab44b023e', 
+                     "name": "sandbox",
+                     "description": "Dataset and software mention contexts demo/sandbox",
+                     "image_url": "images/software.png" }
+
+    # check if dataset is already present
+    dataset = await get_first_item("dataset", {"id": dataset_data["id"]})
+    if dataset is not None:
+
+        # extra specifications for labels associated to the dataset
+        from loader import import_labels_json
+        await import_labels_json(dataset["id"], ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+
+        # check if reconciliation tasks are already present
+
+        # get the tasks for this dataset
+        task_ids = await get_items("task", {"dataset_id": dataset["id"]})
+
+        for task_id in task_ids:
+            # if task is complete, check completeness of all redundant tasks
+            from tasks import check_completed_tasks, open_reconciliation_task, has_reconciliation_task
+            already_reconciliation = await has_reconciliation_task(task_id)
+            if not already_reconciliation:
+                allComplete = await check_completed_tasks(task_id)
+                if allComplete:
+                    await open_reconciliation_task(task_id)
+        return
+
+    # extra specifications for labels associated to the dataset
+    from loader import import_labels_json
+    await import_labels_json("011b64f1-323f-4a78-bdb8-ebaab44b023e", 
+        ["tests/resources/softcite-labels.json", "tests/resources/datastet-labels.json"])
+
+    await insert_item("dataset", dataset_data)
+
+    # insert data for the dataset
+    dataset_data_sources = ["resources/data/documents/sandbox/sandbox.preannotated.dataset.json"]
+
+    from loader import import_dataset_json
+    result, nb_documents, nb_excerpts, nb_classifications, nb_labeling = await import_dataset_json(
+        dataset_id="011b64f1-323f-4a78-bdb8-ebaab44b023e", 
+        paths=dataset_data_sources,
+        prefix_path=os.path.join("resources/data/documents", dataset_data["name"]))
+
+    # create task for 6 annotators with the 5 documents, no duplication
+    from kish.tasks import generate_document_tasks
+    await generate_document_tasks("011b64f1-323f-4a78-bdb8-ebaab44b023e", "mentions", task_type="labeling", target_annotators=1, redundancy=1, 
+        guidelines="guidelines-softcite-labeling.md", max_task_size=5, max_task_number=6)
+
