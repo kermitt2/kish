@@ -504,6 +504,7 @@ async def get_datasets():
     result['count'] = 1
     from utils_db import get_items
     records = await get_items("dataset", {})
+    records.sort()
     result['records'] = records
     result['runtime'] = round(time.time() - start_time, 3)
     return result
