@@ -10,10 +10,9 @@ global_config = None
 
 def _load_config(config_file='./config.yaml'):
     """
-    Load the json configuration, and keep a global instance available 
+    Load the yaml configuration, and keep a global instance available 
     """
     global global_config
-    config = None
     if config_file and os.path.exists(config_file) and os.path.isfile(config_file):
         with open(config_file, 'r') as the_file:
             raw_configuration = the_file.read()
