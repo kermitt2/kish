@@ -25,7 +25,8 @@ def is_alive_status():
 @router.get("/version", response_class=PlainTextResponse, tags=["generic"], 
     description="Return the version tag of the service.")
 def get_version():
-    api_settings = scorer.config['api']
+    from kish.utils import global_config
+    api_settings = global_config['api']
     return api_settings['version']
 
 # to redirect the static root to app/index.html
