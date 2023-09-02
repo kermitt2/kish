@@ -1,0 +1,87 @@
+<div class="container d-flex align-items-center justify-content-center vh-100">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-10">
+      <div class="card">
+        <!--div class="card-header bg-primary">
+          <div class="app-brand">
+            <a href="sign-in.html">
+              <img src="images/logo-300x290.png" width="60" height="60"/>
+
+              <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" width="30" height="33"
+                viewBox="0 0 30 33">
+                <g fill="none" fill-rule="evenodd">
+                  <path class="logo-fill-blue" fill="#7DBCFF" d="M0 4v25l8 4V0zM22 4v25l8 4V0z" />
+                  <path class="logo-fill-white" fill="#FFF" d="M11 4v25l8 4V0z" />
+                </g>
+              </svg>
+
+              <span class="brand-name">KISH</span>
+            </a>
+          </div>
+        </div-->
+
+        <div class="card-body p-5">
+          <h4 class="text-dark mb-5">Sign Up</h4>
+
+          <form id="sign-up-form">
+            <div class="row">
+              <div id="div-email" class="form-group col-md-12 mb-4">
+                <input type="email" 
+                     class="form-control input-lg {{is_email_valid ? 'is-valid' : ''}} {{is_email_invalid ? 'is-invalid' : ''}}" 
+                     id="email" name="email" 
+                     [(ngModel)]="email" 
+                     aria-describedby="emailHelp" 
+                     placeholder="Email">
+                <div class="invalid-feedback" *ngIf="empty_email">Please enter an email</div>
+                <div class="invalid-feedback" *ngIf="bad_email">It does not look like an email</div>
+              </div>
+
+              <div id="div-forename" class="form-group col-md-12 mb-4">
+                <input type="text" class="form-control input-lg" id="forename" name="forename" [(ngModel)]="forename" aria-describedby="nameHelp" placeholder="First Name (optional)">
+              </div>
+
+              <div id="div-lastname" class="form-group col-md-12 mb-4">
+                <input type="text" class="form-control input-lg" id="lastname" name="lastname" [(ngModel)]="lastname" aria-describedby="nameHelp" placeholder="Last Name (optional)">
+              </div>
+
+              <div id="div-password" class="form-group col-md-12 ">
+                <input type="password" class="form-control input-lg {{is_password_valid ? 'is-valid' : ''}} {{is_password_invalid ? 'is-invalid' : ''}}" id="password" name="password" [(ngModel)]="password" placeholder="Password">
+                <div class="invalid-feedback" *ngIf="empty_password">Please enter a password</div>
+                <div class="invalid-feedback" *ngIf="bad_password">Password must have at least 8 characters</div>
+              </div>
+
+              <div id="div-cpassword" class="form-group col-md-12 ">
+                <input type="password" class="form-control input-lg {{is_cpassword_valid ? 'is-valid' : ''}} {{is_cpassword_invalid ? 'is-invalid' : ''}}" id="password" name="cpassword" [(ngModel)]="cpassword" placeholder="Password">
+                <div class="invalid-feedback" *ngIf="empty_cpassword">Please enter a confimation password</div>
+                <div class="invalid-feedback" *ngIf="bad_cpassword">Password must have at least 8 characters</div>
+                <div class="invalid-feedback" *ngIf="passwords_not_match">Password and confirmation password do not match</div>
+              </div>
+
+              <div class="col-md-12">
+                <div id="div-checkbox" class="d-inline-block mr-3">
+                  <label class="checkbox" style="text-transform: none;">
+                    <input type="checkbox" id="term-checkbox" name="termCheckbox" [(ngModel)]="termCheckbox" [attr.checked]="termCheckbox ? 'checked' : null" value="1" />&nbsp;I agree the terms and conditions
+                  </label>
+                  <div class="invalid-feedback" 
+                       style="display: inline;"
+                       *ngIf="is_termCheckbox_invalid">&nbsp;You need to agree</div>
+                </div>
+
+                <div id="div-submit">
+                  <button type="submit" id="sign-up-button" class="btn btn-lg btn-primary btn-block mb-4" (click)="signup()">Sign Up</button>
+                  <div class="invalid-feedback" 
+                       style="color:red; display:inline;"
+                       *ngIf="submit_invalid">Error user registration: <br/>{{ submit_message }}</div>
+                </div>
+
+                <p>Already have an account?
+                  <a class="text-blue" routerLink="/sign-in">Sign in</a>
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
