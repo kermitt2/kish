@@ -54,12 +54,13 @@ export class SignInComponent {
       this.http.post<any>(url, urlEncodedData, {'headers':headers}).subscribe({
         next: data => {
           console.log("success");
+          this.router.navigateByUrl('/')
         },
         error: error => {
           this.submit_invalid = true;
           this.submit_message = error.message;
         }
-      })
+      });
     }
   }
 

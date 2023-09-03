@@ -25,9 +25,21 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/scss/bootstrap.scss",
+              "node_modules/nprogress/nprogress.css",
+              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
+              "src/assets/plugins/simplebar/simplebar.css",
+              "src/assets/css/sleek-dark.css",
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "node_modules/nprogress/nprogress.js",
+              "node_modules/jquery/dist/jquery.min.js",
+              "src/assets/plugins/simplebar/simplebar.min.js",
+              "src/assets/plugins/toastr/toastr.min.js",
+              "src/assets/js/sleek.js"
+            ]
           },
           "configurations": {
             "production": {

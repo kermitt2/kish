@@ -1,0 +1,439 @@
+<body class="header-fixed sidebar-fixed sidebar-dark header-dark sidebar-minified" id="body">
+
+  <div id="toaster"></div>
+
+  <!-- ====================================
+  ——— WRAPPER
+  ===================================== -->
+  <div class="wrapper">
+
+    <!-- ====================================
+      ——— LEFT SIDEBAR WITHOUT FOOTER
+    ===================================== -->
+    <aside class="left-sidebar bg-sidebar">
+      <div id="sidebar" class="sidebar">
+        <!-- Aplication Brand -->
+        <div class="app-brand">
+          <a href="javascript:void(0)" title="KISH">
+            <span class="brand-name text-truncate">KISH</span>
+          </a>
+        </div>
+
+        <!-- begin sidebar scrollbar -->
+        <div class="" data-simplebar style="height:100%;">
+          <!-- sidebar menu -->
+          <ul class="nav sidebar-inner" id="sidebar-menu">
+
+            <!-- annotation view side bar menu -->
+            <li id="annotate-side-bar" class="" style="display:none;">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="dashboard">
+                <i class="mdi mdi-pencil-box-multiple"></i>
+                <span class="nav-text">Annotate</span>
+              </a>
+            </li>
+
+            <li id="guidelines-side-bar" class="" style="display:none;">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="app">
+                <i class="mdi mdi-teach"></i>
+                <span class="nav-text">Guidelines</span> <span id="guidelines-task-id" style="display:none;"></span>
+              </a>
+            </li>
+
+            <!-- dataset view side bar menu -->
+            <li id="dataset-tasks-side-bar" class="" style="display:none;">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="dashboard">
+                <i class="mdi mdi-pencil-box-multiple"></i>
+                <span class="nav-text">Tasks</span>
+              </a>
+            </li>
+
+            <li id="dataset-create-side-bar" class="" style="display:none;">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="app">
+                <i class="mdi mdi-database-import"></i>
+                <span class="nav-text">Create/Import</span>
+              </a>
+            </li>
+
+            <li id="dataset-metrics-side-bar" class="" style="display:none;">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="app">
+                <i class="mdi mdi-chart-bar"></i>
+                <span class="nav-text">Metrics</span>
+              </a>
+            </li>
+
+            <li id="dataset-export-side-bar" class="" style="display:none;">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="app">
+                <i class="mdi mdi-database-export"></i>
+                <span class="nav-text">Exports</span>
+              </a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+
+
+  <!-- ====================================
+    ——— PAGE WRAPPER
+    ===================================== -->
+  <div class="page-wrapper">
+      
+    <!-- Header -->
+    <header class="main-header" id="header">
+        <nav class="navbar navbar-static-top navbar-expand-lg justify-content-start">
+          <!-- Sidebar toggle button -->
+          <button id="sidebar-toggler" class="sidebar-toggle">
+            <span class="sr-only">Toggle navigation</span>
+          </button>
+
+          <div class="navbar-right" (click)="selectedMenuChoice = 'tasks-home'">
+            <ul class="nav navbar-nav">
+              <li id="tasks-home" 
+                  [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice == 'tasks-home'}">
+                <button class="home">
+                  <span 
+                    [ngClass]="{'active': selectedMenuChoice == 'tasks-home'}"> <i class="mdi mdi-home"></i> My Tasks</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="navbar-right" (click)="selectedMenuChoice = 'datasets-home'">
+            <ul class="nav navbar-nav">
+              <li id="datasets-home" 
+                  [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice == 'datasets-home'}">
+                <button class="home">
+                  <span 
+                    [ngClass]="{'active': selectedMenuChoice == 'datasets-home'}"> <i class="mdi mdi-database-edit"></i> Datasets</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="navbar-right" (click)="selectedMenuChoice = 'users-home'">
+            <ul class="nav navbar-nav">
+              <li id="users-home" 
+                  [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice == 'users-home'}" 
+                  *ngIf="show_users_home">
+                <button class="home">
+                  <span 
+                    [ngClass]="{'active': selectedMenuChoice == 'users-home'}"> <i class="mdi mdi-account"></i> Users</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- possible search form, otherwise just an horizontal space filler... -->
+          <div class="search-form d-none d-lg-inline-block">
+            <!--div class="input-group">
+              <button type="button" name="search" id="search-btn" class="btn btn-flat">
+                <i class="mdi mdi-magnify"></i>
+              </button>
+              <input type="text" name="query" id="search-input" class="form-control" placeholder="'button', 'chart' etc."
+                autofocus autocomplete="off" />
+            </div-->
+            <!--div id="search-results-container">
+              <ul id="search-results"></ul>
+            </div-->
+          </div>
+
+          <div class="navbar-right ">
+            <ul class="nav navbar-nav">
+              <!--li class="dropdown notifications-menu custom-dropdown">
+                <button class="dropdown-toggle notify-toggler custom-dropdown-toggler">
+                  <i class="mdi mdi-bell"></i>
+                </button>
+
+                <div class="card card-default dropdown-notify dropdown-menu-right mb-0">
+                  <div class="card-header card-header-border-bottom px-3">
+                    <h2>Notifications</h2>
+                  </div>
+
+                  <div class="card-body px-0 py-3">
+                    <ul class="nav nav-tabs nav-style-border p-0 justify-content-between" id="myTab" role="tablist">
+                      <li class="nav-item mx-3 my-0 py-0">
+                        <a class="nav-link active pb-3" id="home2-tab" data-toggle="tab" href="#home2" role="tab" aria-controls="home2" aria-selected="true">All (0)</a>
+                      </li>
+
+                    </ul>
+
+                    <div class="tab-content" id="myTabContent3">
+                      <div class="tab-pane fade show active" id="home2" role="tabpanel" aria-labelledby="home2-tab">
+                        <ul class="list-unstyled" data-simplebar style="height: 360px">
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li-->
+
+              <!-- User Account -->
+              <li class="dropdown user-menu" (click)="selectedMenuChoice = 'user-menu-home'">
+                <button id="user-menu-home" 
+                        href="javascript:void(0)" 
+                        [ngClass]="{'dropdown-toggle': true, 'nav-link': true, 'active': selectedMenuChoice == 'user-menu-home'}"
+                        data-toggle="dropdown">
+                  <!--img src="assets/img/user/user.png" class="user-image" alt="User Image" /-->
+                  <span id="display-name-header" 
+                        [ngClass]="{'d-none': true, 'd-lg-inline-block':true, 'active': selectedMenuChoice == 'user-menu-home'}">{{userInfo['email']}}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right">
+                  <!-- User image -->
+                  <li class="dropdown-header">
+                    <!--img src="assets/img/user/user.png" class="img-circle" alt="User Image" /-->
+                    <div id="display-name" class="d-inline-block">{{userInfo["first_name"]}} {{userInfo["last_name"]}}<small class="pt-1"> {{userInfo["email"]}}</small></div>
+                    <div id="display-role"><small class="pt-1">{{ userInfo["role"] }}</small></div>
+                  </li>
+
+                  <!--li>
+                    <a href="user-profile.html">
+                      <i class="mdi mdi-account"></i> My Profile
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0)">
+                      <i class="mdi mdi-email"></i> Message
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0)"> <i class="mdi mdi-diamond-stone"></i> Projects </a>
+                  </li-->
+                  <li class="right-sidebar-in">
+                    <a id="user-preferences-menu" href="javascript:void(0)"> <i class="mdi mdi-cellphone-settings-variant"></i> Preferences </a>
+                  </li>
+                  <li class="right-sidebar-in">
+                    <a id="user-settings-menu" href="javascript:void(0)"> <i class="mdi mdi-settings"></i> Account Setting </a>
+                  </li>
+                  <li class="dropdown-footer">
+                    <a id="logout" href="javascript:void(0)"> <i class="mdi mdi-logout"></i> Log Out </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </nav>
+    </header>
+
+
+    <!-- ====================================
+      ——— CONTENT WRAPPER / this is the dynamic area for the one page application 
+    ===================================== -->
+    <div class="content-wrapper">
+        <div id="main-content" class="content d-flex justify-content-center">
+
+          <!-- ====================================
+          ——— List of user tasks (my task home view)
+          ===================================== --> 
+          <div id="my-task-view" class="col-lg-10 col-xl-11" style="display:none;">
+            <div class="row border">
+              <p style="padding-left:13px;padding-top:13px;">Active tasks</p>
+              <table id="active-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+            </div>
+            <div class="row border">
+              <p style="padding-left:13px;;padding-top:13px;">Assigned tasks</p>
+              <table id="assigned-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+            </div>
+            <div class="row border">
+              <p style="padding-left:13px;;padding-top:13px;">Completed tasks</p>
+              <table id="completed-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+            </div>
+          </div>
+
+
+          <!-- ====================================
+          ——— List of datasets (and associated tasks)
+          ===================================== -->
+          <div id="dataset-view" class="col-lg-10 col-xl-11" style="display:none;">
+          </div>
+
+          <!-- ====================================
+          ——— Create a dataset (for admin/curator)
+          ===================================== -->
+          <div id="dataset-create-view" class="col-lg-10 col-xl-11" style="display:none;">
+          </div>
+          
+          <!-- ====================================
+          ——— View metrics for dataset tasks 
+          ===================================== -->
+          <div id="dataset-metrics-view" class="col-lg-10 col-xl-11" style="display:none;">
+          </div>
+
+          <!-- ====================================
+          ——— Export dataset tasks (for admin/curator)
+          ===================================== -->
+          <div id="dataset-export-view" class="col-lg-10 col-xl-11" style="display:none;">
+          </div>
+
+          <!-- ====================================
+          ——— List of users (for admin only)
+          ===================================== -->
+          <div id="user-view" class="col-lg-8 col-xl-9" style="display:none;">
+            <table id="user-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+          </div>
+
+          <!-- ====================================
+          ——— The annotation view
+          ===================================== -->
+          <div id="annotation-view" class="col-lg-11 col-xl-12" style="display:none;">
+            <div class="row" style="height: 50px;">
+              <div id="annotation-task-info" class="pb-5" style="width:100%;"></div>
+            </div>
+            <div class="row">
+              <div id="annotation-panel" style="width:100%;">
+                <div class="row">
+                  <div id="annotation-doc-view" class="col-8 border pt-3 pb-3"></div>
+                  <div id="annotation-val-view" class="col-4 border d-flex flex-column" style="position:relative;">
+                    <div class="p-2 align-items-top" style="width: 100%; min-height: 100px;">
+                      <div id="annotation-val-area" class="pt-2 w-100"></div>
+                    </div>
+                    <div id="annotation-paging" class="container-fluid pb-2 justify-content-center mx-auto" style="align-items: center; justify-content: center;"></div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>          
+          </div>
+
+          <!-- ====================================
+          ——— Display task guidelines (from annotation view)
+          ===================================== -->
+          <div id="guidelines-view" class="col-lg-10 col-xl-11 markdown-body" style="display:none;">
+          </div>
+
+          <!-- ====================================
+          ——— USER preferences
+          ===================================== -->
+          <div id="user-preferences" class="bg-dark border rounded col-lg-6 col-xl-7" style="display:none;">
+            <div class="row no-gutters justify-content-center">
+              <div class="col-lg-11 col-xl-12">
+                <div class="profile-content-right profile-right-spacing py-5">
+                  <ul class="nav nav-tabs px-3 px-xl-5 nav-style-border" id="myTab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="true">User Preferences</a>
+                    </li>
+                  </ul>
+
+                  <div class="tab-content px-3 px-xl-5" id="myTabContent">
+                    <div class="tab-pane fade show active" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                      <div class="tab-pane-content mt-5">
+                        <form>
+
+                          <label class="control control-checkbox">Move to next task item on validate
+                            <input id="preferences-move-on" type="checkbox" checked="checked">
+                            <div class="control-indicator"></div>
+                          </label>
+
+                          <div id="div-submit-preferences" class="d-flex justify-content-end mt-5">
+                            <button id="update-preferences-button" type="submit" class="btn btn-primary mb-2 btn-pill">Update Preferences</button>
+                          </div>
+
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ====================================
+          ——— USER account settings
+          ===================================== -->
+          <div id="user-settings" class="bg-dark border rounded col-lg-6 col-xl-7" style="display:none;">
+            <div class="row no-gutters justify-content-center">
+
+              <div class="col-lg-11 col-xl-12">
+                <div class="profile-content-right profile-right-spacing py-5">
+                  <ul class="nav nav-tabs px-3 px-xl-5 nav-style-border" id="myTab" role="tablist">
+
+                    <li class="nav-item">
+                      <a class="nav-link active" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="true">Settings</a>
+                    </li>
+                  </ul>
+
+                  <div class="tab-content px-3 px-xl-5" id="myTabContent">
+                    <div class="tab-pane fade show active" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                      <div class="tab-pane-content mt-5">
+                        <form>
+
+                          <div id="div-email" class="form-group mb-4">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" value="" readonly>
+                          </div>
+
+                          <div class="row mb-2">
+                            <div class="col-lg-6" style="padding-left: 0px;">
+                              <div class="form-group">
+                                <label for="firstName">First name</label>
+                                <input type="text" class="form-control" id="firstName" value="">
+                              </div>
+                            </div>
+
+                            <div class="col-lg-6" style="padding-right: 0px;">
+                              <div class="form-group">
+                                <label for="lastName">Last name</label>
+                                <input type="text" class="form-control" id="lastName" value="">
+                              </div>
+                            </div>
+                          </div>
+
+                          <div id="div-oldPassword" class="form-group mb-4">
+                            <label for="oldPassword">Current password</label>
+                            <input type="password" class="form-control" id="oldPassword">
+                          </div>
+
+                          <div id="div-newPassword" class="form-group mb-4">
+                            <label for="newPassword">New password</label>
+                            <input type="password" class="form-control" id="newPassword">
+                          </div>
+
+                          <div id="div-conPassword" class="form-group mb-4">
+                            <label for="conPassword">Confirm new password</label>
+                            <input type="password" class="form-control" id="conPassword">
+                          </div>
+
+                          <div id="div-submit" class="d-flex justify-content-end mt-5">
+                            <button id="update-settings-button" type="submit" class="btn btn-primary mb-2 btn-pill">Update Profile</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- End main content -->
+    </div> <!-- End Content Wrapper -->
+
+    <footer class="footer mt-auto">
+        <div class="copyright">
+          <p class="text-muted">
+              Web API 
+              <a href="../docs" target="_blank">docs</a>/<a href="../redoc" target="_blank">redoc</a> - 
+              <a href="https://github.com/kermitt2/kish" target="_blank">
+                  GitHub
+              </a> -
+              &copy; The contributors - <span id="copy-year"></span> 
+          </p>
+        </div>
+        <script>
+          var d = new Date();
+          var year = d.getFullYear();
+          document.getElementById("copy-year").innerHTML = year;
+        </script>
+    </footer>
+
+  </div> <!-- End Page Wrapper -->
+</div> <!-- End Wrapper -->
+
+</body>

@@ -75,7 +75,7 @@ export class SignUpComponent {
           this.submit_invalid = true;
           this.submit_message = error.message;
         }
-      })
+      });
     }
   }
 
