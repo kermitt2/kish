@@ -21,23 +21,6 @@ logging:
     level: DEBUG
     handlers: [console]
 
-## CORS setting for the web API
-CORS:
-  allowed_origins:
-    - "*"
-  allowed_methods:
-    - "OPTIONS"
-    - "GET"
-    - "PUT"
-    - "POST"
-    - "DELETE"
-    - "HEAD"
-  allowed_headers:
-    - "X-Requested-With"
-    - "Content-Type"
-    - "Accept"
-    - "Origin"
-
 ## web app/API settings
 api:
   port: 8050 
@@ -70,6 +53,46 @@ api:
 
     google_client_id: 
     google_private_key:
+
+  # deployment can be prod or dev, for dev it will relax cookies/CORS so that it can be used by a web app running
+  # in localhost with other port (e.g. Angular :4200)
+  deployment: "dev"
+  #deployment: "prod"
+
+  ## CORS setting for the web API
+  CORS:
+    dev:
+      # allowed CORS origins depending on the deployment mode
+      allowed_origins:
+        - "http://localhost:4200"
+        - "http://0.0.0.0:8050"
+      allowed_methods:
+        - "OPTIONS"
+        - "GET"
+        - "PUT"
+        - "POST"
+        - "DELETE"
+        - "HEAD"
+      allowed_headers:
+        - "X-Requested-With"
+        - "Content-Type"
+        - "Accept"
+        - "Origin"
+    prod:
+      allowed_origins:
+        - "*"
+      allowed_methods:
+        - "OPTIONS"
+        - "GET"
+        - "PUT"
+        - "POST"
+        - "DELETE"
+        - "HEAD"
+      allowed_headers:
+        - "X-Requested-With"
+        - "Content-Type"
+        - "Accept"
+        - "Origin"
 
 ## information for sending password reset email, assuming TTL secured SMTP server, keep it secret
 smtp:

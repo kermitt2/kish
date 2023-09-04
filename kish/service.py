@@ -115,7 +115,12 @@ def get_app(server_config) -> FastAPI:
                 tags=["auth"],
             )
 
+    # default
     origins = ["*"]
+    if server_config["deployment"] == "prod":
+        origins = server_config["CORS"]["prod"]["allowed_origins"]
+    else:
+        origins = server_config["CORS"]["dev"]["allowed_origins"]
 
     server.add_middleware(
         CORSMiddleware,

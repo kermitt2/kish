@@ -54,12 +54,14 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
 async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)
 
-# for browser usage, cookie is simpler and slightly safer - one day validity
-#bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
-cookie_transport = CookieTransport(cookie_max_age=86400)
-
-# below for intranet test only !
-cookie_transport = CookieTransport(cookie_max_age=86400, cookie_secure=False, cookie_httponly=False)
+if global_config["api"]["deployment"] == "prod":
+    # for browser usage, cookie is simpler and slightly safer - one day validity
+    #bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+    cookie_transport = CookieTransport(cookie_max_age=86400)
+else:
+    # dev deployment
+    # below for intranet test only !
+    cookie_transport = CookieTransport(cookie_max_age=86400, cookie_secure=False, cookie_httponly=False, cookie_samesite=None)
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=SECRET, lifetime_seconds=LIFETIME)
