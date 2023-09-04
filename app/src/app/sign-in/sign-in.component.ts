@@ -51,7 +51,7 @@ export class SignInComponent {
       }
       urlEncodedData = urlEncodedData.slice(0, -1);
 
-      this.http.post<any>(url, urlEncodedData, {'headers':headers}).subscribe({
+      this.http.post<any>(url, urlEncodedData, {'headers':headers, withCredentials: true}).subscribe({
         next: data => {
           console.log("success");
           this.router.navigateByUrl('/')

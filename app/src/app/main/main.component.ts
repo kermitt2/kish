@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from "@angular/common/http";
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 
 import * as $ from 'jquery';
 
@@ -38,15 +39,24 @@ export class MainComponent implements OnInit {
 
   setAuthenticatedUserInfo(): void {
     let url: string = this.defineBaseURL("users/me");
-    const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
+    //let headers = new Headers();
+    //headers.append('Content-Type', 'application/json; charset=UTF-8');
 
-    this.http.get<any>(url, {observe: 'response', withCredentials: true}).subscribe(
+    const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
+    /*let options = {
+      observe: 'response', withCredentials: true 
+    }*/
+
+    //let options = new RequestOptions({ headers: headers, observe: 'response', withCredentials: true });
+
+    this.http.get<any>(url, {headers: headers, observe: 'response', withCredentials: true}).subscribe(
       response => {
         console.log("status", response.status);
         console.log(response);
         if (response.status == 200 || response.status == 201) {
-          let data: any = response.body
+          let data: any = response.body;
           this.userInfo = data;
+          console.log(this.userInfo);
           //this.updateUserSettings(userInfo);
           if (this.userInfo["role"] == "admin") {
               this.show_users_home = true;
