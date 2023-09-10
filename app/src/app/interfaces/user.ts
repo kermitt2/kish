@@ -7,4 +7,5 @@ export interface User {
     is_verified: boolean,
     last_name?: string,
     role: string,
+    password?: string,
 }
