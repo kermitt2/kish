@@ -23,6 +23,8 @@ import { Injectable } from '@angular/core';
 import { HttpRequest, HttpClient, HttpHandler, HttpEvent, HttpErrorResponse, HttpInterceptor, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { TasksComponent } from './components/tasks/tasks.component';
+import { DatasetsComponent } from './components/datasets/datasets.component';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -53,7 +55,9 @@ export class AuthInterceptor implements HttpInterceptor {
     ResetPwdComponent,
     NewPwdComponent,
     MainComponent,
-    UsersComponent
+    UsersComponent,
+    TasksComponent,
+    DatasetsComponent
   ],
   imports: [
     NgbModule,

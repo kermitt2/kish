@@ -7,10 +7,30 @@
                         <td style="width:10%;">action</td></tr></thead>
             <tr *ngFor="let user of users; let pos = index">
                 <td><i class="mdi mdi-account-box"></i></td>
-                <td>{{user?.email}}</td> 
-                <td id="first-name-user-{{pos}}">{{user?.first_name}}</td> 
-                <td id="last-name-user-{{pos}}">{{user?.last_name}}</td>
-                <td id="password-user-{{pos}}"><a href="javascript:void(0)">********</a></td> 
+                <td id="email-user-{{pos}}" (click)="editField('email', 'email-user-'+pos, pos)">
+                    <span>{{user?.email}}</span>
+                    <input id="email-input-{{pos}}" 
+                           type="text" 
+                           style="width: 100%;display:none;" 
+                           value="{{user?.email}}" 
+                           (keyup.esc)="leaveField('email-user-'+pos, pos)" />
+                </td> 
+                <td id="first-name-user-{{pos}}" (click)="editField('first-name', 'first-name-user-'+pos, pos)">
+                    <span>{{user?.first_name}}</span>
+                    <input id="first-name-input-{{pos}}" 
+                           type="text" 
+                           style="width: 100%; display:none;" 
+                           value="{{user?.first_name}}" 
+                           (keyup.esc)="leaveField('first-name-user-'+pos, pos)"/>
+                </td> 
+                <td id="last-name-user-{{pos}}" (click)="editField('last-name', 'last-name-user-'+pos, pos)">
+                    <span>{{user?.last_name}}</span>
+                    <input id="last-name-input-{{pos}}" type="text" style="width: 100%; display:none;" value="{{user?.last_name}}" />
+                </td>
+                <td id="password-user-{{pos}}" (click)="editField('password', 'password-user-'+pos, pos)">
+                    <span>********</span>
+                    <input id="password-input-{{pos}}" type="text" style="width: 100%; display:none;"/>
+                </td> 
                 <td>
                     <select class="form-control" id="role-{{pos}}" style="background-color:#0d1117; color:#8a909d; border:0; padding-left:0;width: auto;"> 
                         <option [selected]="user?.role == 'annotator'">annotator</option>
@@ -19,12 +39,68 @@
                     </select>
                 </td> 
                 <td>    
-                    <a href="javascript:void(0)"><span id="update-user-{{pos}}" style="color:grey;"><i class="mdi mdi-account-edit"></i></span></a> &nbsp; 
-                    <a href="javascript:void(0)"><span id="delete-user-{{pos}}" style="color:red;"><i class="mdi mdi-delete"></i></span></a>
+                    <a href="javascript:void(0)" (click)="updateUser(pos)">
+                        <span id="update-user-{{pos}}" style="color:grey;">
+                            <i class="mdi mdi-account-edit"></i>
+                        </span>
+                    </a> &nbsp; 
+                    <a href="javascript:void(0)" (click)="deleteUser(user.id)">
+                        <span id="delete-user-{{pos}}" style="color:red;">
+                            <i class="mdi mdi-delete"></i>
+                        </span>
+                    </a>
                 </td>
             </tr>
+            <tr *ngIf="viewAddUserRow">
+                <td><i class="mdi mdi-account-box"></i></td>
+                <td>
+                    <input id="new-user-input-email" type="text" style="width: 100%;" />
+                </td>
+                <td>
+                    <input id="new-user-input-first-name" type="text" style="width: 100%;" />
+                </td>
+                <td>
+                    <input id="new-user-input-lasst-name" type="text" style="width: 100%;" />
+                </td>
+                <td>
+                    <input id="new-user-input-password" type="text" style="width: 100%;" />
+                </td>
+                <td>
+                    <select class="form-control" id="new-user-role" style="background-color:#0d1117; color:#8a909d; border:0; padding-left:0;width: auto;"> 
+                        <option selected>annotator</option>
+                        <option>curator</option>
+                        <option>admin</option> 
+                    </select>
+                </td> 
+                <td>    
+                    <a href="javascript:void(0)" (click)="addUser()">
+                        <span id="update-new-user" style="color:grey;">
+                            <i class="mdi mdi-account-edit"></i>
+                        </span>
+                    </a> &nbsp; 
+                    <a href="javascript:void(0)">
+                        <span id="delete-new-user" style="color:red;">
+                            <i class="mdi mdi-delete"></i>
+                        </span>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a href="javascript:void(0)" (click)="viewAddUser()">
+                        <span id="add-new-user" style="color:green;">
+                            <i class="mdi mdi-plus"></i>
+                        </span>
+                    </a>
+                </td>
+                <td>Add new user</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
         </table>
     </div>
 </div>
-
-.replace(">"+response["role"], " selected>"+response["role"])
