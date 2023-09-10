@@ -1,10 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MainComponent } from './main/main.component';
-import { SignInComponent } from './sign-in/sign-in.component';
-import { SignUpComponent } from './sign-up/sign-up.component';
-import { ResetPwdComponent } from './reset-pwd/reset-pwd.component';
-import { NewPwdComponent } from './new-pwd/new-pwd.component';
+import { MainComponent } from './components/main/main.component';
+import { SignInComponent } from './components/sign-in/sign-in.component';
+import { SignUpComponent } from './components/sign-up/sign-up.component';
+import { ResetPwdComponent } from './components/reset-pwd/reset-pwd.component';
+import { NewPwdComponent } from './components/new-pwd/new-pwd.component';
+import { UsersComponent } from './components/users/users.component';
 
 const routes: Routes = [
     { path: "", component: MainComponent },

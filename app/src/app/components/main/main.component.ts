@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { UserService } from '../../services/user.service';
+import { ToastrService } from '../../services/toastr.service';
+import { User } from '../../interfaces/user';
 
 import * as $ from 'jquery';
 
@@ -12,19 +15,19 @@ import * as $ from 'jquery';
 })
 export class MainComponent implements OnInit {
 
-  userInfo: any = {}
+  userInfo: User = {} as User;
 
   selectedMenuChoice: string = "tasks-home";
 
   // component/panel visibility
   show_users_home: boolean = false
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private http: HttpClient, private userService: UserService, private toastrService: ToastrService) {}
 
   ngOnInit() {
     //clearMainContent();
     this.setAuthenticatedUserInfo();
-    //callToaster("toast-top-center", "success", "Welcome to KISH", "Yo!");
+    this.toastrService.callToaster("toast-top-center", "success", "Welcome to KISH", "Yo!");
   }
 
   defineBaseURL(ext: string): string {
@@ -34,27 +37,38 @@ export class MainComponent implements OnInit {
     }
     if (ext != null)
         localBase += ext;
-    return localBase
+    return localBase;
   }
 
   setAuthenticatedUserInfo(): void {
+     this.userService.getUserMe()
+       .subscribe(
+          (data: User) =>  { 
+            this.userInfo = data;
+            if (this.userInfo["role"] == "admin") {
+              this.show_users_home = true;
+            }
+         }, 
+         (error: any)   => console.log(error), 
+         ()             => console.log('user me ok') 
+       );
+   }
+
+  /*setAuthenticatedUserInfoOld(): void {
     let url: string = this.defineBaseURL("users/me");
     //let headers = new Headers();
     //headers.append('Content-Type', 'application/json; charset=UTF-8');
 
     const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
-    /*let options = {
-      observe: 'response', withCredentials: true 
-    }*/
 
     //let options = new RequestOptions({ headers: headers, observe: 'response', withCredentials: true });
 
-    this.http.get<any>(url, {headers: headers, observe: 'response', withCredentials: true}).subscribe(
+    this.http.get<User>(url, {headers: headers, observe: 'response', withCredentials: true}).subscribe(
       response => {
         console.log("status", response.status);
         console.log(response);
         if (response.status == 200 || response.status == 201) {
-          let data: any = response.body;
+          let data: User = response.body;
           this.userInfo = data;
           console.log(this.userInfo);
           //this.updateUserSettings(userInfo);
@@ -66,7 +80,7 @@ export class MainComponent implements OnInit {
           this.router.navigateByUrl('/sign-in')
         }
       });
-  }
+  }*/
 
 
 

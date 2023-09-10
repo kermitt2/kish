@@ -1,0 +1,30 @@
+<div class="content d-flex justify-content-center">
+    <div id="user-view" class="col-lg-8 col-xl-9">
+        <table id="user-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
+            <thead><tr><td style="width:5%;"></td> 
+                        <td style="width:30%;">email</td><td style="width:10%;">first name</td><td style="width:10%;"> 
+                        last name</td><td style="width:10%;">password</td><td style="width:10%;">role</td> 
+                        <td style="width:10%;">action</td></tr></thead>
+            <tr *ngFor="let user of users; let pos = index">
+                <td><i class="mdi mdi-account-box"></i></td>
+                <td>{{user?.email}}</td> 
+                <td id="first-name-user-{{pos}}">{{user?.first_name}}</td> 
+                <td id="last-name-user-{{pos}}">{{user?.last_name}}</td>
+                <td id="password-user-{{pos}}"><a href="javascript:void(0)">********</a></td> 
+                <td>
+                    <select class="form-control" id="role-{{pos}}" style="background-color:#0d1117; color:#8a909d; border:0; padding-left:0;width: auto;"> 
+                        <option [selected]="user?.role == 'annotator'">annotator</option>
+                        <option [selected]="user?.role == 'curator'">curator</option>
+                        <option [selected]="user?.role == 'admin'">admin</option> 
+                    </select>
+                </td> 
+                <td>    
+                    <a href="javascript:void(0)"><span id="update-user-{{pos}}" style="color:grey;"><i class="mdi mdi-account-edit"></i></span></a> &nbsp; 
+                    <a href="javascript:void(0)"><span id="delete-user-{{pos}}" style="color:red;"><i class="mdi mdi-delete"></i></span></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+.replace(">"+response["role"], " selected>"+response["role"])

@@ -233,7 +233,7 @@
           <!-- ====================================
           ——— List of user tasks (my task home view)
           ===================================== --> 
-          <div id="my-task-view" class="col-lg-10 col-xl-11" style="display:none;">
+          <div id="my-task-view" class="col-lg-10 col-xl-11" *ngIf="selectedMenuChoice == 'tasks-home'">
             <div class="row border">
               <p style="padding-left:13px;padding-top:13px;">Active tasks</p>
               <table id="active-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
@@ -276,9 +276,11 @@
           <!-- ====================================
           ——— List of users (for admin only)
           ===================================== -->
-          <div id="user-view" class="col-lg-8 col-xl-9" style="display:none;">
+          <app-users *ngIf="selectedMenuChoice == 'users-home'"></app-users>
+
+          <!--div id="user-view" class="col-lg-8 col-xl-9" style="display:none;" *ngIf="selectedMenuChoice == 'users-home'">
             <table id="user-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
-          </div>
+          </div-->
 
           <!-- ====================================
           ——— The annotation view
