@@ -122,6 +122,8 @@ def get_app(server_config) -> FastAPI:
     else:
         origins = server_config["CORS"]["dev"]["allowed_origins"]
 
+    # TBD set the other allowed method/header as in the server config
+
     server.add_middleware(
         CORSMiddleware,
         allow_origins=origins,

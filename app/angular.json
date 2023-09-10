@@ -25,10 +25,10 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/bootstrap/scss/bootstrap.scss",
               "node_modules/nprogress/nprogress.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "src/assets/plugins/simplebar/simplebar.css",
+              "src/assets/plugins/toastr/toastr.min.css",
               "src/assets/css/sleek-dark.css",
               "src/styles.css"
             ],

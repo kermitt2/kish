@@ -247,53 +247,21 @@ $(document).ready(function () {
     });
   }
 
-    /*======== TOOLTIPS AND POPOVER ========*/
-    var tooltip = $('[data-toggle="tooltip"]')
-    if(tooltip.length != 0){
-      tooltip.tooltip({
-        container: "body",
-        template:
-          '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
-      });
-    }
-  
-    var popover = $('[data-toggle="popover"]')
-  
-    if(popover.length != 0){
-      popover.popover();
-    }
+  /*======== TOOLTIPS AND POPOVER ========*/
+  var tooltip = $('[data-toggle="tooltip"]')
+  if(tooltip.length != 0){
+    tooltip.tooltip({
+      container: "body",
+      template:
+        '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+    });
+  }
 
-  /*======== TOASTER ========*/
-  /*function callToaster(positionClass) {
-    if (document.getElementById("toaster")) {
-      toastr.options = {
-        closeButton: true,
-        debug: false,
-        newestOnTop: false,
-        progressBar: true,
-        positionClass: positionClass,
-        preventDuplicates: false,
-        onclick: null,
-        showDuration: "300",
-        hideDuration: "1000",
-        timeOut: "5000",
-        extendedTimeOut: "1000",
-        showEasing: "swing",
-        hideEasing: "linear",
-        showMethod: "fadeIn",
-        hideMethod: "fadeOut"
-      };
-      toastr.success("Welcome to KISH", "Yo!");
-    }
-  }*/
+  var popover = $('[data-toggle="popover"]')
 
-  /*if (document.dir != "rtl" ){
-    callToaster("toast-top-right");
-  }else {
-    callToaster("toast-top-left");
-  }*/
-
-  //callToaster("toast-top-center");
+  if(popover.length != 0){
+    popover.popover();
+  }
 
   /*======== PROGRESS BAR ========*/
   NProgress.done();
