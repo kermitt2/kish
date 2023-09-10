@@ -20,7 +20,10 @@ export class MainComponent implements OnInit {
   selectedMenuChoice: string = "tasks-home";
 
   // component/panel visibility
-  show_users_home: boolean = false
+  show_users_home: boolean = false;
+
+  // move on preference selection 
+  moveOnPreference: number = 1;
 
   constructor(private router: Router, private http: HttpClient, private userService: UserService, private toastrService: ToastrService) {}
 
@@ -28,6 +31,7 @@ export class MainComponent implements OnInit {
     //clearMainContent();
     this.setAuthenticatedUserInfo();
     this.toastrService.callToaster("toast-top-center", "success", "Welcome to KISH", "Yo!");
+    this.initPreferences();
   }
 
   defineBaseURL(ext: string): string {
@@ -52,49 +56,43 @@ export class MainComponent implements OnInit {
          (error: any)   => console.log(error), 
          ()             => console.log('user me ok') 
        );
-   }
+  }
 
-  /*setAuthenticatedUserInfoOld(): void {
-    let url: string = this.defineBaseURL("users/me");
-    //let headers = new Headers();
-    //headers.append('Content-Type', 'application/json; charset=UTF-8');
+  logout(): void {
+    let url: string = this.defineBaseURL("auth/jwt/logout");
+    const headers = { 'content-type': 'application/json; charset=UTF-8'};
+    this.http.post<any>(url, null, {'headers':headers, withCredentials: true}).subscribe({
+      next: data => {
+        console.log("logout success");
+        this.router.navigateByUrl('/sign-in')
+      },
+      error: error => {
+        console.log(error.message);
+      }
+    });
+  }
 
-    const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
+  initPreferences(): void {
+    this.userService.getUserPreferences()
+        .subscribe(
+          (data: any) =>  {  
+            this.moveOnPreference = data["record"]["auto_move_on"]
+          }, 
+          (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, getting your saved preferences didn't work!"),
+          ()             => console.log('preferences updates') // completed
+       );
+    
+  }
 
-    //let options = new RequestOptions({ headers: headers, observe: 'response', withCredentials: true });
-
-    this.http.get<User>(url, {headers: headers, observe: 'response', withCredentials: true}).subscribe(
-      response => {
-        console.log("status", response.status);
-        console.log(response);
-        if (response.status == 200 || response.status == 201) {
-          let data: User = response.body;
-          this.userInfo = data;
-          console.log(this.userInfo);
-          //this.updateUserSettings(userInfo);
-          if (this.userInfo["role"] == "admin") {
-              this.show_users_home = true;
-          }
-          //initTaskState();
-        } else {
-          this.router.navigateByUrl('/sign-in')
-        }
-      });
-  }*/
-
-
-
-  /*function activateMenuChoice(element) {
-    $("#tasks-home").find('span').css("color", "");
-    $("#tasks-home").removeClass("active");
-    $("#users-home").find('span').css("color", "");
-    $("#users-home").removeClass("active");
-    $("#datasets-home").find('span').css("color", "");
-    $("#datasets-home").removeClass("active");
-    $("#user-menu-home").find('span').css("color", "");
-    $("#user-menu-home").removeClass("active");
-    element.find('span').css("color", "#7DBCFF");
-    element.addClass("active");
-  }*/
+  submitPreferences(): void {
+    this.userService.setUserPreferences(this.moveOnPreference)
+        .subscribe(
+          (data: any) =>  {  // success
+            this.toastrService.callToaster("toast-top-center", "success", "", "Your preferences have been updated!")
+          }, 
+          (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, updating your preferences didn't work!"),
+          ()             => console.log('preferences updates') // completed
+       );
+  }
 
 }

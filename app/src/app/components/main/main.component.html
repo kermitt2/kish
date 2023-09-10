@@ -176,15 +176,22 @@
               </li-->
 
               <!-- User Account -->
-              <li class="dropdown user-menu" ngbDropdown (click)="selectedMenuChoice = 'user-menu-home'">
+              <!--li class="dropdown user-menu" ngbDropdown (click)="selectedMenuChoice = 'user-menu-home'"-->
+              <li class="dropdown user-menu" ngbDropdown>
                 <button id="user-menu-home" 
                         href="javascript:void(0)" 
-                        [ngClass]="{'dropdown-toggle': true, 'nav-link': true, 'active': selectedMenuChoice == 'user-menu-home'}"
+                        [ngClass]="{'dropdown-toggle': true, 
+                                    'nav-link': true, 
+                                    'active': selectedMenuChoice == 'user-menu-home' || selectedMenuChoice == 'user-preferences' || selectedMenuChoice == 'user-settings'
+                                   }"
                         data-toggle="dropdown"
                         ngbDropdownToggle>
                   <!--img src="assets/img/user/user.png" class="user-image" alt="User Image" /-->
                   <span id="display-name-header" 
-                        [ngClass]="{'d-none': true, 'd-lg-inline-block':true, 'active': selectedMenuChoice == 'user-menu-home'}">{{userInfo['email']}}</span>
+                        [ngClass]="{'d-none': true, 
+                                    'd-lg-inline-block':true, 
+                                    'active': selectedMenuChoice == 'user-menu-home' || selectedMenuChoice == 'user-preferences' || selectedMenuChoice == 'user-settings'
+                                   }">{{userInfo['email']}}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-right" ngbDropdownMenu>
                   <!-- User image -->
@@ -207,13 +214,13 @@
                   <li>
                     <a href="javascript:void(0)"> <i class="mdi mdi-diamond-stone"></i> Projects </a>
                   </li-->
-                  <li class="right-sidebar-in" ngbDropdownItem>
+                  <li class="right-sidebar-in" ngbDropdownItem (click)="selectedMenuChoice = 'user-preferences'">
                     <a id="user-preferences-menu" href="javascript:void(0)"> <i class="mdi mdi-cellphone-settings-variant"></i> Preferences </a>
                   </li>
-                  <li class="right-sidebar-in" ngbDropdownItem>
+                  <li class="right-sidebar-in" ngbDropdownItem (click)="selectedMenuChoice = 'user-settings'">
                     <a id="user-settings-menu" href="javascript:void(0)"> <i class="mdi mdi-settings"></i> Account Setting </a>
                   </li>
-                  <li class="dropdown-footer" ngbDropdownItem>
+                  <li class="dropdown-footer" ngbDropdownItem (click)="logout()">
                     <a id="logout" href="javascript:void(0)"> <i class="mdi mdi-logout"></i> Log Out </a>
                   </li>
                 </ul>
@@ -233,21 +240,7 @@
           <!-- ====================================
           ——— List of user tasks (my task home view)
           ===================================== --> 
-          <div id="my-task-view" class="col-lg-10 col-xl-11" *ngIf="selectedMenuChoice == 'tasks-home'">
-            <div class="row border">
-              <p style="padding-left:13px;padding-top:13px;">Active tasks</p>
-              <table id="active-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
-            </div>
-            <div class="row border">
-              <p style="padding-left:13px;;padding-top:13px;">Assigned tasks</p>
-              <table id="assigned-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
-            </div>
-            <div class="row border">
-              <p style="padding-left:13px;;padding-top:13px;">Completed tasks</p>
-              <table id="completed-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
-            </div>
-          </div>
-
+          <app-tasks *ngIf="selectedMenuChoice == 'tasks-home'"></app-tasks>
 
           <!-- ====================================
           ——— List of datasets (and associated tasks)
@@ -314,7 +307,7 @@
           <!-- ====================================
           ——— USER preferences
           ===================================== -->
-          <div id="user-preferences" class="bg-dark border rounded col-lg-6 col-xl-7" style="display:none;">
+          <div id="user-preferences" class="bg-dark border rounded col-lg-6 col-xl-7" *ngIf="selectedMenuChoice == 'user-preferences'">
             <div class="row no-gutters justify-content-center">
               <div class="col-lg-11 col-xl-12">
                 <div class="profile-content-right profile-right-spacing py-5">
@@ -330,12 +323,19 @@
                         <form>
 
                           <label class="control control-checkbox">Move to next task item on validate
-                            <input id="preferences-move-on" type="checkbox" checked="checked">
+                            <input id="preferences-move-on" 
+                                   type="checkbox" 
+                                   [attr.checked]="(moveOnPreference == 1) ? 'checked' : null"
+                                   (click)="(moveOnPreference == 1) ? moveOnPreference = 0 : moveOnPreference = 1">
                             <div class="control-indicator"></div>
                           </label>
 
                           <div id="div-submit-preferences" class="d-flex justify-content-end mt-5">
-                            <button id="update-preferences-button" type="submit" class="btn btn-primary mb-2 btn-pill">Update Preferences</button>
+                            <button 
+                              id="update-preferences-button" 
+                              type="submit" 
+                              class="btn btn-primary mb-2 btn-pill" 
+                              (click)="submitPreferences()">Update Preferences</button>
                           </div>
 
                         </form>
@@ -350,7 +350,7 @@
           <!-- ====================================
           ——— USER account settings
           ===================================== -->
-          <div id="user-settings" class="bg-dark border rounded col-lg-6 col-xl-7" style="display:none;">
+          <div id="user-settings" class="bg-dark border rounded col-lg-6 col-xl-7" *ngIf="selectedMenuChoice == 'user-settings'">
             <div class="row no-gutters justify-content-center">
 
               <div class="col-lg-11 col-xl-12">
@@ -369,21 +369,21 @@
 
                           <div id="div-email" class="form-group mb-4">
                             <label for="email">Email</label>
-                            <input type="email" class="form-control" id="email" value="" readonly>
+                            <input type="email" class="form-control" id="email" value="{{ userInfo['email'] }}" readonly>
                           </div>
 
                           <div class="row mb-2">
                             <div class="col-lg-6" style="padding-left: 0px;">
                               <div class="form-group">
                                 <label for="firstName">First name</label>
-                                <input type="text" class="form-control" id="firstName" value="">
+                                <input type="text" class="form-control" id="firstName" value="{{ userInfo['first_name'] }}">
                               </div>
                             </div>
 
                             <div class="col-lg-6" style="padding-right: 0px;">
                               <div class="form-group">
                                 <label for="lastName">Last name</label>
-                                <input type="text" class="form-control" id="lastName" value="">
+                                <input type="text" class="form-control" id="lastName" value="{{ userInfo['last_name'] }}">
                               </div>
                             </div>
                           </div>
