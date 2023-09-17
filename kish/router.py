@@ -713,7 +713,7 @@ async def post_self_assign_task(identifier: str, user: User = Depends(current_us
     if item == None:
         raise HTTPException(status_code=400, detail="Task not found")
     else:
-        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": 0, "is_completed": 0, "completed_excerpts": 0 }
+        assign_dict = { "task_id": identifier, "user_id": str(user.id), "in_progress": 0, "is_completed": 0, "nb_completed_excerpts": 0 }
         from utils_db import insert_item
         assign_result = await insert_item("assign", assign_dict, add_id=False)
         if assign_result != None and "error" in assign_result:
@@ -791,7 +791,7 @@ async def post_assign_task(identifier: str, user_id: str, user: User = Depends(c
     user = await get_user("user", user_id)
     if user == None:
         raise HTTPException(status_code=400, detail="User not found")
-    assign_dict = {"task_id": identifier, "user_id": user_id, "in_progress": False, "is_completed":False, "completed_excerpts": 0  }
+    assign_dict = {"task_id": identifier, "user_id": user_id, "in_progress": False, "is_completed":False, "nb_completed_excerpts": 0  }
     from utils_db import insert_item
     assign_result = await insert_item("assign", assign_dict, add_id=False)
     if assign_result != None and "error" in assign_result:

@@ -52,6 +52,10 @@ api:
   description: "Keeping It Simple is Hard"
   api_route: ""
 
+  # deployment can be prod or dev, for dev it will relax cookies/CORS 
+  deployment: "dev"
+  #deployment: "prod"
+
   # default admin super-user when not existing, admin_email must be an email and password must be kept secret 
   admin: "admin@admin.com"
   admin_password: "administrator"
