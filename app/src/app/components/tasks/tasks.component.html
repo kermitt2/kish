@@ -2,15 +2,123 @@
     <div id="my-task-view" class="col-lg-10 col-xl-11">
         <div class="row border">
             <p style="padding-left:13px;padding-top:13px;">Active tasks</p>
-            <table id="active-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+            <table id="active-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
+                <ng-container *ngIf="taskProfilesActive.length == 0">
+                    <tr>
+                        <td>No tasks available</td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="taskProfilesActive.length > 0">
+                    <thead>
+                        <tr> 
+                            <td style="width:0;"></td> 
+                            <td style="width:15%; font-weight: bold;">Task</td> 
+                            <td style="width:10%;">Type</td> 
+                            <td style="width:15%;">Dataset</td> 
+                            <td style="width:10%;"># documents</td> 
+                            <td style="width:7%;"># excerpts</td> 
+                            <td style="width:10%;"># completed</td> 
+                            <td style="width:10%;">Status</td> 
+                            <td style="width:15%;">Assigned to</td> 
+                            <td style="width:7%;text-align: right;">Action</td> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let task of tasksActive">
+                            <td></td>
+                            <td>{{ task?.name }}</td>
+                            <td>{{ task?.type }}</td>
+                            <td>{{ task?.dataset_name }}</td>
+                            <td>{{ task?.nb_documents }}</td>
+                            <td>{{ task?.nb_excerpts }}</td>
+                            <td>{{ task?.nb_completed_excerpts }}</td>
+                            <td>{{ task?.status }}</td>
+                            <td>{{ task?.assigned }}</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </ng-container>
+            </table>
         </div>
         <div class="row border">
             <p style="padding-left:13px;;padding-top:13px;">Assigned tasks</p>
-            <table id="assigned-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+            <table id="assigned-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
+                <ng-container *ngIf="taskProfilesAssigned.length == 0">
+                    <tr>
+                        <td>No tasks available</td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="taskProfilesAssigned.length > 0">
+                    <thead>
+                        <tr> 
+                            <td style="width:0;"></td> 
+                            <td style="width:15%; font-weight: bold;">Task</td> 
+                            <td style="width:10%;">Type</td> 
+                            <td style="width:15%;">Dataset</td> 
+                            <td style="width:10%;"># documents</td> 
+                            <td style="width:7%;"># excerpts</td> 
+                            <td style="width:10%;"># completed</td> 
+                            <td style="width:10%;">Status</td> 
+                            <td style="width:15%;">Assigned to</td> 
+                            <td style="width:7%;text-align: right;">Action</td> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let task of tasksAssigned; let pos = index">
+                            <td></td>
+                            <td id="name-assigned-task-{{pos}}">{{ task?.name }}</td>
+                            <td id="type-assigned-task-{{pos}}">{{ task?.type }}</td>
+                            <td id="dataset_name-assigned-task-{{pos}}">{{ task?.dataset_name }}</td>
+                            <td id="nb_documents-assigned-task-{{pos}}">{{ task?.nb_documents }}</td>
+                            <td id="nb_excerpts-assigned-task-{{pos}}">{{ task?.nb_excerpts }}</td>
+                            <td id="nb_completed_excerpts-assigned-task-{{pos}}">{{ task?.nb_completed_excerpts }}</td>
+                            <td id="status-assigned-task-{{pos}}">{{ task?.status }}</td>
+                            <td id="assigned-assigned-task-{{pos}}">{{ task?.assigned }}</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </ng-container>
+            </table>
         </div>
         <div class="row border">
             <p style="padding-left:13px;;padding-top:13px;">Completed tasks</p>
-            <table id="completed-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;"></table>
+            <table id="completed-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
+                <ng-container *ngIf="taskProfilesCompleted.length == 0">
+                    <tr>
+                        <td>No tasks available</td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="taskProfilesCompleted.length > 0">
+                    <thead>
+                        <tr> 
+                            <td style="width:0;"></td> 
+                            <td style="width:15%; font-weight: bold;">Task</td> 
+                            <td style="width:10%;">Type</td> 
+                            <td style="width:15%;">Dataset</td> 
+                            <td style="width:10%;"># documents</td> 
+                            <td style="width:7%;"># excerpts</td> 
+                            <td style="width:10%;"># completed</td> 
+                            <td style="width:10%;">Status</td> 
+                            <td style="width:15%;">Assigned to</td> 
+                            <td style="width:7%;text-align: right;">Action</td> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let task of tasksCompleted">
+                            <td></td>
+                            <td>{{ task?.name }}</td>
+                            <td>{{ task?.type }}</td>
+                            <td>{{ task?.dataset_name }}</td>
+                            <td>{{ task?.nb_documents }}</td>
+                            <td>{{ task?.nb_excerpts }}</td>
+                            <td>{{ task?.nb_completed_excerpts }}</td>
+                            <td>{{ task?.status }}</td>
+                            <td>{{ task?.assigned }}</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </ng-container>
+            </table>
         </div>
     </div>
 </div>

@@ -30,22 +30,6 @@ export class UserService {
     const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
 
     return this.http.get<any>(url, {headers: headers, withCredentials: true});
-
-    /*.subscribe(
-      response => {
-        console.log("status", response.status);
-        console.log(response);
-        if (response.status == 200 || response.status == 201) {
-          let users: User[] = response.body;
-        } else if (response.status == 401) {
-          this.router.navigateByUrl('/sign-in')
-        } else {
-          //var response = JSON.parse(xhr.responseText);
-          console.log(response["detail"]);
-          //callToaster("toast-top-center", "error", response["detail"], "Damn, accessing users didn't work!");
-          //$("#user-view-table").html("<tr><td>No Users available</td></tr>");
-        }
-      });*/
   }
 
   getUserMe(): Observable<User> {
