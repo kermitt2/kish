@@ -8,4 +8,5 @@ export interface User {
     last_name?: string,
     role: string,
     password?: string,
+    redundant_tasks?: string[]
 }

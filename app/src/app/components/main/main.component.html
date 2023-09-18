@@ -240,13 +240,12 @@
           <!-- ====================================
           ——— List of user tasks (my task home view)
           ===================================== --> 
-          <app-tasks *ngIf="selectedMenuChoice == 'tasks-home'"></app-tasks>
+          <app-tasks *ngIf="selectedMenuChoice == 'tasks-home'" [userInfo]="userInfo"></app-tasks>
 
           <!-- ====================================
           ——— List of datasets (and associated tasks)
           ===================================== -->
-          <div id="dataset-view" class="col-lg-10 col-xl-11" style="display:none;">
-          </div>
+          <app-datasets *ngIf="selectedMenuChoice == 'datasets-home'" [userInfo]="userInfo"></app-datasets>
 
           <!-- ====================================
           ——— Create a dataset (for admin/curator)

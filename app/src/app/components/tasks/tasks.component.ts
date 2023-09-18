@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { Task } from '../../interfaces/task';
 import { TaskService } from '../../services/task.service';
 import { ToastrService } from '../../services/toastr.service';
 import { Observable } from 'rxjs';    
+import { MainComponent} from '../main/main.component';
+import { User } from '../../interfaces/user';
 
 @Component({
   selector: 'app-tasks',
@@ -10,6 +12,9 @@ import { Observable } from 'rxjs';
   styleUrls: ['./tasks.component.css']
 })
 export class TasksComponent implements OnInit {
+  
+  @Input() userInfo: User;
+
   taskProfiles: any[] = [];
 
   taskProfilesCompleted: any[] = [];
@@ -61,6 +66,7 @@ export class TasksComponent implements OnInit {
         .subscribe(
           (data: any) =>  {  // success
             this.taskProfiles = data["records"];
+
             this.filterActiveTasks();
             this.filterAssignedTasks();
             this.filterCompletedTasks();
@@ -73,17 +79,57 @@ export class TasksComponent implements OnInit {
   setTask(tasks: Array<Task>, task_id: string, index: number): void {
     this.taskService.getTask(task_id)
         .subscribe(
-          (data: Task) =>  {  // success
-            tasks[index] = data;
+          (data: any) =>  {  // success
+            tasks[index] = data["record"];
           }, 
           (error: any)   => console.log(error), // error
           ()             => console.log('task id get') // completed
        );
   }
 
-  /*trackTask(index: number, element: any): any {
-    console.log(element);
-    return element ? element.id : null;
-  }*/
+  getCompletionNbByLevel(taskItem: Task): string {
+    let taskContent: string = ""
+
+    if (taskItem == null || taskItem == undefined) 
+      return taskContent;
+
+    if (taskItem["level"] === "document") {
+        if (taskItem["nb_completed_documents"]) {
+            if (taskItem["nb_documents"])
+                taskContent += taskItem["nb_completed_documents"] + " / " + taskItem["nb_documents"] + " doc.";
+            else
+                taskContent += taskItem["nb_completed_documents"] + " doc.";
+        } else 
+            taskContent = "0";
+    } else {
+        if (taskItem["nb_completed_excerpts"]) {
+            if (taskItem["nb_excerpts"])
+                taskContent = taskItem["nb_completed_excerpts"] + " / " + taskItem["nb_excerpts"] + " excepts";
+            else
+                taskContent = taskItem["nb_completed_excerpts"] + " excerpt";
+        } else
+            taskContent = "0";
+    }
+    return taskContent;
+  }
+
+  getTaskStatus(taskItem: Task): string {
+    let taskContent: string = "";
+    if (taskItem == null || taskItem == undefined) 
+      return taskContent;
+
+    if (taskItem["status"]) 
+        taskContent = taskItem["status"];
+    else
+        taskContent = "unknown";
+    return taskContent;
+  }
+
+  isRestrictedTask(taskItem: Task): boolean {
+    return (
+        (this.userInfo["redundant_tasks"] && this.userInfo["redundant_tasks"].indexOf(taskItem["id"]) != -1 && taskItem["type"] !== "reconciliation") ||
+        (this.userInfo["role"] === "annotator" && taskItem["type"] === "reconciliation")
+    );
+  }
 
 }

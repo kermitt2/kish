@@ -1,17 +1,16 @@
-<div class="content d-flex justify-content-center">
+<div class="content d-flex justify-content-center" style="padding:0px;">
     <div id="my-task-view" class="col-lg-10 col-xl-11">
         <div class="row border">
             <p style="padding-left:13px;padding-top:13px;">Active tasks</p>
             <table id="active-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
                 <ng-container *ngIf="taskProfilesActive.length == 0">
                     <tr>
-                        <td>No tasks available</td>
+                        <td>No active task in progress</td>
                     </tr>
                 </ng-container>
                 <ng-container *ngIf="taskProfilesActive.length > 0">
                     <thead>
                         <tr> 
-                            <td style="width:0;"></td> 
                             <td style="width:15%; font-weight: bold;">Task</td> 
                             <td style="width:10%;">Type</td> 
                             <td style="width:15%;">Dataset</td> 
@@ -25,16 +24,50 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let task of tasksActive">
-                            <td></td>
                             <td>{{ task?.name }}</td>
                             <td>{{ task?.type }}</td>
                             <td>{{ task?.dataset_name }}</td>
                             <td>{{ task?.nb_documents }}</td>
                             <td>{{ task?.nb_excerpts }}</td>
-                            <td>{{ task?.nb_completed_excerpts }}</td>
-                            <td>{{ task?.status }}</td>
+                            <td>{{ getCompletionNbByLevel(task) }}</td>
+                            <td>{{ getTaskStatus(task) }}</td>
                             <td>{{ task?.assigned }}</td>
-                            <td></td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
+                                <span class="clickable" style="color:orange;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                &nbsp; 
+                                <span style="color:green;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] !== userInfo['email']">
+                                <span class="clickable" style="color:grey;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                 &nbsp;  
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td> 
                         </tr>
                     </tbody>
                 </ng-container>
@@ -45,13 +78,12 @@
             <table id="assigned-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
                 <ng-container *ngIf="taskProfilesAssigned.length == 0">
                     <tr>
-                        <td>No tasks available</td>
+                        <td>No assigned task</td>
                     </tr>
                 </ng-container>
                 <ng-container *ngIf="taskProfilesAssigned.length > 0">
                     <thead>
                         <tr> 
-                            <td style="width:0;"></td> 
                             <td style="width:15%; font-weight: bold;">Task</td> 
                             <td style="width:10%;">Type</td> 
                             <td style="width:15%;">Dataset</td> 
@@ -64,17 +96,51 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let task of tasksAssigned; let pos = index">
-                            <td></td>
-                            <td id="name-assigned-task-{{pos}}">{{ task?.name }}</td>
-                            <td id="type-assigned-task-{{pos}}">{{ task?.type }}</td>
-                            <td id="dataset_name-assigned-task-{{pos}}">{{ task?.dataset_name }}</td>
-                            <td id="nb_documents-assigned-task-{{pos}}">{{ task?.nb_documents }}</td>
-                            <td id="nb_excerpts-assigned-task-{{pos}}">{{ task?.nb_excerpts }}</td>
-                            <td id="nb_completed_excerpts-assigned-task-{{pos}}">{{ task?.nb_completed_excerpts }}</td>
-                            <td id="status-assigned-task-{{pos}}">{{ task?.status }}</td>
-                            <td id="assigned-assigned-task-{{pos}}">{{ task?.assigned }}</td>
-                            <td></td>
+                        <tr *ngFor="let task of tasksAssigned">
+                            <td>{{ task?.name }}</td>
+                            <td>{{ task?.type }}</td>
+                            <td>{{ task?.dataset_name }}</td>
+                            <td>{{ task?.nb_documents }}</td>
+                            <td>{{ task?.nb_excerpts }}</td>
+                            <td>{{ getCompletionNbByLevel(task) }}</td>
+                            <td>{{ getTaskStatus(task) }}</td>
+                            <td>{{ task?.assigned }}</td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
+                                <span class="clickable" style="color:orange;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                &nbsp; 
+                                <span style="color:green;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] !== userInfo['email']">
+                                <span class="clickable" style="color:grey;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                 &nbsp;  
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
                         </tr>
                     </tbody>
                 </ng-container>
@@ -85,13 +151,12 @@
             <table id="completed-task-view-table" class="table table-borderless" style="width:100%;table-layout:fixed;">
                 <ng-container *ngIf="taskProfilesCompleted.length == 0">
                     <tr>
-                        <td>No tasks available</td>
+                        <td>No completed task</td>
                     </tr>
                 </ng-container>
                 <ng-container *ngIf="taskProfilesCompleted.length > 0">
                     <thead>
                         <tr> 
-                            <td style="width:0;"></td> 
                             <td style="width:15%; font-weight: bold;">Task</td> 
                             <td style="width:10%;">Type</td> 
                             <td style="width:15%;">Dataset</td> 
@@ -105,16 +170,50 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let task of tasksCompleted">
-                            <td></td>
                             <td>{{ task?.name }}</td>
                             <td>{{ task?.type }}</td>
                             <td>{{ task?.dataset_name }}</td>
                             <td>{{ task?.nb_documents }}</td>
                             <td>{{ task?.nb_excerpts }}</td>
-                            <td>{{ task?.nb_completed_excerpts }}</td>
-                            <td>{{ task?.status }}</td>
+                            <td>{{ getCompletionNbByLevel(task) }}</td>
+                            <td><span style="color: green;">{{ getTaskStatus(task) }}</span></td>
                             <td>{{ task?.assigned }}</td>
-                            <td></td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
+                                <span class="clickable" style="color:orange;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                &nbsp; 
+                                <span style="color:green;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] !== userInfo['email']">
+                                <span class="clickable" style="color:grey;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                 &nbsp;  
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>       
                         </tr>
                     </tbody>
                 </ng-container>

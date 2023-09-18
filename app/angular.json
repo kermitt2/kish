@@ -30,6 +30,7 @@
               "src/assets/plugins/simplebar/simplebar.css",
               "src/assets/plugins/toastr/toastr.min.css",
               "src/assets/css/sleek-dark.css",
+              "src/assets/css/annotations.css"
               "src/styles.css"
             ],
             "scripts": [

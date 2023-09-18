@@ -1,3 +1,5 @@
+import { Task } from './task';
+
 export interface Dataset {
     id: string,
     name: string,
@@ -6,4 +8,5 @@ export interface Dataset {
     nb_documents?: number,
     nb_excerpts?: number,
     nb_tasks?: number,
+    tasks?: Task[]
 }
