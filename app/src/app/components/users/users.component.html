@@ -53,16 +53,16 @@
             </tr>
             <tr *ngIf="viewAddUserRow">
                 <td><i class="mdi mdi-account-box"></i></td>
-                <td>
-                    <input id="new-user-input-email" type="text" style="width: 100%;" />
+                <td (click)="editField('email', 'new-user-input-email', 0, true)">
+                    <input id="new-user-input-email" type="text" style="width: 100%;" (keyup.esc)="leaveField('new-user-input-email', 0, true)" />
                 </td>
-                <td>
+                <td (click)="editField('first-name', 'new-user-input-first-name', 0, true)">
                     <input id="new-user-input-first-name" type="text" style="width: 100%;" />
                 </td>
-                <td>
-                    <input id="new-user-input-lasst-name" type="text" style="width: 100%;" />
+                <td (click)="editField('last-name', 'new-user-input-last-name', 0, true)">
+                    <input id="new-user-input-last-name" type="text" style="width: 100%;" />
                 </td>
-                <td>
+                <td (click)="editField('password', 'new-user-input-password', 0, true)">
                     <input id="new-user-input-password" type="text" style="width: 100%;" />
                 </td>
                 <td>
@@ -78,7 +78,7 @@
                             <i class="mdi mdi-account-edit"></i>
                         </span>
                     </a> &nbsp; 
-                    <a href="javascript:void(0)">
+                    <a href="javascript:void(0)" (click)="viewAddUserRow = false">
                         <span id="delete-new-user" style="color:red;">
                             <i class="mdi mdi-delete"></i>
                         </span>

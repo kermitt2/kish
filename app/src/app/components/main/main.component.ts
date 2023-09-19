@@ -25,6 +25,9 @@ export class MainComponent implements OnInit {
   // move on preference selection 
   moveOnPreference: number = 1;
 
+  // true if we are performing an annotation task
+  inAnnotationTask: boolean = false;
+
   constructor(private router: Router, private http: HttpClient, private userService: UserService, private toastrService: ToastrService) {}
 
   ngOnInit() {

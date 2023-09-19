@@ -20,7 +20,7 @@ export class DatasetsComponent implements OnInit {
   datasetProfiles: string[] = [];
   datasets: Array<Dataset>;
 
-  constructor(private datasetService: DatasetService, private toastrService: ToastrService) { }
+  constructor(private datasetService: DatasetService, private taskService: TaskService, private toastrService: ToastrService) { }
 
   ngOnInit(): void {
     this.setDatasetProfiles();
@@ -64,7 +64,71 @@ export class DatasetsComponent implements OnInit {
        );
   }
 
-    getCompletionNbByLevel(taskItem: Task): string {
+  selfAssignTask(task: Task): void {
+    this.taskService.assignTask(task["id"])
+        .subscribe(
+          (data: any) =>  {  // success
+            task["assigned"] = this.userInfo["email"];
+            task["status"] = "assigned";
+            // add redundant tasks
+            if (data["records"] && this.userInfo["redundant_tasks"]) {
+                let records: any[] = data["records"];
+                for (let recordPos: number = 0; recordPos < records.length; recordPos++) {
+                    const record = records[recordPos];
+                    if (this.userInfo["redundant_tasks"].indexOf(record) == -1) {
+                        this.userInfo["redundant_tasks"].push(record);
+                    }
+                }
+            }
+          }, 
+          (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, self-assigning task didn't work!"),
+          ()             => console.log('self-assign task') // completed
+       );
+  }
+
+  unassignTask(task: Task): void {
+    if (task['assigned'] === this.userInfo['email']) { 
+      this.selfUnassignTask(task);
+    } else { 
+      this.userUnassignTask(task);
+    } 
+  }
+
+  selfUnassignTask(task: Task): void {
+    this.taskService.unassignTask(this.userInfo, task["id"])
+        .subscribe(
+          (data: any) =>  {  // success
+            task["assigned"] = undefined;
+            task["status"] = "unassigned";
+            //delete task["assigned"];
+            // remove old redundant tasks
+            if (data["records"] && this.userInfo["redundant_tasks"]) {
+                // remove old redundant tasks
+                let records: any[] = data["records"];
+                for (let recordPos: number = 0; recordPos < records.length; recordPos++) {
+                    const record = records[recordPos];
+                    const ind = this.userInfo["redundant_tasks"].indexOf(record);
+                    if (ind != -1) {
+                        this.userInfo["redundant_tasks"].splice(ind, 1);
+                    }
+                }
+            }
+          }, 
+          (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, self-unassigning task didn't work!"),
+          ()             => console.log('self-unassign task') // completed
+       );
+  }
+  
+  userUnassignTask(task: Task): void {
+    
+  }
+
+
+  startAnnotationTask(task: Task): void {
+
+  }
+
+  getCompletionNbByLevel(taskItem: Task): string {
     let taskContent: string = ""
 
     if (taskItem == null || taskItem == undefined) 

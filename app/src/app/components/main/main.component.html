@@ -25,7 +25,7 @@
           <ul class="nav sidebar-inner" id="sidebar-menu">
 
             <!-- annotation view side bar menu -->
-            <li id="annotate-side-bar" class="" style="display:none;">
+            <li id="annotate-side-bar" *ngIf="inAnnotationTask">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="dashboard">
                 <i class="mdi mdi-pencil-box-multiple"></i>
@@ -33,7 +33,7 @@
               </a>
             </li>
 
-            <li id="guidelines-side-bar" class="" style="display:none;">
+            <li id="guidelines-side-bar" *ngIf="inAnnotationTask">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-teach"></i>
@@ -42,7 +42,7 @@
             </li>
 
             <!-- dataset view side bar menu -->
-            <li id="dataset-tasks-side-bar" class="" style="display:none;">
+            <li id="dataset-tasks-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="dashboard">
                 <i class="mdi mdi-pencil-box-multiple"></i>
@@ -50,7 +50,7 @@
               </a>
             </li>
 
-            <li id="dataset-create-side-bar" class="" style="display:none;">
+            <li id="dataset-create-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-database-import"></i>
@@ -58,7 +58,7 @@
               </a>
             </li>
 
-            <li id="dataset-metrics-side-bar" class="" style="display:none;">
+            <li id="dataset-metrics-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-chart-bar"></i>
@@ -66,7 +66,7 @@
               </a>
             </li>
 
-            <li id="dataset-export-side-bar" class="" style="display:none;">
+            <li id="dataset-export-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-database-export"></i>

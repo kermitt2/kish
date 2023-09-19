@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Task } from '../interfaces/task';
+import { User } from '../interfaces/user';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
@@ -38,6 +39,20 @@ export class TaskService {
     const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
 
     return this.http.get<Task>(url, {headers: headers, withCredentials: true});
+  }
+
+  unassignTask(userInfo: User, taskIdentifier: string): Observable<any> {
+    let url: string = this.defineBaseURL("tasks/"+taskIdentifier+"/assign");
+    const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
+
+    return this.http.delete<any>(url, {headers: headers, withCredentials: true});
+  }
+
+  assignTask(taskIdentifier: string): Observable<any> {
+    let url: string = this.defineBaseURL("tasks/"+taskIdentifier+"/assign");
+    const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
+
+    return this.http.post<any>(url, null, {headers: headers, withCredentials: true});
   }
 
 }

@@ -48,7 +48,7 @@ export class UsersComponent implements OnInit {
        );
   }
 
-  editField(field: string, position: string, pos: number): void {
+  editField(field: string, position: string, pos: number, new_user: boolean = false): void {
     if (this.editedFieldId != null && position === this.editedFieldId) {
       // already edited. nothing to do
       return;
@@ -65,12 +65,18 @@ export class UsersComponent implements OnInit {
 
     this.editedFieldId = position;
 
-    $("#update-user-"+pos).css("color", "orange");
-    $("#update-user-"+pos).addClass("active");
-    $("#password-user-"+pos).off('click');
+    if (new_user) {
+      $("#update-new-user").css("color", "orange");
+      $("#update-new-user").addClass("active");
+      $("#password-new-user").off('click');
+    } else {
+      $("#update-user-"+pos).css("color", "orange");
+      $("#update-user-"+pos).addClass("active");
+      $("#password-user-"+pos).off('click');
+    }
   }
 
-  leaveField(position: string, pos: number): void {
+  leaveField(position: string, pos: number, new_user: boolean = false): void {
     console.log("leaveField");
 
     if (this.editedFieldId == null || position !== this.editedFieldId) {
@@ -81,9 +87,16 @@ export class UsersComponent implements OnInit {
     $("#"+position + " > input").css("display", "none");
 
     this.editedFieldId = "";
-    $("#update-user-"+pos).css("color", "grey");
-    $("#update-user-"+pos).addClass("active");
-    $("#password-user-"+pos).off('click');
+
+    if (new_user) {
+      $("#update-new-user").css("color", "grey");
+      $("#update-new-user").addClass("active");
+      $("#password-new-user").off('click');
+    } else {
+      $("#update-user-"+pos).css("color", "grey");
+      $("#update-user-"+pos).addClass("active");
+      $("#password-user-"+pos).off('click');
+    }
   }
 
   viewAddUser(): void {
@@ -113,8 +126,9 @@ export class UsersComponent implements OnInit {
     let localUser = {} as User;
     // fill user properties (we should use ngModel, but let's use shortcut)
     let user_pos: number = this.userIds.length;
-    localUser = this.fillUser(localUser, user_pos);
-    
+    localUser = this.fillNewUser(localUser);
+    console.log(localUser)
+
     this.UserService.addUser(localUser)
         .subscribe(
           (data: User) =>  {  // success
@@ -164,6 +178,35 @@ export class UsersComponent implements OnInit {
 
     // password 
     const password: string = $("#password-input-"+pos).val() as string;
+
+    localUser["role"] = role;
+    if (email && email.length > 0)
+        localUser["email"] = email;
+    if (firstName && firstName.length > 0)
+        localUser["first_name"] = firstName;
+    if (lastName && lastName.length > 0)
+        localUser["last_name"] = lastName;
+    if (password && password.length > 0)
+        localUser["password"] = password;
+
+    return localUser;
+  }
+
+  fillNewUser(localUser: User): User {
+    //email
+    const email: string = $("#new-user-input-email").val() as string;
+
+    // role 
+    const role: string = $("#new-user-role option:selected").val() as string;
+
+    // first name 
+    const firstName: string = $("#new-user-input-first-name").val() as string;
+
+    // first name 
+    const lastName: string = $("#new-user-input-last-name").val() as string;
+
+    // password 
+    const password: string = $("#new-user-input-password").val() as string;
 
     localUser["role"] = role;
     if (email && email.length > 0)
