@@ -1,0 +1,37 @@
+<div class="content d-flex justify-content-center" style="padding:0px;">
+    <div class="col-lg-10 col-xl-10">
+        <div class="row border" *ngFor="let dataset of datasetMetrics">
+            <span *ngIf="dataset">
+                <table class="table table-borderless">
+                    <tr>
+                        <td>
+                            <img src="{{ 'assets/'+dataset?.image_url }}" width="50" height="50"/>
+                        </td> 
+                        <td style="text-align: top; max-width: 400px">
+                            <p><span style="color:white; font-weight: bold;">{{ dataset?.name }}
+                            </span></p> 
+                            <p>{{ dataset?.description }}</p>
+                        </td>
+                        <td><p>&nbsp;</p></td> 
+                        <td style="text-align: top;"><p>&nbsp;</p><p>{{ dataset?.nb_documents }} documents </p></td> 
+                        <td style="text-align: top;"><p>&nbsp;</p><p>{{ dataset?.nb_excerpts }} excertps </p></td> 
+                        <td style="text-align: top;"><p>&nbsp;</p><p>{{ dataset?.nb_tasks }} tasks </p></td>
+                    </tr>
+                </table>
+            </span>
+
+            <div class="row pb-2" *ngIf="dataset">
+                <div class="col">
+                    <h2 class="mb-1 mr-1">{{ dataset?.progress }}&nbsp;%</h2>
+                    <p style="color:#8a909d;">progress</p>
+                </div>
+
+                <div class="col" *ngIf="dataset">
+                    <h2 class="mb-1">{{ dataset?.percentage_agreement }}&nbsp;%</h2>
+                    <p style="color:#8a909d;">percentage agreement</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

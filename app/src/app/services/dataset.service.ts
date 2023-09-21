@@ -47,6 +47,11 @@ export class DatasetService {
     return this.http.get<any>(url, {headers: headers, withCredentials: true});
   }
 
-  
+  getDatasetMetrics(dataset_id: string): Observable<any> {
+    let url: string = this.defineBaseURL("datasets/"+dataset_id+"/metrics");
+    const headers = { 'content-type': 'application/json; charset=UTF-8'}; 
+
+    return this.http.get<any>(url, {headers: headers, withCredentials: true});
+  }
 
 }

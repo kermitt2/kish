@@ -33,11 +33,12 @@
                             <td>{{ getTaskStatus(task) }}</td>
                             <td>{{ task?.assigned }}</td>
                             <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
-                                <span class="clickable" style="color:orange;">
+                                <span class="clickable" style="color:orange;" 
+                                    (click)="unassignTask(task)">
                                     <i class="mdi mdi-minus"></i>
                                 </span>
                                 &nbsp; 
-                                <span class="clickable" style="color:green;">
+                                <span class="clickable" style="color:green;" (click)="startAnnotationTask(task)">
                                     <i class="mdi mdi-border-color"></i>
                                 </span>
                             </td>
@@ -51,7 +52,7 @@
                                 </span>
                             </td>
                             <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
-                                <span class="clickable" style="color:green;">
+                                <span class="clickable" style="color:green;" (click)="selfAssignTask(task)">
                                     <i class="mdi mdi-plus"></i>
                                 </span> 
                                 &nbsp; 
@@ -60,14 +61,14 @@
                                 </span>
                             </td>
                             <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
-                                <span class="clickable" style="color:green;">
+                                <span style="color:grey;">
                                     <i class="mdi mdi-plus"></i>
                                 </span> 
                                 &nbsp; 
                                 <span style="color:grey;">
                                     <i class="mdi mdi-border-color"></i>
                                 </span>
-                            </td> 
+                            </td>  
                         </tr>
                     </tbody>
                 </ng-container>
@@ -106,11 +107,12 @@
                             <td>{{ getTaskStatus(task) }}</td>
                             <td>{{ task?.assigned }}</td>
                             <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
-                                <span class="clickable" style="color:orange;">
+                                <span class="clickable" style="color:orange;" 
+                                    (click)="unassignTask(task)">
                                     <i class="mdi mdi-minus"></i>
                                 </span>
                                 &nbsp; 
-                                <span class="clickable" style="color:green;">
+                                <span class="clickable" style="color:green;" (click)="startAnnotationTask(task)">
                                     <i class="mdi mdi-border-color"></i>
                                 </span>
                             </td>
@@ -124,7 +126,7 @@
                                 </span>
                             </td>
                             <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
-                                <span class="clickable" style="color:green;">
+                                <span class="clickable" style="color:green;" (click)="selfAssignTask(task)">
                                     <i class="mdi mdi-plus"></i>
                                 </span> 
                                 &nbsp; 
@@ -133,14 +135,14 @@
                                 </span>
                             </td>
                             <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
-                                <span class="clickable" style="color:green;">
+                                <span style="color:grey;">
                                     <i class="mdi mdi-plus"></i>
                                 </span> 
                                 &nbsp; 
                                 <span style="color:grey;">
                                     <i class="mdi mdi-border-color"></i>
                                 </span>
-                            </td>
+                            </td> 
                         </tr>
                     </tbody>
                 </ng-container>
@@ -179,11 +181,12 @@
                             <td><span style="color: green;">{{ getTaskStatus(task) }}</span></td>
                             <td>{{ task?.assigned }}</td>
                             <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
-                                <span class="clickable" style="color:orange;">
+                                <span class="clickable" style="color:orange;" 
+                                    (click)="unassignTask(task)">
                                     <i class="mdi mdi-minus"></i>
                                 </span>
                                 &nbsp; 
-                                <span class="clickable" style="color:green;">
+                                <span class="clickable" style="color:green;" (click)="startAnnotationTask(task)">
                                     <i class="mdi mdi-border-color"></i>
                                 </span>
                             </td>
@@ -197,7 +200,7 @@
                                 </span>
                             </td>
                             <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
-                                <span class="clickable" style="color:green;">
+                                <span class="clickable" style="color:green;" (click)="selfAssignTask(task)">
                                     <i class="mdi mdi-plus"></i>
                                 </span> 
                                 &nbsp; 
@@ -206,14 +209,14 @@
                                 </span>
                             </td>
                             <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
-                                <span class="clickable" style="color:green;">
+                                <span style="color:grey;">
                                     <i class="mdi mdi-plus"></i>
                                 </span> 
                                 &nbsp; 
                                 <span style="color:grey;">
                                     <i class="mdi mdi-border-color"></i>
                                 </span>
-                            </td>       
+                            </td>        
                         </tr>
                     </tbody>
                 </ng-container>

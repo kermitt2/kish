@@ -25,7 +25,9 @@
           <ul class="nav sidebar-inner" id="sidebar-menu">
 
             <!-- annotation view side bar menu -->
-            <li id="annotate-side-bar" *ngIf="inAnnotationTask">
+            <li id="annotate-side-bar" 
+              *ngIf="inAnnotationTask"
+              (click)="showGuidelines = false; showAnnotationPanel()">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="dashboard">
                 <i class="mdi mdi-pencil-box-multiple"></i>
@@ -33,7 +35,9 @@
               </a>
             </li>
 
-            <li id="guidelines-side-bar" *ngIf="inAnnotationTask">
+            <li id="guidelines-side-bar" 
+              *ngIf="inAnnotationTask"
+              (click)="hideAnnotationPanel(); showGuidelines = true">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-teach"></i>
@@ -42,7 +46,9 @@
             </li>
 
             <!-- dataset view side bar menu -->
-            <li id="dataset-tasks-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
+            <li id="dataset-tasks-side-bar" 
+                *ngIf="selectedMenuChoice.startsWith('datasets-home') && !inAnnotationTask " 
+                (click)="selectedMenuChoice = 'datasets-home'; inAnnotationTask = false">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="dashboard">
                 <i class="mdi mdi-pencil-box-multiple"></i>
@@ -50,7 +56,9 @@
               </a>
             </li>
 
-            <li id="dataset-create-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
+            <li id="dataset-create-side-bar" 
+                *ngIf="(selectedMenuChoice.startsWith('datasets-home') && !inAnnotationTask && (userInfo['role'] === 'admin' || userInfo['role'] === 'curator'))" 
+                (click)="selectedMenuChoice = 'datasets-home-creation'">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-database-import"></i>
@@ -58,7 +66,9 @@
               </a>
             </li>
 
-            <li id="dataset-metrics-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
+            <li id="dataset-metrics-side-bar" 
+                *ngIf="selectedMenuChoice.startsWith('datasets-home') && !inAnnotationTask" 
+                (click)="selectedMenuChoice = 'datasets-home-metrics'">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-chart-bar"></i>
@@ -66,7 +76,9 @@
               </a>
             </li>
 
-            <li id="dataset-export-side-bar" *ngIf="selectedMenuChoice == 'datasets-home'" >
+            <li id="dataset-export-side-bar" 
+                *ngIf="(selectedMenuChoice.startsWith('datasets-home') && !inAnnotationTask && (userInfo['role'] === 'admin' || userInfo['role'] === 'curator'))" 
+                (click)="selectedMenuChoice = 'datasets-home-export'">
               <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
                 aria-expanded="false" aria-controls="app">
                 <i class="mdi mdi-database-export"></i>
@@ -74,6 +86,27 @@
               </a>
             </li>
             
+            <!-- user view side bar menu -->
+            <li id="user-tasks-side-bar" 
+                *ngIf="selectedMenuChoice.startsWith('tasks-home') && !inAnnotationTask" 
+                (click)="selectedMenuChoice = 'tasks-home'">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="dashboard">
+                <i class="mdi mdi-pencil-box-multiple"></i>
+                <span class="nav-text">Tasks</span>
+              </a>
+            </li>
+
+            <li id="user-metrics-side-bar" 
+                *ngIf="selectedMenuChoice.startsWith('tasks-home') && !inAnnotationTask" 
+                (click)="selectedMenuChoice = 'tasks-home-metrics'">
+              <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" 
+                aria-expanded="false" aria-controls="app">
+                <i class="mdi mdi-chart-bar"></i>
+                <span class="nav-text">Metrics</span>
+              </a>
+            </li>
+
           </ul>
         </div>
       </div>
@@ -94,7 +127,7 @@
             <span class="sr-only">Toggle navigation</span>
           </button>
 
-          <div class="navbar-right" (click)="selectedMenuChoice = 'tasks-home'">
+          <div class="navbar-right" (click)="selectedMenuChoice = 'tasks-home'; inAnnotationTask = false">
             <ul class="nav navbar-nav">
               <li id="tasks-home" 
                   [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice == 'tasks-home'}">
@@ -106,19 +139,19 @@
             </ul>
           </div>
 
-          <div class="navbar-right" (click)="selectedMenuChoice = 'datasets-home'">
+          <div class="navbar-right" (click)="selectedMenuChoice = 'datasets-home'; inAnnotationTask = false">
             <ul class="nav navbar-nav">
               <li id="datasets-home" 
-                  [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice == 'datasets-home'}">
+                  [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice.startsWith('datasets-home')}">
                 <button class="home">
                   <span 
-                    [ngClass]="{'active': selectedMenuChoice == 'datasets-home'}"> <i class="mdi mdi-database-edit"></i> Datasets</span>
+                    [ngClass]="{'active': selectedMenuChoice.startsWith('datasets-home')}"> <i class="mdi mdi-database-edit"></i> Datasets</span>
                 </button>
               </li>
             </ul>
           </div>
 
-          <div class="navbar-right" (click)="selectedMenuChoice = 'users-home'">
+          <div class="navbar-right" (click)="selectedMenuChoice = 'users-home'; inAnnotationTask = false">
             <ul class="nav navbar-nav">
               <li id="users-home" 
                   [ngClass]="{'top-bar-menu': true, 'active': selectedMenuChoice == 'users-home'}" 
@@ -214,13 +247,13 @@
                   <li>
                     <a href="javascript:void(0)"> <i class="mdi mdi-diamond-stone"></i> Projects </a>
                   </li-->
-                  <li class="right-sidebar-in" ngbDropdownItem (click)="selectedMenuChoice = 'user-preferences'">
+                  <li class="right-sidebar-in" ngbDropdownItem (click)="selectedMenuChoice = 'user-preferences'; inAnnotationTask = false">
                     <a id="user-preferences-menu" href="javascript:void(0)"> <i class="mdi mdi-cellphone-settings-variant"></i> Preferences </a>
                   </li>
-                  <li class="right-sidebar-in" ngbDropdownItem (click)="selectedMenuChoice = 'user-settings'">
+                  <li class="right-sidebar-in" ngbDropdownItem (click)="selectedMenuChoice = 'user-settings'; inAnnotationTask = false">
                     <a id="user-settings-menu" href="javascript:void(0)"> <i class="mdi mdi-settings"></i> Account Setting </a>
                   </li>
-                  <li class="dropdown-footer" ngbDropdownItem (click)="logout()">
+                  <li class="dropdown-footer" ngbDropdownItem (click)="inAnnotationTask = false; logout()">
                     <a id="logout" href="javascript:void(0)"> <i class="mdi mdi-logout"></i> Log Out </a>
                   </li>
                 </ul>
@@ -240,30 +273,40 @@
           <!-- ====================================
           ——— List of user tasks (my task home view)
           ===================================== --> 
-          <app-tasks *ngIf="selectedMenuChoice == 'tasks-home'" [userInfo]="userInfo"></app-tasks>
+          <app-tasks *ngIf="selectedMenuChoice == 'tasks-home' && !inAnnotationTask" 
+                     [userInfo]="userInfo" 
+                     [(inAnnotationTask)]="inAnnotationTask"></app-tasks>
+
+          <!-- ====================================
+          ——— User metrics (under my task home view)
+          ===================================== --> 
+          <app-user-metrics *ngIf="selectedMenuChoice == 'tasks-home-metrics'" 
+                            [userInfo]="userInfo"></app-user-metrics>
 
           <!-- ====================================
           ——— List of datasets (and associated tasks)
           ===================================== -->
-          <app-datasets *ngIf="selectedMenuChoice == 'datasets-home'" [userInfo]="userInfo"></app-datasets>
+          <app-datasets *ngIf="selectedMenuChoice == 'datasets-home' && !inAnnotationTask" 
+                        [userInfo]="userInfo" 
+                        [(inAnnotationTask)]="inAnnotationTask"></app-datasets>
 
           <!-- ====================================
           ——— Create a dataset (for admin/curator)
           ===================================== -->
-          <div id="dataset-create-view" class="col-lg-10 col-xl-11" style="display:none;">
-          </div>
+          <app-dataset-creation *ngIf="selectedMenuChoice == 'datasets-home-creation'" 
+                                [userInfo]="userInfo"></app-dataset-creation>
           
           <!-- ====================================
           ——— View metrics for dataset tasks 
           ===================================== -->
-          <div id="dataset-metrics-view" class="col-lg-10 col-xl-11" style="display:none;">
-          </div>
+          <app-dataset-metrics *ngIf="selectedMenuChoice == 'datasets-home-metrics'" 
+                               [userInfo]="userInfo"></app-dataset-metrics>
 
           <!-- ====================================
           ——— Export dataset tasks (for admin/curator)
           ===================================== -->
-          <div id="dataset-export-view" class="col-lg-10 col-xl-11" style="display:none;">
-          </div>
+          <app-dataset-export *ngIf="selectedMenuChoice == 'datasets-home-export'" 
+                              [userInfo]="userInfo"></app-dataset-export>
 
           <!-- ====================================
           ——— List of users (for admin only)
@@ -277,7 +320,11 @@
           <!-- ====================================
           ——— The annotation view
           ===================================== -->
-          <div id="annotation-view" class="col-lg-11 col-xl-12" style="display:none;">
+
+          <app-document-annotation *ngIf="inAnnotationTask" 
+                                   [userInfo]="userInfo"></app-document-annotation>
+
+          <!--div id="annotation-view" class="col-lg-11 col-xl-12" style="display:none;">
             <div class="row" style="height: 50px;">
               <div id="annotation-task-info" class="pb-5" style="width:100%;"></div>
             </div>
@@ -294,14 +341,13 @@
                 </div>
                 
               </div>
-            </div>          
-          </div>
+            </div>
+          </div-->
 
           <!-- ====================================
           ——— Display task guidelines (from annotation view)
           ===================================== -->
-          <div id="guidelines-view" class="col-lg-10 col-xl-11 markdown-body" style="display:none;">
-          </div>
+          <app-guidelines *ngIf="inAnnotationTask && showGuidelines"></app-guidelines>
 
           <!-- ====================================
           ——— USER preferences

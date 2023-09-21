@@ -1,7 +1,8 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { Task } from '../../interfaces/task';
 import { TaskService } from '../../services/task.service';
 import { ToastrService } from '../../services/toastr.service';
+import { TaskdataService } from '../../services/taskdata.service';
 import { Observable } from 'rxjs';    
 import { MainComponent} from '../main/main.component';
 import { User } from '../../interfaces/user';
@@ -15,6 +16,12 @@ export class TasksComponent implements OnInit {
   
   @Input() userInfo: User;
 
+  @Input() inAnnotationTask: boolean;
+  @Output() inAnnotationTaskChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+
+  selectedTask: Task;
+  //@Output() selectedTaskChange: EventEmitter<Task> = new EventEmitter<Task>();
+
   taskProfiles: any[] = [];
 
   taskProfilesCompleted: any[] = [];
@@ -25,7 +32,9 @@ export class TasksComponent implements OnInit {
   tasksActive: Array<Task>;
   tasksAssigned: Array<Task>;
 
-  constructor(private taskService: TaskService, private toastrService: ToastrService) { }
+  constructor(private taskService: TaskService, 
+              private toastrService: ToastrService,
+              private taskdataService: TaskdataService) { }
 
   ngOnInit(): void {
     this.setTaskProfiles();
@@ -88,48 +97,90 @@ export class TasksComponent implements OnInit {
   }
 
   getCompletionNbByLevel(taskItem: Task): string {
-    let taskContent: string = ""
-
-    if (taskItem == null || taskItem == undefined) 
-      return taskContent;
-
-    if (taskItem["level"] === "document") {
-        if (taskItem["nb_completed_documents"]) {
-            if (taskItem["nb_documents"])
-                taskContent += taskItem["nb_completed_documents"] + " / " + taskItem["nb_documents"] + " doc.";
-            else
-                taskContent += taskItem["nb_completed_documents"] + " doc.";
-        } else 
-            taskContent = "0";
-    } else {
-        if (taskItem["nb_completed_excerpts"]) {
-            if (taskItem["nb_excerpts"])
-                taskContent = taskItem["nb_completed_excerpts"] + " / " + taskItem["nb_excerpts"] + " excepts";
-            else
-                taskContent = taskItem["nb_completed_excerpts"] + " excerpt";
-        } else
-            taskContent = "0";
-    }
-    return taskContent;
+    return this.taskService.getCompletionNbByLevel(taskItem);
   }
 
   getTaskStatus(taskItem: Task): string {
-    let taskContent: string = "";
-    if (taskItem == null || taskItem == undefined) 
-      return taskContent;
-
-    if (taskItem["status"]) 
-        taskContent = taskItem["status"];
-    else
-        taskContent = "unknown";
-    return taskContent;
+    return this.taskService.getTaskStatus(taskItem);
   }
 
   isRestrictedTask(taskItem: Task): boolean {
-    return (
-        (this.userInfo["redundant_tasks"] && this.userInfo["redundant_tasks"].indexOf(taskItem["id"]) != -1 && taskItem["type"] !== "reconciliation") ||
-        (this.userInfo["role"] === "annotator" && taskItem["type"] === "reconciliation")
-    );
+    return this.taskService.isRestrictedTask(taskItem, this.userInfo);
   }
 
+  selfAssignTask(task: Task): void {
+    this.taskService.selfAssignTask(task["id"])
+        .subscribe(
+          (data: any) =>  {  // success
+            task["assigned"] = this.userInfo["email"];
+            task["status"] = "assigned";
+            // add redundant tasks
+            if (data["records"] && this.userInfo["redundant_tasks"]) {
+              let records: any[] = data["records"];
+              for (let recordPos: number = 0; recordPos < records.length; recordPos++) {
+                const record = records[recordPos];
+                if (this.userInfo["redundant_tasks"].indexOf(record) == -1) {
+                    this.userInfo["redundant_tasks"].push(record);
+                }
+              }
+            }
+          }, 
+          (error: any)  =>  this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, self-assigning task didn't work!"),
+          ()            =>  { 
+                              // completed
+                              this.toastrService.callToaster("toast-top-center", "success", "", "the task has been assigned to you!");
+                              console.log('self-assign task'); 
+                            }
+       );
+  }
+
+  unassignTask(task: Task): void {
+    this.taskService.unassignTask(task["id"])
+        .subscribe(
+          (data: any) =>  {  // success
+            task["assigned"] = undefined;
+            task["status"] = "unassigned";
+            let index: number = this.tasksAssigned.indexOf(task, 0);
+            if (index > -1) {
+              this.tasksAssigned.splice(index, 1);
+            }
+            index = this.taskProfilesAssigned.indexOf(task["id"], 0);
+            if (index > -1) {
+              this.taskProfilesAssigned.splice(index, 1);
+            }
+            //delete task["assigned"];
+            // remove old redundant tasks
+            if (data["records"] && this.userInfo["redundant_tasks"]) {
+                // remove old redundant tasks
+                let records: any[] = data["records"];
+                for (let recordPos: number = 0; recordPos < records.length; recordPos++) {
+                    const record = records[recordPos];
+                    const ind = this.userInfo["redundant_tasks"].indexOf(record);
+                    if (ind != -1) {
+                        this.userInfo["redundant_tasks"].splice(ind, 1);
+                    }
+                }
+            }
+          }, 
+          (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, self-unassigning task didn't work!"),
+          ()             => { 
+                              // completed
+                              this.toastrService.callToaster("toast-top-center", "success", "", "the task has been unassigned!");
+                              console.log('self-unassign task'); 
+                            }
+       );
+  }
+  
+  changeValueInAnnotationTask(task: Task) {
+    this.inAnnotationTask = true; 
+    this.inAnnotationTaskChange.emit(this.inAnnotationTask);
+
+    this.selectedTask = task;
+    //this.selectedTaskChange.emit(this.selectedTask);
+    this.taskdataService.setTaskdata(this.selectedTask);
+  }
+
+  startAnnotationTask(task: Task): void {
+    this.changeValueInAnnotationTask(task);
+  }
 }

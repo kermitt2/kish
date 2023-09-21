@@ -28,9 +28,12 @@
               "node_modules/nprogress/nprogress.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "src/assets/plugins/simplebar/simplebar.css",
+              "src/assets/js/lib/pdf.js/web/text_layer_builder.css",
+              "src/assets/js/lib/pdf.js/web/annotation_layer_builder.css",
+              "src/assets/js/lib/recogito-js/recogito.min.css",
               "src/assets/plugins/toastr/toastr.min.css",
               "src/assets/css/sleek-dark.css",
-              "src/assets/css/annotations.css"
+              "src/assets/css/annotations.css",
               "src/styles.css"
             ],
             "scripts": [
@@ -38,8 +41,20 @@
               "node_modules/nprogress/nprogress.js",
               "node_modules/jquery/dist/jquery.min.js",
               "src/assets/plugins/simplebar/simplebar.min.js",
+              "src/assets/js/lib/pdf.js/web/text_layer_builder.js",
+              "src/assets/js/lib/pdf.js/web/pdf_link_service.js",
+              "src/assets/js/lib/pdf.js/web/annotation_layer_builder.js",
+              "src/assets/js/lib/pdf.js/build_/pdf.js",
+              "src/assets/js/lib/pdf.js/build_/pdf.worker.js",
+              "src/assets/js/lib/recogito-js/recogito.min.js",
               "src/assets/plugins/toastr/toastr.min.js",
-              "src/assets/js/sleek.js"
+              "src/assets/plugins/toastr/toastr.min.js",
+              "src/assets/js/sleek.js",
+              "src/assets/js/legacy/utils.js",
+              "src/assets/js/legacy/task.js",
+              "src/assets/js/legacy/document.js",
+              "src/assets/js/legacy/labeling.js",
+              "src/assets/js/legacy/classification.js"
             ]
           },
           "configurations": {

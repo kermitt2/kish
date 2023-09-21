@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { UserService } from '../../services/user.service';
 import { ToastrService } from '../../services/toastr.service';
 import { User } from '../../interfaces/user';
+import { Task } from '../../interfaces/task';
 
 import * as $ from 'jquery';
 
@@ -17,6 +18,8 @@ export class MainComponent implements OnInit {
 
   userInfo: User = {} as User;
 
+  //selectedTask: Task;
+
   selectedMenuChoice: string = "tasks-home";
 
   // component/panel visibility
@@ -27,6 +30,8 @@ export class MainComponent implements OnInit {
 
   // true if we are performing an annotation task
   inAnnotationTask: boolean = false;
+  // true if we are showing the guidelines of an annotation task
+  showGuidelines: boolean = false;
 
   constructor(private router: Router, private http: HttpClient, private userService: UserService, private toastrService: ToastrService) {}
 
@@ -96,6 +101,14 @@ export class MainComponent implements OnInit {
           (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, updating your preferences didn't work!"),
           ()             => console.log('preferences updates') // completed
        );
+  }
+
+  hideAnnotationPanel(): void {
+    $("#annotation-view").css("display", "none");
+  }
+
+  showAnnotationPanel(): void {
+    $("#annotation-view").css("display", "");
   }
 
 }

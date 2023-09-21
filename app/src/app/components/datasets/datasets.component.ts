@@ -1,8 +1,9 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { Task } from '../../interfaces/task';
 import { TaskService } from '../../services/task.service';
 import { DatasetService } from '../../services/dataset.service';
 import { ToastrService } from '../../services/toastr.service';
+import { TaskdataService } from '../../services/taskdata.service';
 import { Observable } from 'rxjs';    
 import { MainComponent} from '../main/main.component';
 import { TasksComponent} from '../tasks/tasks.component';
@@ -17,10 +18,19 @@ import { Dataset } from '../../interfaces/dataset';
 export class DatasetsComponent implements OnInit {
   @Input() userInfo: User;
 
+  @Input() inAnnotationTask: boolean;
+  @Output() inAnnotationTaskChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+
+  selectedTask: Task;
+  @Output() selectedTaskChange: EventEmitter<Task> = new EventEmitter<Task>();
+
   datasetProfiles: string[] = [];
   datasets: Array<Dataset>;
 
-  constructor(private datasetService: DatasetService, private taskService: TaskService, private toastrService: ToastrService) { }
+  constructor(private datasetService: DatasetService, 
+              private taskService: TaskService, 
+              private toastrService: ToastrService,
+              private taskdataService: TaskdataService) { }
 
   ngOnInit(): void {
     this.setDatasetProfiles();
@@ -65,7 +75,7 @@ export class DatasetsComponent implements OnInit {
   }
 
   selfAssignTask(task: Task): void {
-    this.taskService.assignTask(task["id"])
+    this.taskService.selfAssignTask(task["id"])
         .subscribe(
           (data: any) =>  {  // success
             task["assigned"] = this.userInfo["email"];
@@ -82,20 +92,16 @@ export class DatasetsComponent implements OnInit {
             }
           }, 
           (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, self-assigning task didn't work!"),
-          ()             => console.log('self-assign task') // completed
+          ()             => { 
+                              // completed
+                              this.toastrService.callToaster("toast-top-center", "success", "", "the task has been assigned to you!");
+                              console.log('self-assign task'); 
+                            }
        );
   }
 
   unassignTask(task: Task): void {
-    if (task['assigned'] === this.userInfo['email']) { 
-      this.selfUnassignTask(task);
-    } else { 
-      this.userUnassignTask(task);
-    } 
-  }
-
-  selfUnassignTask(task: Task): void {
-    this.taskService.unassignTask(this.userInfo, task["id"])
+    this.taskService.unassignTask(task["id"])
         .subscribe(
           (data: any) =>  {  // success
             task["assigned"] = undefined;
@@ -115,62 +121,37 @@ export class DatasetsComponent implements OnInit {
             }
           }, 
           (error: any)   => this.toastrService.callToaster("toast-top-center", "error", error["message"], "Damn, self-unassigning task didn't work!"),
-          ()             => console.log('self-unassign task') // completed
+          ()             => { 
+                              // completed
+                              this.toastrService.callToaster("toast-top-center", "success", "", "the task has been unassigned!");
+                              console.log('self-unassign task'); 
+                            }
        );
   }
   
-  userUnassignTask(task: Task): void {
-    
+  changeValueInAnnotationTask(task: Task) {
+    this.inAnnotationTask = true; 
+    this.inAnnotationTaskChange.emit(this.inAnnotationTask);
+
+    this.selectedTask = task;
+    //this.selectedTaskChange.emit(this.selectedTask);
+    this.taskdataService.setTaskdata(this.selectedTask);
   }
 
-
   startAnnotationTask(task: Task): void {
-
+    this.changeValueInAnnotationTask(task);
   }
 
   getCompletionNbByLevel(taskItem: Task): string {
-    let taskContent: string = ""
-
-    if (taskItem == null || taskItem == undefined) 
-      return taskContent;
-
-    if (taskItem["level"] === "document") {
-        if (taskItem["nb_completed_documents"]) {
-            if (taskItem["nb_documents"])
-                taskContent += taskItem["nb_completed_documents"] + " / " + taskItem["nb_documents"] + " doc.";
-            else
-                taskContent += taskItem["nb_completed_documents"] + " doc.";
-        } else 
-            taskContent = "0";
-    } else {
-        if (taskItem["nb_completed_excerpts"]) {
-            if (taskItem["nb_excerpts"])
-                taskContent = taskItem["nb_completed_excerpts"] + " / " + taskItem["nb_excerpts"] + " excepts";
-            else
-                taskContent = taskItem["nb_completed_excerpts"] + " excerpt";
-        } else
-            taskContent = "0";
-    }
-    return taskContent;
+    return this.taskService.getCompletionNbByLevel(taskItem);
   }
 
   getTaskStatus(taskItem: Task): string {
-    let taskContent: string = "";
-    if (taskItem == null || taskItem == undefined) 
-      return taskContent;
-
-    if (taskItem["status"]) 
-        taskContent = taskItem["status"];
-    else
-        taskContent = "unknown";
-    return taskContent;
+    return this.taskService.getTaskStatus(taskItem);
   }
 
   isRestrictedTask(taskItem: Task): boolean {
-    return (
-        (this.userInfo["redundant_tasks"] && this.userInfo["redundant_tasks"].indexOf(taskItem["id"]) != -1 && taskItem["type"] !== "reconciliation") ||
-        (this.userInfo["role"] === "annotator" && taskItem["type"] === "reconciliation")
-    );
+    return this.taskService.isRestrictedTask(taskItem, this.userInfo);
   }
 
 }
