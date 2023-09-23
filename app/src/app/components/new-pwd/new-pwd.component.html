@@ -28,33 +28,52 @@
               <p>Set your new password here:</p>
             </div-->
 
-            <div class="row col-md-12">
+            <div id="div-password" class="form-group col-md-12 ">
+                <input type="password" class="form-control input-lg {{is_password_valid ? 'is-valid' : ''}} {{is_password_invalid ? 'is-invalid' : ''}}" id="password" name="password" [(ngModel)]="password" placeholder="Password">
+                <div class="invalid-feedback" *ngIf="empty_password">Please enter a password</div>
+                <div class="invalid-feedback" *ngIf="bad_password">Password must have at least 8 characters</div>
+            </div>
+
+            <div id="div-cpassword" class="form-group col-md-12 ">
+                <input type="password" class="form-control input-lg {{is_cpassword_valid ? 'is-valid' : ''}} {{is_cpassword_invalid ? 'is-invalid' : ''}}" id="password" name="cpassword" [(ngModel)]="cpassword" placeholder="Password">
+                <div class="invalid-feedback" *ngIf="empty_cpassword">Please enter a confimation password</div>
+                <div class="invalid-feedback" *ngIf="bad_cpassword">Password must have at least 8 characters</div>
+                <div class="invalid-feedback" *ngIf="passwords_not_match">Password and confirmation password do not match</div>
+            </div>
+
+            <!--div class="row col-md-12">
               <div id="div-password" class="form-group mb-4 col-md-12">
                 <label for="newPassword">New password:</label>
                 <input type="password" class="form-control input-lg" id="newPassword">
               </div>
-            </div>
+            </div-->
 
-            <div class="row col-md-12">
+            <!--div class="row col-md-12">
               <div id="div-cpassword" class="form-group mb-4 col-md-12">
                 <label for="conPassword">Confirm new password:</label>
                 <input type="password" class="form-control input-lg" id="conPassword">
               </div>
-
-              <!--div id="div-submit" class="d-flex justify-content-end mt-5">
-                <button id="new-pwd-button" type="submit" class="btn btn-primary mb-2 btn-pill">Set new password</button>
-              </div-->
-
-              <!--div id="div-email" class="form-group col-md-12 mb-4">
-                <input type="email" class="form-control input-lg" id="email" name="email" aria-describedby="emailHelp" placeholder="Email">
-              </div-->
-            </div>
+            </div-->
 
             <div class="row py-4">
               <div class="col-md-12">
+
                 <div id="div-submit">
-                  <button type="submit" id="new-pwd-button" class="btn btn-lg btn-primary btn-block mb-4">Set new password</button>
+                  <button type="submit" id="new-pwd-button" class="btn btn-lg btn-primary btn-block mb-4" (click)="newPwd()">Set new password</button>
+                  <div class="invalid-feedback" 
+                       style="color:red; display:inline;"
+                       *ngIf="submit_invalid">New password rejected: <br/>{{ submit_message }}</div>
+                  <div class="valid-feedback" 
+                       style="color:green; display:inline;"
+                       *ngIf="submit_invalid">Your password is updated !<br/> &nbsp;</div>
+                  <div class="valid-feedback" 
+                       style="color:green; display:inline;"
+                       *ngIf="submit_invalid"><p>Go to: <a routerLink="/sign-in">Sign-in</a></p></div>
                 </div>
+
+                <!--div id="div-submit">
+                  <button type="submit" id="new-pwd-button" class="btn btn-lg btn-primary btn-block mb-4">Set new password</button>
+                </div-->
               </div>
             </div>
 

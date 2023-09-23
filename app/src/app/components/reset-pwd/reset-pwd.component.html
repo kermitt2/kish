@@ -29,15 +29,23 @@
             </div>
             <div class="row py-5">
               <div id="div-email" class="form-group col-md-12 mb-4">
-                <input type="email" class="form-control input-lg" id="email" name="email" aria-describedby="emailHelp" placeholder="Email">
+                <input type="email" class="form-control input-lg {{is_email_valid ? 'is-valid' : ''}} {{is_email_invalid ? 'is-invalid' : ''}}" id="email" name="email" [(ngModel)]="email" aria-describedby="emailHelp" placeholder="Email">
+                <div class="invalid-feedback" *ngIf="empty_email">Please enter an email</div>
+                <div class="invalid-feedback" *ngIf="bad_email">It does not look like an email</div>
               </div>
 
               <div class="col-md-12">
                 <div id="div-submit">
-                  <button type="submit" id="forgot-password-button" class="btn btn-lg btn-primary btn-block mb-4">Reset Password</button>
+                  <button type="submit" id="reset-pwd-button" class="btn btn-lg btn-primary btn-block mb-4" (click)="resetPwd()">Reset Password</button>
+                  <div class="invalid-feedback" 
+                       style="color:red; display:inline;"
+                       *ngIf="submit_invalid">Error user email:: <br/>{{ submit_message }}</div>
+                  <div class="valid-feedback" 
+                       style="color:green; display:inline;"
+                       *ngIf="submit_valid"><b>Password reset: Check your email !</b><br/> &nbsp;</div>
                 </div>
 
-                <p>Don't have an account yet ?
+                <p class="text-dark">Don't have an account yet ?
                   <a class="text-blue" routerLink="/sign-up">Sign Up</a>
                 </p>
               </div>
