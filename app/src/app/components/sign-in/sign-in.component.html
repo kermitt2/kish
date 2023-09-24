@@ -1,0 +1,69 @@
+<div class="container d-flex align-items-center justify-content-center vh-100">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-10">
+      <div class="card">
+        <!--div class="card-header bg-primary">
+          <div class="app-brand">
+            <a href="sign-in.html">
+              <img src="images/logo-300x290.png" width="60" height="60"/>
+
+              <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" width="30" height="33"
+                viewBox="0 0 30 33">
+                <g fill="none" fill-rule="evenodd">
+                  <path class="logo-fill-blue" fill="#7DBCFF" d="M0 4v25l8 4V0zM22 4v25l8 4V0z" />
+                  <path class="logo-fill-white" fill="#FFF" d="M11 4v25l8 4V0z" />
+                </g>
+              </svg>
+
+              <span class="brand-name">KISH</span>
+            </a>
+          </div>
+        </div-->
+
+        <div class="card-body p-5">
+          <h4 class="text-dark mb-5">Sign In</h4>
+          
+          <form id="sign-in-form">
+            <div class="row">
+              <div id="div-email" class="form-group col-md-12 mb-4">
+                <input type="email" class="form-control input-lg {{is_email_valid ? 'is-valid' : ''}} {{is_email_invalid ? 'is-invalid' : ''}}" id="email" name="email" [(ngModel)]="email" aria-describedby="emailHelp" placeholder="Email">
+                <div class="invalid-feedback" *ngIf="empty_email">Please enter an email</div>
+                <div class="invalid-feedback" *ngIf="bad_email">It does not look like an email</div>
+              </div>
+
+              <div id="div-password" class="form-group col-md-12 ">
+                <input type="password" class="form-control input-lg {{is_password_valid ? 'is-valid' : ''}} {{is_password_invalid ? 'is-invalid' : ''}}" id="password" name="password" [(ngModel)]="password" placeholder="Password">
+                <div class="invalid-feedback" *ngIf="empty_password">Please enter a password</div>
+                <div class="invalid-feedback" *ngIf="bad_password">Password must have at least 8 characters</div>
+              </div>
+
+              <div class="col-md-12">
+                <div class="d-flex my-2 justify-content-between">
+                  <div class="d-inline-block mr-3">
+                    <label class="control control-checkbox" style="text-transform: none;">Remember me
+                      <input type="checkbox" checked/>
+                      <div class="control-indicator"></div>
+                    </label>
+                  </div>
+
+                  <p><a class="text-blue" routerLink="/reset-pwd">Forgot Your Password?</a></p>
+                </div>
+
+                <div id="div-submit">
+                  <button type="submit" id="sign-in-button" class="btn btn-lg btn-primary btn-block mb-4" (click)="signin()">Sign In</button>
+                  <div class="invalid-feedback" 
+                       style="color:red; display:inline;"
+                       *ngIf="submit_invalid">Error user sign-in: <br/>{{ submit_message }}</div>
+                </div>
+
+                <p class="text-dark">Don't have an account yet ?
+                  <a class="text-blue" routerLink="/sign-up">Sign Up</a>
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

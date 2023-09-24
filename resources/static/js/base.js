@@ -214,7 +214,7 @@ var base = (function($) {
         return validation;
     }
 
-    function validate_signin(email, password, cpassword) {
+    function validate_signin(email, password) {
         var validation = true;
 
         const feedback = document.querySelectorAll('.invalid-feedback');
@@ -226,11 +226,11 @@ var base = (function($) {
         $("#email").removeClass("is-valid");
         if (email === "") {
             $("#email").addClass("is-invalid");
-            $("#div-username").append("<div class=\"invalid-feedback\">Please enter an email</div>");
+            $("#div-email").append("<div class=\"invalid-feedback\">Please enter an email</div>");
             validation = false;
         } else if (email.indexOf("@") == -1) {
             $("#email").addClass("is-invalid");
-            $("#div-username").append("<div class=\"invalid-feedback\">It does not look like an email</div>");
+            $("#div-email").append("<div class=\"invalid-feedback\">It does not look like an email</div>");
             validation = false;
         } else {
             $("#email").addClass("is-valid");

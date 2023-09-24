@@ -1,0 +1,113 @@
+<div class="content d-flex justify-content-center" style="padding:0px;">
+    <div class="col-lg-10 col-xl-10">
+        <div class="row border" *ngFor="let dataset of datasets">
+            <span>
+                <table class="table table-borderless">
+                    <tr>
+                        <td>
+                            <img src="{{ 'assets/'+dataset?.image_url }}" width="50" height="50"/>
+                        </td> 
+                        <td style="text-align: top; max-width: 400px">
+                            <p><span style="color:white; font-weight: bold;">{{ dataset?.name }}
+                            </span></p> 
+                            <p>{{ dataset?.description }}</p>
+                        </td>
+                        <td><p>&nbsp;</p></td> 
+                        <td style="text-align: top;"><p>&nbsp;</p><p>{{ dataset?.nb_documents }} documents </p></td> 
+                        <td style="text-align: top;"><p>&nbsp;</p><p>{{ dataset?.nb_excerpts }} excertps </p></td> 
+                        <td style="text-align: top;"><p>&nbsp;</p><p>{{ dataset?.nb_tasks }} tasks </p></td>
+                        <td style="text-align: top;" *ngIf="userInfo['is_superuser']">
+                            <p>&nbsp;</p>
+                            <span class="clickable" style="color:orange;">
+                                <i class="mdi mdi-database-edit"></i>
+                            </span> &nbsp;  
+                            <span class="clickable" style="color:red;">
+                                <i class="mdi mdi-delete"></i>
+                            </span>
+                        </td>
+                        <td *ngIf="!userInfo['is_superuser']"></td> 
+                    </tr>
+                </table>
+            </span>
+
+            <table class="table table-borderless" style="width:100%;table-layout:fixed;">
+                <ng-container *ngIf="dataset && dataset['tasks'] && dataset['tasks'].length == 0">
+                    <tr>
+                        <td>No task available in the dataset</td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="dataset && dataset['tasks'] && dataset['tasks'].length > 0">
+                    <thead>
+                        <tr> 
+                            <td style="width:15%; font-weight: bold;">Task</td> 
+                            <td style="width:10%;">Type</td> 
+                            <td style="width:15%;">Dataset</td> 
+                            <td style="width:10%;"># documents</td> 
+                            <td style="width:7%;"># excerpts</td> 
+                            <td style="width:10%;"># completed</td> 
+                            <td style="width:10%;">Status</td> 
+                            <td style="width:15%;">Assigned to</td> 
+                            <td style="width:7%;text-align: right;">Action</td> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let task of dataset['tasks']">
+                            <td>{{ task?.name }}</td>
+                            <td>{{ task?.type }}</td>
+                            <td>{{ task?.dataset_name }}</td>
+                            <td>{{ task?.nb_documents }}</td>
+                            <td>{{ task?.nb_excerpts }}</td>
+                            <td>{{ getCompletionNbByLevel(task) }}</td>
+                            <td>{{ getTaskStatus(task) }}</td>
+                            <td>{{ task?.assigned }}</td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] === userInfo['email']">
+                                <span class="clickable" style="color:orange;" 
+                                    (click)="unassignTask(task)">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                &nbsp; 
+                                <span class="clickable" style="color:green;" (click)="startAnnotationTask(task)">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && task['assigned'] && task['assigned'] !== userInfo['email']">
+                                <span class="clickable" style="color:grey;">
+                                    <i class="mdi mdi-minus"></i>
+                                </span>
+                                 &nbsp;  
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && !isRestrictedTask(task)">
+                                <span class="clickable" style="color:green;" (click)="selfAssignTask(task)">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td>
+                            <td style="text-align: right;" *ngIf="task && !task['assigned'] && isRestrictedTask(task)">
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-plus"></i>
+                                </span> 
+                                &nbsp; 
+                                <span style="color:grey;">
+                                    <i class="mdi mdi-border-color"></i>
+                                </span>
+                            </td> 
+                        </tr>
+                    </tbody>
+                </ng-container>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
