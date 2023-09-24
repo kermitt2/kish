@@ -101,4 +101,4 @@ smtp:
   account:
   pwd: "*SECRET*"
   # root url where the app is running to generate usable link in the email (e.g. https://somewhere.com/kish/app)
-  app_domain: 
+  app_domain: "https://localhost:4200/"
