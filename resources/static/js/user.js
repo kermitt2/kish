@@ -6,19 +6,19 @@
 const userRowTemplate = "<td><i class=\"mdi mdi-account-box\"></td><td>{{email}}</td> \
             <td id=\"first-name-user-{{pos}}\">{{first_name}}</td> \
             <td id=\"last-name-user-{{pos}}\">{{last_name}}</td> \
-            <td id=\"password-user-{{pos}}\"><a href=\"#\">********</a></td> \
+            <td id=\"password-user-{{pos}}\"><a href=\"javascript:void(0)\">********</a></td> \
             <td><select class=\"form-control\" id=\"role-{{pos}}\" style=\"background-color:#0d1117; color:#8a909d; border:0; padding-left:0;width: auto;\"> \
             <option>annotator</option><option>curator</option><option>admin</option> \
             </select></td> \
-            <td><a href=\"#\"><span id=\"update-user-{{pos}}\" style=\"color:{{color_edit}};\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; \
-            <a href=\"#\"><span id=\"delete-user-{{pos}}\" style=\"color:{{color_delete}};\"><i class=\"mdi mdi-delete\"/></span></a></td>";
+            <td><a href=\"javascript:void(0)\"><span id=\"update-user-{{pos}}\" style=\"color:{{color_edit}};\"><i class=\"mdi mdi-account-edit\"/></span> &nbsp; \
+            <a href=\"javascript:void(0)\"><span id=\"delete-user-{{pos}}\" style=\"color:{{color_delete}};\"><i class=\"mdi mdi-delete\"/></span></a></td>";
 
 const userHeaderRow = "<thead><tr><td style=\"width:5%;\"></td> \
                     <td style=\"width:30%;\">email</td><td style=\"width:10%;\">first name</td><td style=\"width:10%;\"> \
                     last name</td><td style=\"width:10%;\">password</td><td style=\"width:10%;\">role</td> \
                     <td style=\"width:10%;\">action</td></tr></thead>";
 
-const addNewUserRow = "<tr><td><a href=\"#\"><span id=\"add-new-user\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a></td>"+
+const addNewUserRow = "<tr><td><a href=\"javascript:void(0)\"><span id=\"add-new-user\" style=\"color:green;\"><i class=\"mdi mdi-plus\"/></span></a></td>"+
                       "<td>Add new user</td><td></td><td></td><td></td><td></td><td></td></tr>";
 
 function displayUsers() {
