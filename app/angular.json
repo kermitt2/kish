@@ -33,6 +33,7 @@
               "src/assets/js/lib/recogito-js/recogito.min.css",
               "src/assets/plugins/toastr/toastr.min.css",
               "src/assets/css/sleek-dark.css",
+              "src/assets/css/guidelines-dark.css",
               "src/assets/css/annotations.css",
               "src/styles.css"
             ],
