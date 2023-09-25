@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { User } from '../interfaces/user';
+import { ApiBaseService } from './api-base.service';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
@@ -10,19 +11,16 @@ import * as $ from 'jquery';
 })
 export class UserService {
 
-  //end-point url 
-  base_url: string = 'http://0.0.0.0:8050';
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private apiBaseService: ApiBaseService) { }
 
   defineBaseURL(ext: string): string {
-    let localBase: string = this.base_url;
+    let localBase: string = this.apiBaseService.getApiBase();
     if (!localBase.endsWith("/")) {
         localBase = localBase + "/";
     }
     if (ext != null)
         localBase += ext;
-    return localBase
+    return localBase;
   }
 
   getUsers(): Observable<any> {

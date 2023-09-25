@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from "@angular/common/http";
+import { ApiBaseService } from '../../services/api-base.service';
 
 @Component({
   selector: 'app-reset-pwd',
@@ -22,10 +23,10 @@ export class ResetPwdComponent {
 
   submit_valid: boolean = false;
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private http: HttpClient, private apiBaseService: ApiBaseService) {}
 
   defineBaseURL(ext: string): string {
-    let localBase: string = "http://0.0.0.0:8050";
+    let localBase: string = this.apiBaseService.getApiBase();
     if (!localBase.endsWith("/")) {
         localBase = localBase + "/";
     }

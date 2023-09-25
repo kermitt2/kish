@@ -12,16 +12,14 @@ import { Dataset } from '../../interfaces/dataset';
 
 import * as $ from 'jquery';
 
-//import * as annotationTask from 'assets/js/legacy/task'
 declare var annotationTask: any;
-//declare var setTaskInfo: any;
 
 @Component({
   selector: 'app-document-annotation',
   templateUrl: './document-annotation.component.html',
   styleUrls: ['./document-annotation.component.css']
 })
-export class DocumentAnnotationComponent {
+export class DocumentAnnotationComponent implements OnInit {
   @Input() userInfo: User;
   selectedTask: Task;
 

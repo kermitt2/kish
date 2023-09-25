@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { UserService } from '../../services/user.service';
 import { ToastrService } from '../../services/toastr.service';
+import { ApiBaseService } from '../../services/api-base.service';
 import { User } from '../../interfaces/user';
 import { Task } from '../../interfaces/task';
 
@@ -18,8 +19,6 @@ export class MainComponent implements OnInit {
 
   userInfo: User = {} as User;
 
-  //selectedTask: Task;
-
   selectedMenuChoice: string = "tasks-home";
 
   // component/panel visibility
@@ -33,7 +32,11 @@ export class MainComponent implements OnInit {
   // true if we are showing the guidelines of an annotation task
   showGuidelines: boolean = false;
 
-  constructor(private router: Router, private http: HttpClient, private userService: UserService, private toastrService: ToastrService) {}
+  constructor(private router: Router, 
+              private http: HttpClient, 
+              private userService: UserService, 
+              private toastrService: ToastrService, 
+              private apiBaseService: ApiBaseService) {}
 
   ngOnInit() {
     //clearMainContent();
@@ -43,7 +46,7 @@ export class MainComponent implements OnInit {
   }
 
   defineBaseURL(ext: string): string {
-    let localBase: string = "http://0.0.0.0:8050";
+    let localBase: string = this.apiBaseService.getApiBase();
     if (!localBase.endsWith("/")) {
         localBase = localBase + "/";
     }
