@@ -7,6 +7,7 @@ import config from '../../assets/config.json';
 })
 export class ApiBaseService {
 
+  // default init to be overridden by config value
   apiBaseUrl: string = 'http://0.0.0.0:8050';
 
   constructor() { }

@@ -17,25 +17,6 @@ String.fromHtmlEntities = function(string) {
 };
 
 function defineBaseURL(ext) {
-    /*var baseUrl = null;
-    var localBase = $(location).attr('href');
-    if ( localBase.indexOf("/index.html") != -1) {
-         localBase = localBase.replace("/index.html", "");
-    } 
-    if ( localBase.indexOf("app") != -1) {
-         localBase = localBase.replace("app", "");
-    } 
-    if (localBase.endsWith("#")) {
-        localBase = localBase.substring(0,localBase.length-1);
-    }
-    if (!localBase.endsWith("/")) {
-        localBase = localBase + "/";
-    }
-    if (ext != null)
-        localBase += ext;
-
-    return localBase*/
-
     var localBase = 'http://0.0.0.0:8050/';
     if (ext != null)
         localBase += ext;
