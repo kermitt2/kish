@@ -14,7 +14,7 @@ The main sentence to be characterized might be annotated by mention tags (softwa
 
 Below, an example of a target sentence with two software mentions (`ImageJ` and `scripts in MATLAB`). Only the first one marked in focus `ImageJ` should be considered when characterizing the context.
 
-![](images/markdown/screen01.png) 
+![](https://github.com/kermitt2/kish/blob/master/resources/static/images/markdown/screen01.png) 
 
 
 ### Used
